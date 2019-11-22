@@ -26,6 +26,15 @@ class OppgaveService(
 
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
+    // for melding fra kafka topic fra journal eller mottak
+    fun opprettOppgaveFraMelding(melding: OppgaveMelding) {
+
+
+
+
+    }
+
+
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
     fun opprettOppgave(
             sedType: SedType,
