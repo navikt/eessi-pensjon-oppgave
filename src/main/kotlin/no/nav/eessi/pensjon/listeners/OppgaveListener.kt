@@ -33,7 +33,7 @@ class OppgaveListener(
 
 
     @KafkaListener(topics = ["\${kafka.oppgave.topic}"], groupId = "\${kafka.oppgave.groupid}")
-    fun consumeSedSendt(melding: String, cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+    fun consumeOppgaveMelding(melding: String, cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
             metricsHelper.measure("consumeOutgoingSed") {
                 logger.info("Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}")

@@ -29,8 +29,7 @@ class OppgaveService(
     // for melding fra kafka topic fra journal eller mottak
     fun opprettOppgaveFraMelding(melding: OppgaveMelding) {
 
-
-
+            logger.debug("mottatt oppgave melding: $melding")
 
     }
 
