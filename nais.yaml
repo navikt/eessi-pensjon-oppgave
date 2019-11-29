@@ -34,18 +34,13 @@ fasitResources:
       resourceType: ApplicationProperties
     - alias: kafka_bootstrap_servers
       resourceType: baseurl
-    - alias: srveessi-pensjon-journalforing
+    - alias: srveessi-pensjon-oppgave
       resourceType: credential
       propertyMap:
         username: srvusername
         password: srvpassword
-    - alias: eux-rina-api_v1
-      resourceType: RestService
     - alias: Journalpost_v1
       resourceType: RestService
-    #TPS
-    - alias: virksomhet:Person_v3
-      resourceType: WebserviceEndpoint
     #Brukes av nye rest tjenester
     - alias: security-token-service-openid-configuration
       resourceType: RestService
@@ -53,12 +48,6 @@ fasitResources:
     - alias: securityTokenService
       resourceType: BaseUrl
     - alias: oppgave.oppgaver
-      resourceType: RestService
-    - alias: aktoerregister.api.v1
-      resourceType: RestService
-    - alias: eessifagmodulservice
-      resourceType: RestService
-    - alias: eessipennorg2service
       resourceType: RestService
 
 

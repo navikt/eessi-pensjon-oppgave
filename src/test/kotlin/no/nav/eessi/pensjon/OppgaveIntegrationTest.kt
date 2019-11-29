@@ -1,0 +1,185 @@
+package no.nav.eessi.pensjon
+
+import io.mockk.slot
+import io.mockk.*
+import no.nav.eessi.pensjon.json.toJson
+import no.nav.eessi.pensjon.listeners.OppgaveListener
+import no.nav.eessi.pensjon.services.oppgave.OppgaveMelding
+import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
+import org.junit.jupiter.api.Test
+import org.mockserver.integration.ClientAndServer
+import org.mockserver.model.*
+import org.mockserver.model.HttpRequest.request
+import org.mockserver.verify.VerificationTimes
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.listener.ContainerProperties
+import org.springframework.kafka.listener.KafkaMessageListenerContainer
+import org.springframework.kafka.listener.MessageListener
+import org.springframework.kafka.test.EmbeddedKafkaBroker
+import org.springframework.kafka.test.context.EmbeddedKafka
+import org.springframework.kafka.test.utils.ContainerTestUtils
+import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.messaging.support.MessageBuilder
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.time.LocalDate
+import java.util.*
+import java.util.concurrent.TimeUnit
+import javax.ws.rs.HttpMethod
+
+private const val OPPGAVE_TOPIC = "eessi-pensjon-oppgave-v1"
+
+private lateinit var mockServer : ClientAndServer
+
+@SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
+@ActiveProfiles("integrationtest")
+@DirtiesContext
+@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC])
+class OppgaveIntegrationTest {
+
+    @Autowired
+    lateinit var embeddedKafka: EmbeddedKafkaBroker
+
+    @Autowired
+    lateinit var oppgaveListener: OppgaveListener
+
+    @Test
+    fun `Når en oppgavehendelse blir konsumert skal det opprettes en oppgave`() {
+
+        // Vent til kafka er klar
+        val container = settOppUtitlityConsumer(OPPGAVE_TOPIC)
+        container.start()
+        ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
+
+        // Sett opp producer
+        val oppgaveProducerTemplate = settOppProducerTemplate(OPPGAVE_TOPIC)
+
+        produserOppgaveHendelser(oppgaveProducerTemplate)
+
+        // Venter på at sedListener skal consumeSedSendt meldingene
+        oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
+
+        // Verifiserer alle kall
+        verifiser()
+
+        // Shutdown
+        shutdown(container)
+    }
+
+    private fun produserOppgaveHendelser(template: KafkaTemplate<Int, String>) {
+        val melding = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))
+        val messageBuilder = MessageBuilder.withPayload(melding)
+        val message = messageBuilder.build()
+        template.send(message)
+    }
+
+    private fun shutdown(container: KafkaMessageListenerContainer<String, OppgaveMelding>) {
+        mockServer.stop()
+        container.stop()
+        embeddedKafka.kafkaServers.forEach { it.shutdown() }
+    }
+
+    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<Int, String> {
+        val senderProps = KafkaTestUtils.senderProps(embeddedKafka.brokersAsString)
+        val pf = DefaultKafkaProducerFactory<Int, String>(senderProps)
+        val template = KafkaTemplate(pf)
+        template.defaultTopic = topicNavn
+        return template
+    }
+
+    private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, OppgaveMelding> {
+        val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2",
+                "false",
+                embeddedKafka)
+        consumerProperties["auto.offset.reset"] = "earliest"
+
+        val consumerFactory = DefaultKafkaConsumerFactory<String, OppgaveMelding>(consumerProperties)
+        val containerProperties = ContainerProperties(topicNavn)
+        val container = KafkaMessageListenerContainer<String, OppgaveMelding>(consumerFactory, containerProperties)
+        val messageListener = MessageListener<String, OppgaveMelding> { record -> println("Konsumerer melding:  $record") }
+        container.setupMessageListener(messageListener)
+
+        return container
+    }
+
+
+    companion object {
+
+        init {
+            // Start Mockserver in memory
+            val lineSeparator = System.lineSeparator()
+            val port = randomFrom()
+            mockServer = ClientAndServer.startClientAndServer(port)
+            System.setProperty("mockServerport", port.toString())
+
+            // Mocker oppgavetjeneste
+            mockServer.`when`(
+                    HttpRequest.request()
+                            .withMethod(HttpMethod.POST)
+                            .withPath("/")
+                            .withBody("{$lineSeparator"+
+                                    "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator"  +
+                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                    "  \"journalpostId\" : \"429434378\",$lineSeparator" +
+                                    "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                                    "  \"beskrivelse\" : \"Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161\",$lineSeparator" +
+                                    "  \"tema\" : \"PEN\",$lineSeparator" +
+                                    "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
+                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                    "}"))
+                    .respond(HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                    )
+
+        }
+
+        private fun randomFrom(from: Int = 1024, to: Int = 65535): Int {
+            val random = Random()
+            return random.nextInt(to - from) + from
+        }
+    }
+
+    private fun verifiser() {
+        val lineSeparator = System.lineSeparator()
+        //assertEquals(0, sedListener.getLatch().count, "Alle meldinger har ikke blitt konsumert")
+//        assertEquals(0, oppgaveListener.getLatch().count)
+
+        // Verifiserer at det har blitt forsøkt å opprette PEN oppgave med aktørid
+        mockServer.verify(
+                request()
+                        .withMethod(HttpMethod.POST)
+                        .withPath("/")
+                        .withBody("{$lineSeparator" +
+                                "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator" +
+                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                "  \"journalpostId\" : \"429434378\",$lineSeparator" +
+                                "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161\",$lineSeparator" +
+                                "  \"tema\" : \"PEN\",$lineSeparator" +
+                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
+                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                "}"),
+                VerificationTimes.exactly(1)
+        )
+    }
+
+    @TestConfiguration
+    class TestConfig{
+
+    }
+}
