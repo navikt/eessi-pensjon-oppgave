@@ -1,11 +1,8 @@
 package no.nav.eessi.pensjon
 
-import io.mockk.slot
-import io.mockk.*
-import no.nav.eessi.pensjon.json.toJson
+import junit.framework.Assert.assertEquals
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.oppgave.OppgaveMelding
-import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
@@ -14,8 +11,6 @@ import org.mockserver.verify.VerificationTimes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -26,7 +21,6 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
-import org.springframework.messaging.support.MessageBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Files
@@ -75,11 +69,21 @@ class OppgaveIntegrationTest {
         shutdown(container)
     }
 
-    private fun produserOppgaveHendelser(template: KafkaTemplate<Int, String>) {
-        val melding = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))
-        val messageBuilder = MessageBuilder.withPayload(melding)
-        val message = messageBuilder.build()
-        template.send(message)
+    private fun produserOppgaveHendelser(template: KafkaTemplate<String, OppgaveMelding>) {
+        //MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))).build()
+        val topic = template.defaultTopic
+
+        //template.sendDefault(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
+        template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
+
+
+        //template.send(MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))).build())
+        //template.sendDefault(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
+        template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
+
+        //template.send(MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))).build())
+        //template.sendDefault(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
+        template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
     }
 
     private fun shutdown(container: KafkaMessageListenerContainer<String, OppgaveMelding>) {
@@ -88,18 +92,16 @@ class OppgaveIntegrationTest {
         embeddedKafka.kafkaServers.forEach { it.shutdown() }
     }
 
-    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<Int, String> {
+    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, OppgaveMelding> {
         val senderProps = KafkaTestUtils.senderProps(embeddedKafka.brokersAsString)
-        val pf = DefaultKafkaProducerFactory<Int, String>(senderProps)
+        val pf = DefaultKafkaProducerFactory<String, OppgaveMelding>(senderProps)
         val template = KafkaTemplate(pf)
         template.defaultTopic = topicNavn
         return template
     }
 
     private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, OppgaveMelding> {
-        val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2",
-                "false",
-                embeddedKafka)
+        val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
         consumerProperties["auto.offset.reset"] = "earliest"
 
         val consumerFactory = DefaultKafkaConsumerFactory<String, OppgaveMelding>(consumerProperties)
@@ -127,6 +129,27 @@ class OppgaveIntegrationTest {
                             .withMethod(HttpMethod.POST)
                             .withPath("/")
                             .withBody("{$lineSeparator"+
+                                    "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator"  +
+                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                    "  \"journalpostId\" : \"429434380\",$lineSeparator" +
+                                    "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
+                                    "  \"beskrivelse\" : \"Utgående P3000_NO - Landsspesifikk informasjon - Norge / Rina saksnr: 24242424\",$lineSeparator" +
+                                    "  \"tema\" : \"PEN\",$lineSeparator" +
+                                    "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
+                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                    "}"))
+                    .respond(HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                    )
+            mockServer.`when`(
+                    HttpRequest.request()
+                            .withMethod(HttpMethod.POST)
+                            .withPath("/")
+                            .withBody("{$lineSeparator"+
                                     "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator"  +
                                     "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
                                     "  \"journalpostId\" : \"429434378\",$lineSeparator" +
@@ -143,10 +166,30 @@ class OppgaveIntegrationTest {
                             .withStatusCode(HttpStatusCode.OK_200.code())
                             .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                     )
+            mockServer.`when`(
+                    HttpRequest.request()
+                            .withMethod(HttpMethod.POST)
+                            .withPath("/")
+                            .withBody("{$lineSeparator" +
+                                    "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
+                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                    "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                                    "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc  tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
+                                    "  \"tema\" : \"PEN\",$lineSeparator" +
+                                    "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
+                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                    "}"))
+                    .respond(HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                    )
 
         }
 
-        private fun randomFrom(from: Int = 1024, to: Int = 65535): Int {
+        private fun randomFrom(from: Int = 2024, to: Int = 55535): Int {
             val random = Random()
             return random.nextInt(to - from) + from
         }
@@ -154,8 +197,7 @@ class OppgaveIntegrationTest {
 
     private fun verifiser() {
         val lineSeparator = System.lineSeparator()
-        //assertEquals(0, sedListener.getLatch().count, "Alle meldinger har ikke blitt konsumert")
-//        assertEquals(0, oppgaveListener.getLatch().count)
+        assertEquals(0, oppgaveListener.getLatch().count)
 
         // Verifiserer at det har blitt forsøkt å opprette PEN oppgave med aktørid
         mockServer.verify(
@@ -176,6 +218,43 @@ class OppgaveIntegrationTest {
                                 "}"),
                 VerificationTimes.exactly(1)
         )
+
+        mockServer.verify(
+                request()
+                        .withMethod(HttpMethod.POST)
+                        .withPath("/")
+                        .withBody("{$lineSeparator" +
+                                "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator" +
+                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                "  \"journalpostId\" : \"429434378\",$lineSeparator" +
+                                "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161\",$lineSeparator" +
+                                "  \"tema\" : \"PEN\",$lineSeparator" +
+                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
+                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                "}"),
+                VerificationTimes.exactly(1)
+        )
+        mockServer.verify(
+                request()
+                        .withMethod(HttpMethod.POST)
+                        .withPath("/")
+                        .withBody("{$lineSeparator" +
+                                "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
+                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc  tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
+                                "  \"tema\" : \"PEN\",$lineSeparator" +
+                                "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
+                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                "}"),
+                VerificationTimes.exactly(1)
+        )
+
     }
 
     @TestConfiguration

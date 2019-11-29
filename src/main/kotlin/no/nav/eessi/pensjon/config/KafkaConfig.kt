@@ -14,13 +14,13 @@ class KafkaConfig()  {
     /**
      * Denne konfigurasjonen forsøker å behandle en melding en gang og stopper videre behandling av nye meldinger dersom det feiler
      */
-//    @Bean
-//    fun kafkaListenerContainerFactory(configurer: ConcurrentKafkaListenerContainerFactoryConfigurer,
-//                                      kafkaConsumerFactory: ConsumerFactory<Any, Any>,
-//                                      kafkaErrorHandler: KafkaErrorHandler): ConcurrentKafkaListenerContainerFactory<*, *> {
-//        val factory = ConcurrentKafkaListenerContainerFactory<Any, Any>()
-//        configurer.configure(factory, kafkaConsumerFactory)
-//        factory.setErrorHandler(kafkaErrorHandler)
-//        return factory
-//    }
+    @Bean
+    fun kafkaListenerContainerFactory(configurer: ConcurrentKafkaListenerContainerFactoryConfigurer,
+                                      kafkaConsumerFactory: ConsumerFactory<Any, Any>,
+                                      kafkaErrorHandler: KafkaErrorHandler): ConcurrentKafkaListenerContainerFactory<*, *> {
+        val factory = ConcurrentKafkaListenerContainerFactory<Any, Any>()
+        configurer.configure(factory, kafkaConsumerFactory)
+        factory.setErrorHandler(kafkaErrorHandler)
+        return factory
+    }
 }

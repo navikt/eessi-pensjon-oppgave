@@ -1,9 +1,11 @@
 package no.nav.eessi.pensjon.services.oppgave
 
 import no.nav.eessi.pensjon.json.mapJsonToAny
+import no.nav.eessi.pensjon.json.toJson
 import no.nav.eessi.pensjon.json.typeRefs
 
 data class OppgaveMelding(
+        val sakNr: String?,
         val sedType : String,
         val journalpostId : String?,
         val tildeltEnhetsnr : String,
@@ -13,6 +15,9 @@ data class OppgaveMelding(
         val hendelseType : String?,
         var filnavn : String?
     ) {
+    override fun toString(): String {
+        return toJson()
+    }
     companion object {
         fun fromJson(json: String) = mapJsonToAny(json, typeRefs<OppgaveMelding>())
     }

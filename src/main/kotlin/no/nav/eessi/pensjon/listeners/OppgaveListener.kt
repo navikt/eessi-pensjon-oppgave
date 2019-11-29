@@ -21,26 +21,31 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
         @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper(SimpleMeterRegistry())) {
 
     private val logger = LoggerFactory.getLogger(OppgaveListener::class.java)
-    private val latch = CountDownLatch(1)
+    private val latch = CountDownLatch(3)
     private val X_REQUEST_ID = "x_request_id"
 
     fun getLatch(): CountDownLatch {
         return latch
     }
 
-
     @KafkaListener(topics = ["\${kafka.oppgave.topic}"], groupId = "\${kafka.oppgave.groupid}")
     fun consumeOppgaveMelding(@Payload melding: OppgaveMelding, cr: ConsumerRecord<String, OppgaveMelding>, acknowledgment: Acknowledgment) {
         MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
             metricsHelper.measure("consumeOutgoingSed") {
-                logger.info("Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}")
+
+                logger.info("******************************************************************\r\n" +
+                        "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
+                        "******************************************************************")
+
                 logger.debug("oppgave melding : $melding")
                 try {
-//                    val oppgaveMelding = OppgaveMelding.fromJson(melding)
                     val oppgaveMelding = melding
+//                    val oppgaveMelding = OppgaveMelding.fromJson(melding)
                     oppgaveService.opprettOppgaveFraMelding(oppgaveMelding)
                     acknowledgment.acknowledge()
-                    logger.info("Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()}")
+                    logger.info("******************************************************************\n" +
+                            "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
+                            "******************************************************************")
 
                 } catch (ex: Exception) {
                     logger.error("Noe gikk galt under behandling av oppgavemelding:\n $melding \n ${ex.message}", ex)

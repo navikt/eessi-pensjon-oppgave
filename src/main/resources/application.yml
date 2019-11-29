@@ -1,34 +1,43 @@
 kafka:
-  sedSendt:
-    topic: eessi-basis-sedSendt-v1
-    groupid: eessi-pensjon-group
-  sedMottatt:
-    topic: eessi-basis-sedMottatt-v1
-    groupid: eessi-pensjon-group
   oppgave:
     topic: eessi-pensjon-oppgave-v1
     groupid: eessi-pensjon-oppgroup
 
 
 #Spring
+
+
 spring:
+  json:
+    trusted:
+      packages: 'no.nav.eessi.pensjon.services.oppgave'
   kafka:
     listener:
       ack-mode: manual
     consumer:
       enable-auto-commit: false
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS_URL}
+      key-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+    producer:
+      key-serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
+      value-serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
+    bootstrap-servers: '${KAFKA_BOOTSTRAP_SERVERS_URL}'
     properties:
-      security.protocol: SASL_SSL
-      value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicRecordNameStrategy
-      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      spring.json.trusted.packages: 'no.nav.eessi.pensjon.services.oppgave'
+      security.protocol: 'SASL_SSL'
+      value.subject.name.strategy: 'io.confluent.kafka.serializers.subject.TopicRecordNameStrategy'
+      value.serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
+      value.serializer.encoding: 'org.springframework.kafka.support.serializer.JsonSerializer'
       sasl:
-        mechanism: PLAIN
-        jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${srvusername}" password="${srvpassword}";
+        mechanism: 'PLAIN'
+        jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="${srvusername}" password="${srvpassword}"'
+#      key.deserializer: org.apache.kafka.common.serialization.JsonDeserializer
+#      key.serializer: org.apache.kafka.common.serialization.JsonSerializer
+#      value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
 securityTokenService:
   discoveryUrl: ${SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL}
+
 
 #Metrics
 management:

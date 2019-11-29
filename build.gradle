@@ -2,11 +2,10 @@ buildscript {
 
 	ext {
 		kotlinVersion = '1.3.41'
-		springBootVersion = '2.1.6.RELEASE'
+		springBootVersion = '2.2.0.RELEASE'
 		cxfVersion = '3.3.2'
 		oidcTokenSupportVersion = '0.2.9'
 		logstashLogbackVersion = '6.1'
-		pensjonInformasjonVersion = '9.4.10'
 		personV3Version = '3.6.1'
 	}
 	repositories {
@@ -97,14 +96,10 @@ dependencies {
 	// Micrometer
 	implementation("io.micrometer:micrometer-registry-prometheus")
 
-	// Tjenestespesifikasjoner
-	implementation("no.nav.tjenester:nav-person-v3-tjenestespesifikasjon:${personV3Version}")
-	xsd("no.nav.pensjon:pensjonsinformasjon-xsd:${pensjonInformasjonVersion}")
-
 	// PDF box
-	implementation("org.apache.pdfbox:pdfbox-tools:2.0.13")
-	implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.1.1")
-	implementation("com.twelvemonkeys.imageio:imageio-tiff:3.1.1")
+//	implementation("org.apache.pdfbox:pdfbox-tools:2.0.13")
+//	implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.1.1")
+//	implementation("com.twelvemonkeys.imageio:imageio-tiff:3.1.1")
 
 	// Logging
 	implementation("net.logstash.logback:logstash-logback-encoder:${logstashLogbackVersion}")

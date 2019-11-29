@@ -1,7 +1,4 @@
 kafka:
-  sedSendt:
-    topic: eessi-basis-sedSendt-v1
-    groupid: eessi-pensjon-group
   oppgave:
     topic: eessi-pensjon-oppgave-v1
     groupid: eessi-pensjon-oppgroup
@@ -13,8 +10,15 @@ spring:
     consumer:
       enable-auto-commit: false
       auto-offset-reset: earliest
+      key-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+    producer:
+      key-serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
+      value-serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
     bootstrap-servers: ${spring.embedded.kafka.brokers}
     properties:
+      value.serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
+      value.serializer.encoding: 'org.springframework.kafka.support.serializer.JsonSerializer'
       security.protocol: PLAINTEXT
   main:
     allow-bean-definition-overriding: true
