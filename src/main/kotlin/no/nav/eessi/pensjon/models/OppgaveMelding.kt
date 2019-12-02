@@ -1,4 +1,4 @@
-package no.nav.eessi.pensjon.services.oppgave
+package no.nav.eessi.pensjon.models
 
 import no.nav.eessi.pensjon.json.mapJsonToAny
 import no.nav.eessi.pensjon.json.toJson

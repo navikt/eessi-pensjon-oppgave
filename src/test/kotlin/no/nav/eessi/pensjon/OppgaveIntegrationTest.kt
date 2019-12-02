@@ -1,8 +1,9 @@
 package no.nav.eessi.pensjon
 
-import junit.framework.Assert.assertEquals
 import no.nav.eessi.pensjon.listeners.OppgaveListener
-import no.nav.eessi.pensjon.services.oppgave.OppgaveMelding
+import no.nav.eessi.pensjon.models.OppgaveMelding
+import org.apache.kafka.common.serialization.StringSerializer
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
@@ -17,6 +18,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.KafkaMessageListenerContainer
 import org.springframework.kafka.listener.MessageListener
+import org.springframework.kafka.support.serializer.JsonSerializer
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.ContainerTestUtils
@@ -34,6 +36,7 @@ private const val OPPGAVE_TOPIC = "eessi-pensjon-oppgave-v1"
 
 private lateinit var mockServer : ClientAndServer
 
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
@@ -73,7 +76,7 @@ class OppgaveIntegrationTest {
         //MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))).build()
         val topic = template.defaultTopic
 
-        //template.sendDefault(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
+        //template.send(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
         template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
 
 
@@ -94,7 +97,8 @@ class OppgaveIntegrationTest {
 
     private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, OppgaveMelding> {
         val senderProps = KafkaTestUtils.senderProps(embeddedKafka.brokersAsString)
-        val pf = DefaultKafkaProducerFactory<String, OppgaveMelding>(senderProps)
+
+        val pf = DefaultKafkaProducerFactory<String, OppgaveMelding>(senderProps, StringSerializer(), JsonSerializer<OppgaveMelding>())
         val template = KafkaTemplate(pf)
         template.defaultTopic = topicNavn
         return template
@@ -174,7 +178,7 @@ class OppgaveIntegrationTest {
                                     "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
                                     "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
                                     "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                    "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc  tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
+                                    "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
                                     "  \"tema\" : \"PEN\",$lineSeparator" +
                                     "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
                                     "  \"prioritet\" : \"NORM\",$lineSeparator" +
@@ -197,6 +201,7 @@ class OppgaveIntegrationTest {
 
     private fun verifiser() {
         val lineSeparator = System.lineSeparator()
+
         assertEquals(0, oppgaveListener.getLatch().count)
 
         // Verifiserer at det har blitt forsøkt å opprette PEN oppgave med aktørid
@@ -245,7 +250,7 @@ class OppgaveIntegrationTest {
                                 "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
                                 "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
                                 "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc  tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
                                 "  \"tema\" : \"PEN\",$lineSeparator" +
                                 "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
                                 "  \"prioritet\" : \"NORM\",$lineSeparator" +

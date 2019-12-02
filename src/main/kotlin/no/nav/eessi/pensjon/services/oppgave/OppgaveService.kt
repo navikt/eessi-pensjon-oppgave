@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.json.mapAnyToJson
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
+import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.models.SedType
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

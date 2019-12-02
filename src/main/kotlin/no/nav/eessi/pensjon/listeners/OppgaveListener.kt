@@ -2,7 +2,7 @@ package no.nav.eessi.pensjon.listeners
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.services.oppgave.OppgaveMelding
+import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -10,7 +10,6 @@ import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
-import org.springframework.messaging.Message
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
 import java.util.*
@@ -31,7 +30,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
     @KafkaListener(topics = ["\${kafka.oppgave.topic}"], groupId = "\${kafka.oppgave.groupid}")
     fun consumeOppgaveMelding(@Payload melding: OppgaveMelding, cr: ConsumerRecord<String, OppgaveMelding>, acknowledgment: Acknowledgment) {
         MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
-            metricsHelper.measure("consumeOutgoingSed") {
+            metricsHelper.measure("consumeOppgavemelding") {
 
                 logger.info("******************************************************************\r\n" +
                         "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
@@ -39,9 +38,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
 
                 logger.debug("oppgave melding : $melding")
                 try {
-                    val oppgaveMelding = melding
-//                    val oppgaveMelding = OppgaveMelding.fromJson(melding)
-                    oppgaveService.opprettOppgaveFraMelding(oppgaveMelding)
+                    oppgaveService.opprettOppgaveFraMelding(melding)
                     acknowledgment.acknowledge()
                     logger.info("******************************************************************\n" +
                             "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
