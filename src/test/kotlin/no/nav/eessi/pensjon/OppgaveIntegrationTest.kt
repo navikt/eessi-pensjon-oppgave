@@ -4,6 +4,7 @@ import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
@@ -50,6 +51,7 @@ class OppgaveIntegrationTest {
     lateinit var oppgaveListener: OppgaveListener
 
     @Test
+    @Disabled
     fun `Når en oppgavehendelse blir konsumert skal det opprettes en oppgave`() {
 
         // Vent til kafka er klar
