@@ -34,7 +34,7 @@ fasitResources:
       resourceType: ApplicationProperties
     - alias: kafka_bootstrap_servers
       resourceType: baseurl
-    - alias: srveessi-pensjon-oppgave
+    - alias: srveessio
       resourceType: credential
       propertyMap:
         username: srvusername
