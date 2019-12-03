@@ -28,6 +28,10 @@ securityTokenService:
 
 app.name: eessi-pensjon-journalforing
 
+FASIT_ENVIRONMENT_NAME: 'test'
+
+eessi-topic: ${kafka.oppgave.topic}-${FASIT_ENVIRONMENT_NAME}
+
 EUX_RINA_API_V1_URL: http://localhost:${mockServerport}
 securitytokenservice.url: http://someurl
 srvusername: someuser

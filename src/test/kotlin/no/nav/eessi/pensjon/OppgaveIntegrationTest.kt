@@ -33,7 +33,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.ws.rs.HttpMethod
 
-private const val OPPGAVE_TOPIC = "eessi-pensjon-oppgave-v1"
+private const val OPPGAVE_TOPIC = "eessi-pensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 
@@ -75,20 +75,11 @@ class OppgaveIntegrationTest {
     }
 
     private fun produserOppgaveHendelser(template: KafkaTemplate<String, OppgaveMelding>) {
-        //MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))).build()
-        val topic = template.defaultTopic
+        template.send(OPPGAVE_TOPIC, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
 
-        //template.send(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
-        template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
+        template.send(OPPGAVE_TOPIC, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
 
-
-        //template.send(MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))).build())
-        //template.sendDefault(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
-        template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
-
-        //template.send(MessageBuilder.withPayload(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))).build())
-        //template.sendDefault(OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
-        template.send(topic, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
+        template.send(OPPGAVE_TOPIC, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
     }
 
     private fun shutdown(container: KafkaMessageListenerContainer<String, OppgaveMelding>) {

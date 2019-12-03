@@ -8,7 +8,7 @@
 
              -=<>=- Electronic Exchange of Social Security Information  -=<>=-
 
-
+    topic                           : ${eessi-topic}
     fasit env                       : ${FASIT_ENVIRONMENT_NAME}
     active-profiles                 : ${spring.profiles.active}
 

@@ -27,7 +27,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
         return latch
     }
 
-    @KafkaListener(topics = ["\${kafka.oppgave.topic}"], groupId = "\${kafka.oppgave.groupid}")
+    @KafkaListener(topics = ["\${eessi-topic}"], groupId = "\${kafka.oppgave.groupid}")
     fun consumeOppgaveMelding(@Payload melding: OppgaveMelding, cr: ConsumerRecord<String, OppgaveMelding>, acknowledgment: Acknowledgment) {
         MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
             metricsHelper.measure("consumeOppgavemelding") {
