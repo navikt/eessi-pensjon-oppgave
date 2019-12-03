@@ -3,9 +3,7 @@ kafka:
     topic: eessi-pensjon-oppgave-v1
     groupid: eessi-pensjon-oppgroup
 
-
 #Spring
-
 
 spring:
   json:
@@ -30,7 +28,8 @@ spring:
       value.serializer.encoding: 'org.springframework.kafka.support.serializer.JsonSerializer'
       sasl:
         mechanism: 'PLAIN'
-        jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="${srvusername}" password="${srvpassword}"'
+        jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${srvusername}" password="${srvpassword}";
+
 #      key.deserializer: org.apache.kafka.common.serialization.JsonDeserializer
 #      key.serializer: org.apache.kafka.common.serialization.JsonSerializer
 #      value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
