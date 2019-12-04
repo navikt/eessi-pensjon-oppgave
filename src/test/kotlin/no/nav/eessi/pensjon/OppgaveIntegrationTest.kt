@@ -33,7 +33,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.ws.rs.HttpMethod
 
-private const val OPPGAVE_TOPIC = "eessi-pensjon-oppgave-v1-test"
+private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 

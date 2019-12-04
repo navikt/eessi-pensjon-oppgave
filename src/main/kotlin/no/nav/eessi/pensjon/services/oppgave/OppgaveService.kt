@@ -31,6 +31,7 @@ class OppgaveService(
     fun opprettOppgaveFraMelding(melding: OppgaveMelding) {
 
             logger.debug("mottatt oppgave melding: $melding")
+
 //            opprettOppgave(
 //                    SedType.valueOf(melding.sedType),
 //                    melding.journalpostId,
