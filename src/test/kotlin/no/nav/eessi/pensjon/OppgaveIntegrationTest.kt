@@ -42,6 +42,7 @@ private lateinit var mockServer : ClientAndServer
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC])
+@Disabled
 class OppgaveIntegrationTest {
 
     @Autowired
