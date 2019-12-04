@@ -1,9 +1,11 @@
 package no.nav.eessi.pensjon.models
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.json.mapJsonToAny
 import no.nav.eessi.pensjon.json.toJson
 import no.nav.eessi.pensjon.json.typeRefs
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class OppgaveMelding(
         val sakNr: String?,
         val sedType : String,
