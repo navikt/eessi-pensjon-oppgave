@@ -1,5 +1,7 @@
 package no.nav.eessi.pensjon
 
+import no.nav.eessi.pensjon.json.toEmptyJson
+import no.nav.eessi.pensjon.json.toJson
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import org.apache.kafka.common.serialization.StringSerializer
@@ -10,6 +12,7 @@ import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.verify.VerificationTimes
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -24,6 +27,8 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.messaging.Message
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Files
@@ -42,7 +47,6 @@ private lateinit var mockServer : ClientAndServer
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC])
-@Disabled
 class OppgaveIntegrationTest {
 
     @Autowired
@@ -75,12 +79,21 @@ class OppgaveIntegrationTest {
         shutdown(container)
     }
 
+    private fun generateMessageAndXrequest(messagePayload: OppgaveMelding): Message<OppgaveMelding> {
+        val requestId = UUID.randomUUID().toString()
+        val messageBuilder = MessageBuilder.withPayload(messagePayload)
+        val message = messageBuilder.setHeader("X_REQUEST_ID", requestId ).build()
+        return message
+    }
+
     private fun produserOppgaveHendelser(template: KafkaTemplate<String, OppgaveMelding>) {
-        template.send(OPPGAVE_TOPIC, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
 
-        template.send(OPPGAVE_TOPIC, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
+        template.send(OPPGAVE_TOPIC, UUID.randomUUID().toString(), OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
 
-        template.send(OPPGAVE_TOPIC, OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
+        template.send(OPPGAVE_TOPIC, UUID.randomUUID().toString(), OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
+
+        template.send(OPPGAVE_TOPIC, UUID.randomUUID().toString(),  OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
+
     }
 
     private fun shutdown(container: KafkaMessageListenerContainer<String, OppgaveMelding>) {
