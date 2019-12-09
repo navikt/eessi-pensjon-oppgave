@@ -11,10 +11,9 @@ spring:
     consumer:
       enable-auto-commit: false
       key-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
-      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+      value-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
     bootstrap-servers: '${KAFKA_BOOTSTRAP_SERVERS_URL}'
     properties:
-      spring.json.trusted.packages: '*'
       security.protocol: 'SASL_SSL'
       value.subject.name.strategy: 'io.confluent.kafka.serializers.subject.TopicRecordNameStrategy'
       sasl:

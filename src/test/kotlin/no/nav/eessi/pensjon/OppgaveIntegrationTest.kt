@@ -47,6 +47,7 @@ private lateinit var mockServer : ClientAndServer
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC])
+@Disabled
 class OppgaveIntegrationTest {
 
     @Autowired
@@ -79,46 +80,45 @@ class OppgaveIntegrationTest {
         shutdown(container)
     }
 
-    private fun generateMessageAndXrequest(messagePayload: OppgaveMelding): Message<OppgaveMelding> {
-        val requestId = UUID.randomUUID().toString()
-        val messageBuilder = MessageBuilder.withPayload(messagePayload)
-        val message = messageBuilder.setHeader("X_REQUEST_ID", requestId ).build()
-        return message
+    private fun produserOppgaveHendelser(template: KafkaTemplate<String, String>) {
+
+        val key1 = UUID.randomUUID().toString()
+        val data1 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))
+        template.send(OPPGAVE_TOPIC, key1, data1)
+
+        val key2 = UUID.randomUUID().toString()
+        val data2 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))
+        template.send(OPPGAVE_TOPIC, key2, data2)
+
+        val key3 = UUID.randomUUID().toString()
+        val data3 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))
+        template.send(OPPGAVE_TOPIC, key3, data3)
+
     }
 
-    private fun produserOppgaveHendelser(template: KafkaTemplate<String, OppgaveMelding>) {
-
-        template.send(OPPGAVE_TOPIC, UUID.randomUUID().toString(), OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))))
-
-        template.send(OPPGAVE_TOPIC, UUID.randomUUID().toString(), OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))))
-
-        template.send(OPPGAVE_TOPIC, UUID.randomUUID().toString(),  OppgaveMelding.fromJson(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))))
-
-    }
-
-    private fun shutdown(container: KafkaMessageListenerContainer<String, OppgaveMelding>) {
+    private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
         mockServer.stop()
         container.stop()
         embeddedKafka.kafkaServers.forEach { it.shutdown() }
     }
 
-    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, OppgaveMelding> {
+    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
         val senderProps = KafkaTestUtils.senderProps(embeddedKafka.brokersAsString)
 
-        val pf = DefaultKafkaProducerFactory<String, OppgaveMelding>(senderProps, StringSerializer(), JsonSerializer<OppgaveMelding>())
-        val template = KafkaTemplate(pf)
+        val pf = DefaultKafkaProducerFactory<String, String>(senderProps, StringSerializer(), StringSerializer())
+        val template = KafkaTemplate<String, String>(pf)
         template.defaultTopic = topicNavn
         return template
     }
 
-    private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, OppgaveMelding> {
+    private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, String> {
         val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
         consumerProperties["auto.offset.reset"] = "earliest"
 
-        val consumerFactory = DefaultKafkaConsumerFactory<String, OppgaveMelding>(consumerProperties)
+        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(consumerProperties)
         val containerProperties = ContainerProperties(topicNavn)
-        val container = KafkaMessageListenerContainer<String, OppgaveMelding>(consumerFactory, containerProperties)
-        val messageListener = MessageListener<String, OppgaveMelding> { record -> println("Konsumerer melding:  $record") }
+        val container = KafkaMessageListenerContainer<String, String>(consumerFactory, containerProperties)
+        val messageListener = MessageListener<String, String> { record -> println("Konsumerer melding:  $record") }
         container.setupMessageListener(messageListener)
 
         return container

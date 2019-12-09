@@ -10,15 +10,8 @@ spring:
     consumer:
       enable-auto-commit: false
       auto-offset-reset: earliest
-      key-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
-      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
-    producer:
-      key-serializer: 'org.apache.kafka.common.serialization.StringSerializer'
-      value-serializer: 'org.springframework.kafka.support.serializer.JsonSerializer'
     bootstrap-servers: ${spring.embedded.kafka.brokers}
     properties:
-      spring.json.trusted.packages: '*'
-      value.subject.name.strategy: 'io.confluent.kafka.serializers.subject.TopicRecordNameStrategy'
       security.protocol: PLAINTEXT
   main:
     allow-bean-definition-overriding: true
@@ -26,7 +19,7 @@ spring:
 securityTokenService:
   discoveryUrl: http://localhost:${mockServerport}/.well-known/openid-configuration
 
-app.name: eessi-pensjon-journalforing
+app.name: eessi-pensjon-oppgave
 
 FASIT_ENVIRONMENT_NAME: 'test'
 
