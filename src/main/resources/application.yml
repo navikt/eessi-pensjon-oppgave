@@ -1,21 +1,17 @@
 kafka:
   oppgave:
-    topic: privat-eessipensjon-oppgave-v1
-    groupid: eessi-pensjon-group
+    topic: 'privat-eessipensjon-oppgave-v1'
+    groupid: 'eessi-pensjon-group'
 
 #Spring
-
 spring:
-#  json:
-#    trusted:
-#      packages: '*'
   kafka:
     listener:
       ack-mode: manual
     consumer:
       enable-auto-commit: false
       key-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
-      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
+#      value-deserializer: 'org.springframework.kafka.support.serializer.JsonDeserializer'
     bootstrap-servers: '${KAFKA_BOOTSTRAP_SERVERS_URL}'
     properties:
       spring.json.trusted.packages: '*'
@@ -31,11 +27,24 @@ securityTokenService:
 eessi-topic: ${kafka.oppgave.topic}-${FASIT_ENVIRONMENT_NAME}
 
 #Metrics
+#management:
+#  endpoints:
+#    metrics.enabled: true
+#    web.exposure.include: '*'
+#    export.prometheus.enabled: true
+#    prometheus.enabled: true
+
 management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
   endpoints:
-    metrics.enabled: true
-    web.exposure.include: '*'
-    export.prometheus.enabled: true
-    prometheus.enabled: true
+    web:
+      exposure:
+        include: info, health, metrics, prometheus
+  endpoint:
+    info:
+      show-details: "ALWAYS"
 
 no.nav.orgnummer: 889640782
