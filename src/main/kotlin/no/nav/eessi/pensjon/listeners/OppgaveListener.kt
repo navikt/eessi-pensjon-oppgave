@@ -28,59 +28,57 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
         return latch
     }
 
+//    @KafkaListener(topics = ["\${eessi-topic}"], groupId = "\${kafka.oppgave.groupid}")
+//    fun consumeSedSendt(melding: String, cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+//        MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
+//            metricsHelper.measure("consumeOutgoingSed") {
+//                logger.info("Innkommet sedSendt hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}")
+//                logger.debug(melding)
+//                try {
+//                    oppgaveService.opprettOppgaveFraMelding(OppgaveMelding.fromJson(melding))
+//                    acknowledgment.acknowledge()
+//                    logger.info("Acket sedSendt melding med offset: ${cr.offset()} i partisjon ${cr.partition()}")
+//                } catch (ex: Exception) {
+//                    logger.error("Noe gikk galt under behandling av SED-hendelse:\n $melding \n" + "${ex.message}",
+//                            ex
+//                    )
+//                    throw RuntimeException(ex.message)
+//                }
+//                latch.countDown()
+//            }
+//        }
+//    }
 
     @KafkaListener(topics = ["\${eessi-topic}"], groupId = "\${kafka.oppgave.groupid}")
-    fun consumeSedSendt(melding: String, cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
-        MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
-            metricsHelper.measure("consumeOutgoingSed") {
-                logger.info("Innkommet sedSendt hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}")
-                logger.debug(melding)
+    fun consumeOppgaveMelding(cr: ConsumerRecord<String, OppgaveMelding>,  acknowledgment: Acknowledgment, @Payload melding: OppgaveMelding) {
+        MDC.putCloseable("x_request_id", createUUID(cr)).use {
+            metricsHelper.measure("consumeOppgavemelding") {
+
+                logger.info("******************************************************************\r\n" +
+                        "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
+                        "******************************************************************")
+
+                logger.debug("oppgave melding : $melding")
                 try {
-                    oppgaveService.opprettOppgaveFraMelding(OppgaveMelding.fromJson(melding))
+                    oppgaveService.opprettOppgaveFraMelding(melding)
                     acknowledgment.acknowledge()
-                    logger.info("Acket sedSendt melding med offset: ${cr.offset()} i partisjon ${cr.partition()}")
+                    logger.info("******************************************************************\n" +
+                            "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
+                            "******************************************************************")
+
                 } catch (ex: Exception) {
-                    logger.error("Noe gikk galt under behandling av SED-hendelse:\n $melding \n" + "${ex.message}",
-                            ex
-                    )
+                    logger.error("Noe gikk galt under behandling av oppgavemelding:\n $melding \n ${ex.message}", ex)
                     throw RuntimeException(ex.message)
                 }
-                latch.countDown()
+            latch.countDown()
             }
         }
     }
 
-
-//    @KafkaListener(topics = ["\${eessi-topic}"], groupId = "\${kafka.oppgave.groupid}", containerFactory = "kafkaListenerContainerFactory")
-//    fun consumeOppgaveMelding(cr: ConsumerRecord<String, OppgaveMelding>,  acknowledgment: Acknowledgment, @Payload melding: OppgaveMelding) {
-//        MDC.putCloseable("x_request_id", createUUID(cr)).use {
-//            metricsHelper.measure("consumeOppgavemelding") {
-//
-//                logger.info("******************************************************************\r\n" +
-//                        "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
-//                        "******************************************************************")
-//
-//                logger.debug("oppgave melding : $melding")
-//                try {
-//                    oppgaveService.opprettOppgaveFraMelding(melding)
-//                    acknowledgment.acknowledge()
-//                    logger.info("******************************************************************\n" +
-//                            "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
-//                            "******************************************************************")
-//
-//                } catch (ex: Exception) {
-//                    logger.error("Noe gikk galt under behandling av oppgavemelding:\n $melding \n ${ex.message}", ex)
-//                    throw RuntimeException(ex.message)
-//                }
-//            latch.countDown()
-//            }
-//        }
-//    }
-//
-//    private fun createUUID(cr: ConsumerRecord<String, OppgaveMelding>): String {
-//        val key = cr.key() ?: UUID.randomUUID().toString()
-//        logger.debug("x-request_id : $key")
-//        return key
-//    }
+    private fun createUUID(cr: ConsumerRecord<String, OppgaveMelding>): String {
+        val key = cr.key() ?: UUID.randomUUID().toString()
+        logger.debug("x-request_id : $key")
+        return key
+    }
 
 }

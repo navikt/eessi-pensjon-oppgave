@@ -16,22 +16,11 @@ class MetricsHelper(val registry: MeterRegistry, @Autowired(required = false) va
      */
     @PostConstruct
     fun initCounters() {
-        listOf("journalforOgOpprettOppgaveForSed",
-                "consumeOutgoingSed",
-                "consumeIncomingSed",
-                "pdfConverter",
-                "disoverSTS",
+        listOf("disoverSTS",
                 "getSystemOidcToken",
                 "aktoerregister",
-                "hentSed",
-                "hentpdf",
-                "hentSeds",
-                "hentSed",
-                "hentYtelseKravtype",
-                "opprettjournalpost",
-                "hentArbeidsfordeling",
                 "opprettoppgave",
-                "hentperson"
+                "consumeOppgavemelding"
                 ).forEach {counterName ->
             Counter.builder(configuration.measureMeterName)
                     .tag(configuration.typeTag, configuration.successTypeTagValue)
