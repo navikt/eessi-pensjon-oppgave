@@ -10,14 +10,14 @@ spring:
       ack-mode: manual
     consumer:
       enable-auto-commit: false
-      key-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
-      value-deserializer: 'org.apache.kafka.common.serialization.StringDeserializer'
-    bootstrap-servers: '${KAFKA_BOOTSTRAP_SERVERS_URL}'
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS_URL}
     properties:
-      security.protocol: 'SASL_SSL'
-      value.subject.name.strategy: 'io.confluent.kafka.serializers.subject.TopicRecordNameStrategy'
+      security.protocol: SASL_SSL
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicRecordNameStrategy
+      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       sasl:
-        mechanism: 'PLAIN'
+        mechanism: PLAIN
         jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${srvusername}" password="${srvpassword}";
 
 securityTokenService:
