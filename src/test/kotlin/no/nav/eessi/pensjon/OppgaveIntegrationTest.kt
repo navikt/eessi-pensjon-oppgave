@@ -1,18 +1,15 @@
 package no.nav.eessi.pensjon
 
-import no.nav.eessi.pensjon.json.toEmptyJson
-import no.nav.eessi.pensjon.json.toJson
+
 import no.nav.eessi.pensjon.listeners.OppgaveListener
-import no.nav.eessi.pensjon.models.OppgaveMelding
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.verify.VerificationTimes
-import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -22,13 +19,10 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.KafkaMessageListenerContainer
 import org.springframework.kafka.listener.MessageListener
-import org.springframework.kafka.support.serializer.JsonSerializer
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
-import org.springframework.messaging.Message
-import org.springframework.messaging.support.MessageBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Files
@@ -47,7 +41,6 @@ private lateinit var mockServer : ClientAndServer
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC])
-@Disabled
 class OppgaveIntegrationTest {
 
     @Autowired
@@ -57,7 +50,6 @@ class OppgaveIntegrationTest {
     lateinit var oppgaveListener: OppgaveListener
 
     @Test
-    @Disabled
     fun `Når en oppgavehendelse blir konsumert skal det opprettes en oppgave`() {
 
         // Vent til kafka er klar
@@ -115,12 +107,11 @@ class OppgaveIntegrationTest {
         val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
         consumerProperties["auto.offset.reset"] = "earliest"
 
-        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(consumerProperties)
+        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(consumerProperties, StringDeserializer(), StringDeserializer())
         val containerProperties = ContainerProperties(topicNavn)
         val container = KafkaMessageListenerContainer<String, String>(consumerFactory, containerProperties)
         val messageListener = MessageListener<String, String> { record -> println("Konsumerer melding:  $record") }
         container.setupMessageListener(messageListener)
-
         return container
     }
 
