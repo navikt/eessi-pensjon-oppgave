@@ -6,6 +6,7 @@ import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
 import no.nav.eessi.pensjon.metrics.RequestCountInterceptor
 import no.nav.eessi.pensjon.security.sts.STSService
 import no.nav.eessi.pensjon.security.sts.UsernameToOidcInterceptor
+import org.opensaml.soap.wssecurity.Username
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
@@ -19,7 +20,7 @@ import org.springframework.web.client.RestTemplate
 import java.util.*
 
 @Configuration
-class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
+class RestTemplateConfig(private val meterRegistry: MeterRegistry, private val stsService: STSService) {
 
     @Value("\${oppgave.oppgaver.url}")
     lateinit var oppgaveUrl: String
@@ -39,7 +40,7 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
                         RequestInterceptor(),
                         RequestResponseLoggerInterceptor(),
                         RequestCountInterceptor(meterRegistry),
-                        BasicAuthenticationInterceptor(username, password)
+                        UsernameToOidcInterceptor(stsService)
                 )
                 .build().apply {
                     requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
