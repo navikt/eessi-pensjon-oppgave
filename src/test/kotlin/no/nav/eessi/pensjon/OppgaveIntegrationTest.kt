@@ -125,6 +125,36 @@ class OppgaveIntegrationTest {
             mockServer = ClientAndServer.startClientAndServer(port)
             System.setProperty("mockServerport", port.toString())
 
+            // Mocker STS
+            mockServer.`when`(
+                    HttpRequest.request()
+                            .withMethod(HttpMethod.GET)
+                            .withQueryStringParameter("grant_type", "client_credentials"))
+                    .respond(HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/sts/STStoken.json"))))
+                    )
+
+            // Mocker STS service discovery
+            mockServer.`when`(
+                    HttpRequest.request()
+                            .withMethod(HttpMethod.GET)
+                            .withPath("/.well-known/openid-configuration"))
+                    .respond(HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody(
+                                    "{\n" +
+                                            "  \"issuer\": \"http://localhost:$port\",\n" +
+                                            "  \"token_endpoint\": \"http://localhost:$port/rest/v1/sts/token\",\n" +
+                                            "  \"exchange_token_endpoint\": \"http://localhost:$port/rest/v1/sts/token/exchange\",\n" +
+                                            "  \"jwks_uri\": \"http://localhost:$port/rest/v1/sts/jwks\",\n" +
+                                            "  \"subject_types_supported\": [\"public\"]\n" +
+                                            "}"
+                            )
+                    )
+
             // Mocker oppgavetjeneste
             mockServer.`when`(
                     HttpRequest.request()
