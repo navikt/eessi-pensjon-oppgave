@@ -32,17 +32,16 @@ class OppgaveService(
 
             logger.debug("mottatt oppgave melding: $melding")
 
-//            opprettOppgave(
-//                    SedType.valueOf(melding.sedType),
-//                    melding.journalpostId,
-//                    melding.tildeltEnhetsnr,
-//                    melding.aktoerId,
-//                    melding.oppgaveType,
-//                    melding.rinaSakId,
-//                    melding.filnavn,
-//                    HendelseType.valueOf(melding.hendelseType!!)
-//            )
-
+            opprettOppgave(
+                    SedType.valueOf(melding.sedType),
+                    melding.journalpostId,
+                    melding.tildeltEnhetsnr,
+                    melding.aktoerId,
+                    melding.oppgaveType,
+                    melding.rinaSakId,
+                    melding.filnavn,
+                    HendelseType.valueOf(melding.hendelseType!!)
+            )
     }
 
 
