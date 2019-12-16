@@ -37,11 +37,13 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                         "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
                         "******************************************************************")
 
-                logger.debug("oppgave melding : $melding")
                 try {
+                    logger.info("oppgave melding fra topic : $melding")
                     val oppgaveMelding = OppgaveMelding.fromJson(melding)
+
                     oppgaveService.opprettOppgaveFraMelding(oppgaveMelding)
                     acknowledgment.acknowledge()
+
                     logger.info("******************************************************************\n" +
                             "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
                             "******************************************************************")
