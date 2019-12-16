@@ -30,7 +30,7 @@ class OppgaveService(
     // for melding fra kafka topic fra journal eller mottak
     fun opprettOppgaveFraMelding(melding: OppgaveMelding) {
 
-            logger.debug("mottatt oppgave melding: $melding")
+            logger.debug("mottatt oppgavemelding: $melding")
 
             opprettOppgave(
                     SedType.valueOf(melding.sedType),
@@ -56,6 +56,8 @@ class OppgaveService(
             filnavn: String?,
             hendelseType: HendelseType) {
         metricsHelper.measure("opprettoppgave") {
+
+            logger.info("opprettOppgave: $sedType, $journalpostId, $tildeltEnhetsnr, $aktoerId, $oppgaveType, $rinaSakId, $filnavn, $hendelseType")
             try {
                 val oppgaveTypeMap = mapOf(
                         "GENERELL" to Oppgave.OppgaveType.GENERELL,

@@ -28,9 +28,6 @@
             <encoder>
                 <pattern>%level %logger %msg %n</pattern>
             </encoder>
-<!--            <encoder class="net.logstash.logback.encoder.LogstashEncoder">-->
-<!--                <includeCallerData>true</includeCallerData>-->
-<!--            </encoder>-->
         </appender>
 
         <logger name="io" level="ERROR"/>
