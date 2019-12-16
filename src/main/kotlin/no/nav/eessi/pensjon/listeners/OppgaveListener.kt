@@ -38,7 +38,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                         "******************************************************************")
 
                 try {
-                    logger.info("oppgave melding fra topic : $melding")
+                    logger.info("mottatt oppgavemelding : $melding")
                     val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
                     oppgaveService.opprettOppgaveFraMelding(oppgaveMelding)

@@ -30,7 +30,7 @@ class OppgaveService(
     // for melding fra kafka topic fra journal eller mottak
     fun opprettOppgaveFraMelding(melding: OppgaveMelding) {
 
-            logger.info("mottatt oppgavemelding: $melding")
+            logger.debug("mottatt oppgavemelding: $melding")
 
             opprettOppgave(
                     SedType.valueOf(melding.sedType),
