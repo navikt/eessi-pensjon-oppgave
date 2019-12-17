@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.kafka.annotation.PartitionOffset
-import org.springframework.kafka.annotation.TopicPartition
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
@@ -30,21 +28,8 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
         return latch
     }
 
-
-    @KafkaListener(groupId = "\${kafka.oppgave.groupid}",
-            topicPartitions = [TopicPartition(topic = "\${eessi-topic}",
-                    partitionOffsets = [PartitionOffset(partition = "0", initialOffset = "5")])])
-//    @KafkaListener(topics = ["\${eessi-topic}"], groupId = "\${kafka.oppgave.groupid}")
+    @KafkaListener(topics = ["\${eessi-topic}"], groupId = "\${kafka.oppgave.groupid}")
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
-        if(cr.offset() > 6) {
-            acknowledgment.acknowledge()
-
-            logger.info("******************************************************************\n" +
-                    "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
-                    "******************************************************************")
-            return
-        }
-
         MDC.putCloseable("x_request_id", createUUID(cr)).use {
             metricsHelper.measure("consumeOppgavemelding") {
 
