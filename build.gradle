@@ -95,11 +95,6 @@ dependencies {
 	// Micrometer
 	implementation("io.micrometer:micrometer-registry-prometheus")
 
-	// PDF box
-//	implementation("org.apache.pdfbox:pdfbox-tools:2.0.13")
-//	implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.1.1")
-//	implementation("com.twelvemonkeys.imageio:imageio-tiff:3.1.1")
-
 	// Logging
 	implementation("net.logstash.logback:logstash-logback-encoder:${logstashLogbackVersion}")
 	configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
