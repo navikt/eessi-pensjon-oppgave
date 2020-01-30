@@ -6,14 +6,36 @@ buildscript {
 		cxfVersion = '3.3.4'
 		oidcTokenSupportVersion = '0.2.9'
 		logstashLogbackVersion = '6.3'
-		personV3Version = '3.6.1'
 	}
+
 	repositories {
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
-		maven {
-			url "https://repo.adeo.no/repository/maven-central"
+
+		if (project.hasProperty('github')) {
+			mavenCentral()
+
+			maven {
+				url "https://maven.pkg.github.com/navikt/maven-release"
+				credentials {
+					username = "token"
+					password = "$System.env.GITHUB_TOKEN"
+				}
+			}
+
+			maven {
+				credentials {
+					username = "token"
+					password = "$System.env.GITHUB_TOKEN"
+				}
+
+				setUrl("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
+			}
+		} else {
+			maven {
+				url "https://repo.adeo.no/repository/maven-central"
+			}
+			maven {
+				url "https://repo.adeo.no/repository/maven-releases"
+			}
 		}
 	}
 
@@ -121,11 +143,33 @@ compileTestKotlin {
 }
 
 repositories {
-	maven {
-		url "https://repo.adeo.no/repository/maven-central"
-	}
-	maven {
-		url "https://repo.adeo.no/repository/maven-releases"
+
+	if (project.hasProperty('github')) {
+		mavenCentral()
+
+		maven {
+			url "https://maven.pkg.github.com/navikt/maven-release"
+			credentials {
+				username = "token"
+				password = "$System.env.GITHUB_TOKEN"
+			}
+		}
+
+		maven {
+			credentials {
+				username = "token"
+				password = "$System.env.GITHUB_TOKEN"
+			}
+
+			setUrl("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
+		}
+	} else {
+		maven {
+			url "https://repo.adeo.no/repository/maven-central"
+		}
+		maven {
+			url "https://repo.adeo.no/repository/maven-releases"
+		}
 	}
 }
 

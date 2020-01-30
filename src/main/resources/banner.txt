@@ -9,7 +9,7 @@
              -=<>=- Electronic Exchange of Social Security Information  -=<>=-
 
     topic                           : ${eessi-topic}
-    fasit env                       : ${FASIT_ENVIRONMENT_NAME}
+    fasit env                       : ${NAIS_NAMESPACE}
     active-profiles                 : ${spring.profiles.active}
 
 =====================================================================================================
