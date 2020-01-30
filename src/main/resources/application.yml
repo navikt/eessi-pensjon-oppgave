@@ -23,7 +23,7 @@ spring:
 securityTokenService:
   discoveryUrl: ${SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL}
 
-eessi-topic: ${kafka.oppgave.topic}-${FASIT_ENVIRONMENT_NAME}
+eessi-topic: ${kafka.oppgave.topic}-${NAIS_NAMESPACE}
 
 #Metrics
 management:
