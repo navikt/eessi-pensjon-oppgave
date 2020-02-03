@@ -206,7 +206,7 @@ class OppgaveIntegrationTest {
                                     "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
                                     "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
                                     "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                    "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
+                                    "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt\",$lineSeparator" +
                                     "  \"tema\" : \"PEN\",$lineSeparator" +
                                     "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
                                     "  \"prioritet\" : \"NORM\",$lineSeparator" +
@@ -278,7 +278,7 @@ class OppgaveIntegrationTest {
                                 "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
                                 "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
                                 "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt\",$lineSeparator" +
                                 "  \"tema\" : \"PEN\",$lineSeparator" +
                                 "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
                                 "  \"prioritet\" : \"NORM\",$lineSeparator" +
