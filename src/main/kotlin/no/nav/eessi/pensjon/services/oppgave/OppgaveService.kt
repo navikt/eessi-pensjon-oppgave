@@ -79,7 +79,7 @@ class OppgaveService(
                                 fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                                 beskrivelse = when (oppgaveTypeMap[oppgaveType]) {
                                     Oppgave.OppgaveType.JOURNALFORING -> beskrivelse
-                                    Oppgave.OppgaveType.BEHANDLE_SED -> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff )"
+                                    Oppgave.OppgaveType.BEHANDLE_SED -> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
                                     else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
                                 }), true)
 
