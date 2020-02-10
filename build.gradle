@@ -20,15 +20,6 @@ buildscript {
 					password = "$System.env.GITHUB_TOKEN"
 				}
 			}
-
-			maven {
-				credentials {
-					username = "token"
-					password = "$System.env.GITHUB_TOKEN"
-				}
-
-				setUrl("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
-			}
 		} else {
 			maven {
 				url "https://repo.adeo.no/repository/maven-central"
@@ -63,10 +54,6 @@ apply plugin: 'org.openrepose.gradle.plugins.jaxb'
 
 group = 'no.nav.eessi.pensjon'
 version = '0.0.1-SNAPSHOT'
-
-configurations {
-	xsd
-}
 
 dependencies {
 
@@ -154,15 +141,6 @@ repositories {
 				username = "token"
 				password = "$System.env.GITHUB_TOKEN"
 			}
-		}
-
-		maven {
-			credentials {
-				username = "token"
-				password = "$System.env.GITHUB_TOKEN"
-			}
-
-			setUrl("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
 		}
 	} else {
 		maven {
