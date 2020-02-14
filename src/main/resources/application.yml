@@ -1,6 +1,6 @@
 kafka:
   oppgave:
-    topic: 'privat-eessipensjon-oppgave-v1'
+    topic: ${KAFKA_OPPGAVE_TOPIC}
     groupid: 'eessi-pensjon-group'
 
 #Spring
@@ -23,7 +23,6 @@ spring:
 securityTokenService:
   discoveryUrl: ${SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL}
 
-eessi-topic: ${kafka.oppgave.topic}-${NAIS_NAMESPACE}
 
 #Metrics
 management:
