@@ -5,6 +5,7 @@ import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
@@ -36,6 +37,7 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 
+@Disabled
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
 @ActiveProfiles("integrationtest")
