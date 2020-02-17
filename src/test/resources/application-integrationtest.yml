@@ -1,7 +1,11 @@
+
 kafka:
   oppgave:
     topic: privat-eessipensjon-oppgave-v1-test
     groupid: eessi-pensjon-group
+
+KAFKA_OPPGAVE_TOPIC: '${kafka.oppgave.topic}'
+NAIS_APP_NAME: 'eessi-pensjon-oppgave'
 
 spring:
   kafka:
@@ -19,8 +23,7 @@ spring:
 securityTokenService:
   discoveryUrl: http://localhost:${mockServerport}/.well-known/openid-configuration
 
-app.name: eessi-pensjon-oppgave
-
+app.name: ${NAIS_APP_NAME}
 NAIS_NAMESPACE: 'test'
 
 EUX_RINA_API_V1_URL: http://localhost:${mockServerport}
