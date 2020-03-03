@@ -1,3 +1,6 @@
+![](https://github.com/navikt/eessi-pensjon-oppgave/workflows/Bygg%20og%20deploy%20Q2/badge.svg)
+![](https://github.com/navikt/eessi-pensjon-oppgave/workflows/Manuell%20deploy/badge.svg)
+
 # eessi-pensjon-oppgave
 Opprette oppgave
 
