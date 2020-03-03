@@ -18,7 +18,7 @@ spec:
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave.nais.adeo.no/api/v1/oppgaver
     - name: KAFKA_OPPGAVE_TOPIC
-      value: privat-eessipensjon-oppgave-v1-q2
+      value: privat-eessipensjon-oppgave-v1-p
   image: {{ image }}
   ingresses:
     - https://eessi-pensjon-oppgave.nais.adeo.no
