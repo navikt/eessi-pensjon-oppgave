@@ -104,6 +104,7 @@ dependencies {
 
 	// Micrometer
 	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("no.nav.eessi.pensjon:eessi-pensjon-metrics:0.0.8")
 
 	// Logging
 	implementation("net.logstash.logback:logstash-logback-encoder:${logstashLogbackVersion}")
@@ -132,17 +133,9 @@ compileTestKotlin {
 
 repositories {
 
-	if (project.hasProperty('github')) {
-		mavenCentral()
+	mavenCentral()
 
-		maven {
-			url "https://maven.pkg.github.com/navikt/maven-release"
-			credentials {
-				username = "token"
-				password = "$System.env.GITHUB_TOKEN"
-			}
-		}
-	} else {
+	if (!project.hasProperty('github')) {
 		maven {
 			url "https://repo.adeo.no/repository/maven-central"
 		}
@@ -150,6 +143,22 @@ repositories {
 			url "https://repo.adeo.no/repository/maven-releases"
 		}
 	}
+
+	maven {
+		url = uri("https://maven.pkg.github.com/navikt/maven-release")
+		credentials {
+			username = "token"
+			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
+		}
+	}
+	maven {
+		url = uri("https://maven.pkg.github.com/navikt/eessi-pensjon-metrics")
+		credentials {
+			username = "token"
+			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
+		}
+	}
+
 }
 
 wrapper {
