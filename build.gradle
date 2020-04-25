@@ -137,25 +137,19 @@ repositories {
 
 	if (!project.hasProperty('github')) {
 		maven {
-			url "https://repo.adeo.no/repository/maven-central"
-		}
-		maven {
 			url "https://repo.adeo.no/repository/maven-releases"
 		}
 	}
 
-	maven {
-		url = uri("https://maven.pkg.github.com/navikt/maven-release")
-		credentials {
-			username = "token"
-			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
-		}
-	}
-	maven {
-		url = uri("https://maven.pkg.github.com/navikt/eessi-pensjon-metrics")
-		credentials {
-			username = "token"
-			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
+	["maven-release", "eessi-pensjon-metrics"].each { repo ->
+		String token = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
+		if (!token) throw new NullPointerException("Missing token, you have to set GITHUB_TOKEN or gpr.key, see README")
+		maven {
+			url = uri("https://maven.pkg.github.com/navikt/$repo")
+			credentials {
+				username = "token"
+				password = token
+			}
 		}
 	}
 
