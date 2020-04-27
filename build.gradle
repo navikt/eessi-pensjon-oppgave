@@ -3,29 +3,17 @@ buildscript {
 	ext {
 		kotlinVersion = '1.3.61'
 		springBootVersion = '2.2.2.RELEASE'
-		cxfVersion = '3.3.4'
-		oidcTokenSupportVersion = '0.2.9'
 		logstashLogbackVersion = '6.3'
 	}
 
 	repositories {
+		mavenCentral()
 
-		if (project.hasProperty('github')) {
-			mavenCentral()
-
-			maven {
-				url "https://maven.pkg.github.com/navikt/maven-release"
-				credentials {
-					username = "token"
-					password = "$System.env.GITHUB_TOKEN"
-				}
-			}
-		} else {
-			maven {
-				url "https://repo.adeo.no/repository/maven-central"
-			}
-			maven {
-				url "https://repo.adeo.no/repository/maven-releases"
+		maven {
+			url "https://maven.pkg.github.com/navikt/maven-release"
+			credentials {
+				username = "token"
+				password = "$System.env.GITHUB_TOKEN"
 			}
 		}
 	}
@@ -80,9 +68,6 @@ dependencies {
 	implementation("no.nav.security:oidc-spring-support:0.2.18")
 	implementation("no.nav.security:oidc-test-support:0.2.18")
 
-	// Apache CXF
-	implementation("org.apache.cxf:cxf-spring-boot-starter-jaxws:${cxfVersion}")
-	implementation("org.apache.cxf:cxf-rt-ws-security:${cxfVersion}")
 	implementation("commons-io:commons-io:2.6")
 	
 	// Allows for variable expiration-date of each cache-entry
@@ -134,12 +119,6 @@ compileTestKotlin {
 repositories {
 
 	mavenCentral()
-
-	if (!project.hasProperty('github')) {
-		maven {
-			url "https://repo.adeo.no/repository/maven-releases"
-		}
-	}
 
 	["maven-release", "eessi-pensjon-metrics"].each { repo ->
 		String token = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
