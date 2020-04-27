@@ -42,7 +42,7 @@ private lateinit var mockServer : ClientAndServer
 @SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
-@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC])
+@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties= ["log.dir=out/embedded-kafka"])
 class OppgaveIntegrationTest {
 
     @Autowired
