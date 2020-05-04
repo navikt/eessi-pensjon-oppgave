@@ -15,6 +15,7 @@ import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.annotation.PostConstruct
 
 /**
  * @param metricsHelper Usually injected by Spring Boot, can be set manually in tests - no way to read metrics if not set.
@@ -26,6 +27,13 @@ class OppgaveService(
 ) {
 
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
+
+    private lateinit var opprettoppgave: MetricsHelper.Metric
+
+    @PostConstruct
+    fun initMetrics() {
+        opprettoppgave = metricsHelper.init("opprettoppgave")
+    }
 
     // for melding fra kafka topic fra journal eller mottak
     fun opprettOppgaveFraMelding(melding: OppgaveMelding) {
@@ -55,7 +63,7 @@ class OppgaveService(
             rinaSakId: String,
             filnavn: String?,
             hendelseType: HendelseType) {
-        metricsHelper.measure("opprettoppgave") {
+        opprettoppgave.measure {
 
             logger.info("opprettOppgave: $sedType, $journalpostId, $tildeltEnhetsnr, $aktoerId, $oppgaveType, $rinaSakId, $filnavn, $hendelseType")
             try {

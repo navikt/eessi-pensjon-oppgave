@@ -91,7 +91,7 @@ dependencies {
 
 	// Micrometer
 	implementation("io.micrometer:micrometer-registry-prometheus")
-	implementation("no.nav.eessi.pensjon:eessi-pensjon-metrics:0.1.0")
+	implementation("no.nav.eessi.pensjon:eessi-pensjon-metrics:0.3.1")
 
 	// Logging
 	implementation("net.logstash.logback:logstash-logback-encoder:${logstashLogbackVersion}")

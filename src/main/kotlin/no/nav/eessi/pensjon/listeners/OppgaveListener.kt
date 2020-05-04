@@ -15,6 +15,7 @@ import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import javax.annotation.PostConstruct
 
 @Service
 class OppgaveListener(private val oppgaveService: OppgaveService,
@@ -24,6 +25,13 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
     private val latch = CountDownLatch(3)
     private val X_REQUEST_ID = "x_request_id"
 
+    private lateinit var consumeOppgavemelding: MetricsHelper.Metric
+
+    @PostConstruct
+    fun initMetrics() {
+        consumeOppgavemelding = metricsHelper.init("consumeOppgavemelding")
+    }
+
     fun getLatch(): CountDownLatch {
         return latch
     }
@@ -31,7 +39,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
     @KafkaListener(topics = ["\${kafka.oppgave.topic}"], groupId = "\${kafka.oppgave.groupid}")
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
         MDC.putCloseable("x_request_id", createUUID(cr)).use {
-            metricsHelper.measure("consumeOppgavemelding") {
+            consumeOppgavemelding.measure {
 
                 logger.info("******************************************************************\r\n" +
                         "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
