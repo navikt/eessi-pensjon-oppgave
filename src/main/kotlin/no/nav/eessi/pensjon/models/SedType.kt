@@ -285,8 +285,21 @@ enum class SedType: Code {
     H121 {
         override fun decode() = "H121"
         override fun toString() = "H121 - Melding om medisinsk informasjon / Svar på forespørsel om medisinsk informasjon"
-    }
+    },
 
+    // Seder i R_BUC_02 Motregning av overskytende utbetaling i etterbetalinger er
+    R004 {
+        override fun decode() = "R004"
+        override fun toString() = "R004 - Melding om utbetaling"
+    },
+    R005 {
+        override fun decode() = "R005"
+        override fun toString() = "R005 - Anmodning om motregning i etterbetalinger (foreløpig eller endelig)"
+    },
+    R006 {
+        override fun decode() = "R006"
+        override fun toString() = "R006 - Svar på anmodning om informasjon"
+    }
 }
 
 interface Code {
