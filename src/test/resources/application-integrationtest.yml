@@ -36,3 +36,5 @@ aktoerregister.api.v1.url: http://localhost:${mockServerport}
 virksomhet.person.v3:
   endpointurl: http://localhost:${mockServerport}
 eessipennorg2service_URL: http://localhost:${mockServerport}
+
+requestsamlpolicy.path: "classpath:policy/requestSamlPolicy.xml"

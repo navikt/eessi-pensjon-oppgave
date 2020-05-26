@@ -86,6 +86,8 @@ dependencies {
 	// Architecture tests
 	testImplementation 'com.tngtech.archunit:archunit:0.13.1'
 
+	implementation("no.nav.eessi.pensjon:ep-security-sts:0.0.3")
+
 	// Micrometer
 	implementation("io.micrometer:micrometer-registry-prometheus")
 	implementation("no.nav.eessi.pensjon:ep-metrics:0.3.6")
