@@ -87,6 +87,9 @@ class OppgaveIntegrationTest {
         val data3 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))
         template.send(OPPGAVE_TOPIC, key3, data3)
 
+        val key4 = UUID.randomUUID().toString()
+        val data4 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingR005.json")))
+        template.send(OPPGAVE_TOPIC, key4, data4)
     }
 
     private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
@@ -220,6 +223,28 @@ class OppgaveIntegrationTest {
                             .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                     )
 
+            mockServer.`when`(
+                    HttpRequest.request()
+                            .withMethod(HttpMethod.POST.name)
+                            .withPath("/")
+                            .withBody("{$lineSeparator"+
+                                    "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator"  +
+                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                    "  \"journalpostId\" : \"429434380\",$lineSeparator" +
+                                    "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
+                                    "  \"beskrivelse\" : \"Utgående R005 - Anmodning om motregning i etterbetalinger (foreløpig eller endelig) / Rina saksnr: 24242424\",$lineSeparator" +
+                                    "  \"tema\" : \"PEN\",$lineSeparator" +
+                                    "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
+                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                    "}"))
+                    .respond(HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                    )
+
         }
 
         private fun randomFrom(from: Int = 2024, to: Int = 55535): Int {
@@ -282,6 +307,44 @@ class OppgaveIntegrationTest {
                                 "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt\",$lineSeparator" +
                                 "  \"tema\" : \"PEN\",$lineSeparator" +
                                 "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
+                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                "}"),
+                VerificationTimes.exactly(1)
+        )
+
+        mockServer.verify(
+                request()
+                        .withMethod(HttpMethod.POST.name)
+                        .withPath("/")
+                        .withBody("{$lineSeparator" +
+                                "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator" +
+                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                "  \"journalpostId\" : \"429434380\",$lineSeparator" +
+                                "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Utgående P3000_NO - Landsspesifikk informasjon - Norge / Rina saksnr: 24242424\",$lineSeparator" +
+                                "  \"tema\" : \"PEN\",$lineSeparator" +
+                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
+                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                                "}"),
+                VerificationTimes.exactly(1)
+        )
+
+        mockServer.verify(
+                request()
+                        .withMethod(HttpMethod.POST.name)
+                        .withPath("/")
+                        .withBody("{$lineSeparator" +
+                                "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator" +
+                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                                "  \"journalpostId\" : \"429434380\",$lineSeparator" +
+                                "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
+                                "  \"beskrivelse\" : \"Utgående R005 - Anmodning om motregning i etterbetalinger (foreløpig eller endelig) / Rina saksnr: 24242424\",$lineSeparator" +
+                                "  \"tema\" : \"PEN\",$lineSeparator" +
+                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
                                 "  \"prioritet\" : \"NORM\",$lineSeparator" +
                                 "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
                                 "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
