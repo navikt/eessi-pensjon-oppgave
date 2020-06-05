@@ -37,7 +37,7 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 
-@Suppress("SpringJavaInjectionPointsAutowiringInspection")
+//@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
 @ActiveProfiles("integrationtest")
 @DirtiesContext

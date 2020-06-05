@@ -17,8 +17,8 @@ spring:
     bootstrap-servers: ${spring.embedded.kafka.brokers}
     properties:
       security.protocol: PLAINTEXT
-  main:
-    allow-bean-definition-overriding: true
+#  main:
+#    allow-bean-definition-overriding: true
 
 securityTokenService:
   discoveryUrl: http://localhost:${mockServerport}/.well-known/openid-configuration
@@ -38,3 +38,19 @@ virksomhet.person.v3:
 eessipennorg2service_URL: http://localhost:${mockServerport}
 
 requestsamlpolicy.path: "classpath:policy/requestSamlPolicy.xml"
+
+#Metrics
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: info, health, metrics, prometheus
+  endpoint:
+    info:
+      show-details: "ALWAYS"
+
+no.nav.orgnummer: 889640782
