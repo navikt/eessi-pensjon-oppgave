@@ -99,7 +99,7 @@ class OppgaveIntegrationTest {
     }
 
     private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
-        val senderProps = KafkaTestUtils.senderProps(embeddedKafka.brokersAsString)
+        val senderProps = KafkaTestUtils.producerProps(embeddedKafka.brokersAsString)
 
         val pf = DefaultKafkaProducerFactory<String, String>(senderProps, StringSerializer(), StringSerializer())
         val template = KafkaTemplate<String, String>(pf)

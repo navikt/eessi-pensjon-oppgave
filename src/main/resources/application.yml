@@ -38,5 +38,3 @@ management:
       show-details: "ALWAYS"
 
 no.nav.orgnummer: 889640782
-
-requestsamlpolicy.path: "classpath:policy/requestSamlPolicy.xml"
