@@ -37,8 +37,6 @@ virksomhet.person.v3:
   endpointurl: http://localhost:${mockServerport}
 eessipennorg2service_URL: http://localhost:${mockServerport}
 
-requestsamlpolicy.path: "classpath:policy/requestSamlPolicy.xml"
-
 #Metrics
 management:
   metrics:
