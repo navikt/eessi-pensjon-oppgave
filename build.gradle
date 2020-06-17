@@ -50,7 +50,7 @@ dependencies {
 
     // Spring-boot
     implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.boot:spring-boot-starter-web") {
+    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
         exclude module: 'tomcat-embed-core'
     }
     implementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.36")
