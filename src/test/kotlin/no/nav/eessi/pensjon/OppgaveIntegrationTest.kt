@@ -5,7 +5,6 @@ import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.*
@@ -14,7 +13,6 @@ import org.mockserver.verify.VerificationTimes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.http.HttpMethod
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -37,7 +35,6 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 
-//@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
@@ -131,8 +128,8 @@ class OppgaveIntegrationTest {
 
             // Mocker STS
             mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod(HttpMethod.GET.name)
+                    request()
+                            .withMethod("GET")
                             .withQueryStringParameter("grant_type", "client_credentials"))
                     .respond(HttpResponse.response()
                             .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
@@ -142,8 +139,8 @@ class OppgaveIntegrationTest {
 
             // Mocker STS service discovery
             mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod(HttpMethod.GET.name)
+                    request()
+                            .withMethod("GET")
                             .withPath("/.well-known/openid-configuration"))
                     .respond(HttpResponse.response()
                             .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
@@ -161,8 +158,8 @@ class OppgaveIntegrationTest {
 
             // Mocker oppgavetjeneste
             mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod(HttpMethod.POST.name)
+                    request()
+                            .withMethod("POST")
                             .withPath("/")
                             .withBody("{$lineSeparator"+
                                     "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator"  +
@@ -182,8 +179,8 @@ class OppgaveIntegrationTest {
                             .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                     )
             mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod(HttpMethod.POST.name)
+                    request()
+                            .withMethod("POST")
                             .withPath("/")
                             .withBody("{$lineSeparator"+
                                     "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator"  +
@@ -203,8 +200,8 @@ class OppgaveIntegrationTest {
                             .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                     )
             mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod(HttpMethod.POST.name)
+                    request()
+                            .withMethod("POST")
                             .withPath("/")
                             .withBody("{$lineSeparator" +
                                     "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
@@ -224,8 +221,8 @@ class OppgaveIntegrationTest {
                     )
 
             mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod(HttpMethod.POST.name)
+                    request()
+                            .withMethod("POST")
                             .withPath("/")
                             .withBody("{$lineSeparator"+
                                     "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator"  +
@@ -261,7 +258,7 @@ class OppgaveIntegrationTest {
         // Verifiserer at det har blitt forsøkt å opprette PEN oppgave med aktørid
         mockServer.verify(
                 request()
-                        .withMethod(HttpMethod.POST.name)
+                        .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
                                 "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator" +
@@ -280,7 +277,7 @@ class OppgaveIntegrationTest {
 
         mockServer.verify(
                 request()
-                        .withMethod(HttpMethod.POST.name)
+                        .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
                                 "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator" +
@@ -298,7 +295,7 @@ class OppgaveIntegrationTest {
         )
         mockServer.verify(
                 request()
-                        .withMethod(HttpMethod.POST.name)
+                        .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
                                 "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
@@ -316,7 +313,7 @@ class OppgaveIntegrationTest {
 
         mockServer.verify(
                 request()
-                        .withMethod(HttpMethod.POST.name)
+                        .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
                                 "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator" +
@@ -335,7 +332,7 @@ class OppgaveIntegrationTest {
 
         mockServer.verify(
                 request()
-                        .withMethod(HttpMethod.POST.name)
+                        .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
                                 "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator" +
@@ -355,7 +352,5 @@ class OppgaveIntegrationTest {
     }
 
     @TestConfiguration
-    class TestConfig{
-
-    }
+    class TestConfig
 }
