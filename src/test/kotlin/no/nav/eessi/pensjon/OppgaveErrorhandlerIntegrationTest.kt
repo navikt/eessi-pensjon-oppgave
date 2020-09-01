@@ -83,7 +83,7 @@ class OppgaveErrorhandlerIntegrationTest {
 
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
-        verify(kafkaCustomErrorHandlerBean, times(0)).handle(any(), any(), any(), any());
+        verify(kafkaCustomErrorHandlerBean, times(1)).handle(any(), any(), any(), any());
 
 
         // Shutdown
