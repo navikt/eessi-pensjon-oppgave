@@ -54,6 +54,8 @@ class ArchitectureTest {
         val Metrics = "oppgave.metrics"
         val STS = "oppgave.security.sts"
         val OppgaveService = "oppgave.services.oppgave"
+        val IntegrationTest = "oppgave.integrationtest"
+
 
         val packages: Map<String, String> = mapOf(
                 ROOT to root,
@@ -64,7 +66,8 @@ class ArchitectureTest {
                 STS to "$root.security.sts",
                 Logging to "$root.logging",
                 Metrics to "$root.metrics",
-                OppgaveService to "$root.services.oppgave"
+                OppgaveService to "$root.services.oppgave",
+                IntegrationTest to "$root.integrationtest"
         )
 
         /*
@@ -82,12 +85,13 @@ class ArchitectureTest {
                 .layer(Metrics).definedBy(packages[Metrics])
                 .layer(OppgaveService).definedBy(packages[OppgaveService])
                 .layer(STS).definedBy(packages[STS])
+                .layer(IntegrationTest).definedBy(packages[IntegrationTest])
                 //define rules
                 .whereLayer(ROOT).mayNotBeAccessedByAnyLayer()
-                .whereLayer(Config).mayNotBeAccessedByAnyLayer()
+                .whereLayer(Config).mayOnlyBeAccessedByLayers(IntegrationTest)
                 .whereLayer(Health).mayNotBeAccessedByAnyLayer()
                 .whereLayer(STS).mayOnlyBeAccessedByLayers(Config)
-                .whereLayer(Listeners).mayOnlyBeAccessedByLayers(ROOT)
+                .whereLayer(Listeners).mayOnlyBeAccessedByLayers(IntegrationTest)
                 .whereLayer(Logging).mayOnlyBeAccessedByLayers(Config, STS)
                 .whereLayer(OppgaveService).mayOnlyBeAccessedByLayers(Listeners)
                 //Verify rules

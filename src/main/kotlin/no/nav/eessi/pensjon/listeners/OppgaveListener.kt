@@ -36,7 +36,11 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
         return latch
     }
 
-    @KafkaListener(topics = ["\${kafka.oppgave.topic}"], groupId = "\${kafka.oppgave.groupid}")
+    @KafkaListener(id="oppgaveListener",
+            idIsGroup = false,
+            topics = ["\${kafka.oppgave.topic}"],
+            groupId = "\${kafka.oppgave.groupid}",
+            autoStartup = "false")
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
         MDC.putCloseable("x_request_id", createUUID(cr)).use {
             consumeOppgavemelding.measure {
