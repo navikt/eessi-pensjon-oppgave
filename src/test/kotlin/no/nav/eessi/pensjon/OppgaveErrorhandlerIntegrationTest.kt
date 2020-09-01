@@ -1,27 +1,24 @@
 package no.nav.eessi.pensjon
 
 
-import com.nhaarman.mockitokotlin2.*
-import io.mockk.verify
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.spy
+import com.nhaarman.mockitokotlin2.times
+import com.nhaarman.mockitokotlin2.verify
 import no.nav.eessi.pensjon.config.KafkaConfig
 import no.nav.eessi.pensjon.listeners.OppgaveListener
-import no.nav.eessi.pensjon.security.sts.STSClientConfig
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.Mock
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.Header
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
 import org.mockserver.model.HttpStatusCode
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -86,8 +83,7 @@ class OppgaveErrorhandlerIntegrationTest {
 
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
-
-        verify(exactly =1) {kafkaCustomErrorHandlerBean.handle(any(), any(), any(), any())}
+        verify(kafkaCustomErrorHandlerBean, times(0)).handle(any(), any(), any(), any());
 
 
         // Shutdown
