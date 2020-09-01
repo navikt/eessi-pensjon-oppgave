@@ -1,4 +1,4 @@
-package no.nav.eessi.pensjon
+package no.nav.eessi.pensjon.integrationtest
 
 
 import com.nhaarman.mockitokotlin2.any
@@ -9,7 +9,6 @@ import no.nav.eessi.pensjon.config.KafkaConfig
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.Header
@@ -52,11 +51,10 @@ class OppgaveErrorhandlerIntegrationTest {
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
     @Autowired
-    lateinit var oppgaveListener: OppgaveListener
-
-    @Autowired
     lateinit var kafkaCustomErrorHandlerBean: KafkaConfig.KafkaCustomErrorHandler
 
+    @Autowired
+    lateinit var oppgaveListener: OppgaveListener
 
     @TestConfiguration
     class TestConfig(){
@@ -68,8 +66,7 @@ class OppgaveErrorhandlerIntegrationTest {
     }
 
     @Test
-    fun `Når en oppgavehendelse blir konsumert skal det opprettes en oppgave`() {
-
+    fun `Når en exception skjer så skal kafka-konsumering stoppe`() {
 
         // Vent til kafka er klar
         val container = settOppUtitlityConsumer(OPPGAVE_TOPIC)
@@ -84,7 +81,6 @@ class OppgaveErrorhandlerIntegrationTest {
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
         verify(kafkaCustomErrorHandlerBean, times(1)).handle(any(), any(), any(), any());
-
 
         // Shutdown
         shutdown(container)
@@ -144,8 +140,6 @@ class OppgaveErrorhandlerIntegrationTest {
             val random = Random()
             return random.nextInt(to - from) + from
         }
-
-
     }
 
         private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, String> {
@@ -158,10 +152,5 @@ class OppgaveErrorhandlerIntegrationTest {
             val messageListener = MessageListener<String, String> { record -> println("Konsumerer melding:  $record") }
             container.setupMessageListener(messageListener)
             return container
-        }
-
-
-        private fun verifiser() {
-            assertEquals(1, oppgaveListener.getLatch().count)
         }
     }

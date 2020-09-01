@@ -1,4 +1,4 @@
-package no.nav.eessi.pensjon
+package no.nav.eessi.pensjon.integrationtest
 
 
 import no.nav.eessi.pensjon.listeners.OppgaveListener
@@ -7,8 +7,10 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
-import org.mockserver.model.*
+import org.mockserver.model.Header
 import org.mockserver.model.HttpRequest.request
+import org.mockserver.model.HttpResponse
+import org.mockserver.model.HttpStatusCode
 import org.mockserver.verify.VerificationTimes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
