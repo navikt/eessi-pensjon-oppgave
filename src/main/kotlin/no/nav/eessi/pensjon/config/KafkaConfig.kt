@@ -45,14 +45,15 @@ class KafkaConfig {
         return KafkaCustomErrorHandler()
     }
 
-    class KafkaCustomErrorHandler : ContainerAwareErrorHandler {
+    open class KafkaCustomErrorHandler : ContainerAwareErrorHandler {
         private val logger = LoggerFactory.getLogger(KafkaCustomErrorHandler::class.java)
 
         private val stopper = ContainerStoppingErrorHandler()
 
         override fun handle(thrownException: Exception?,
                             records: MutableList<ConsumerRecord<*, *>>?,
-                            consumer: Consumer<*, *>?, container: MessageListenerContainer?) {
+                            consumer: Consumer<*, *>?,
+                            container: MessageListenerContainer?) {
             val stacktrace = StringWriter()
             thrownException?.printStackTrace(PrintWriter(stacktrace))
 

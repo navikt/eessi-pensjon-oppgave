@@ -1,10 +1,12 @@
 package no.nav.eessi.pensjon
 
 
-import io.mockk.mockk
+import com.nhaarman.mockitokotlin2.*
+import io.mockk.verify
 import no.nav.eessi.pensjon.config.KafkaConfig
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.security.sts.STSClientConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,8 +18,10 @@ import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
 import org.mockserver.model.HttpStatusCode
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -41,7 +45,7 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer: ClientAndServer
 
-@SpringBootTest
+@SpringBootTest()
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka"])
@@ -53,19 +57,22 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
-    @Mock
-    var errorHandler : KafkaConfig.KafkaCustomErrorHandler = KafkaConfig.KafkaCustomErrorHandler()
+    @Autowired
+    lateinit var kafkaCustomErrorHandlerBean: KafkaConfig.KafkaCustomErrorHandler
+
 
     @TestConfiguration
-    class TestConfig(private val stsClientConfig: STSClientConfig){
+    class TestConfig(){
         @Bean
-        fun errorHandlerBean(): KafkaConfig.KafkaCustomErrorHandler {
-            return errorHandler
+        @Primary
+        fun kafkaCustomErrorHandlerBean(): KafkaConfig.KafkaCustomErrorHandler {
+            return spy(KafkaConfig.KafkaCustomErrorHandler())
         }
     }
 
     @Test
     fun `Når en oppgavehendelse blir konsumert skal det opprettes en oppgave`() {
+
 
         // Vent til kafka er klar
         val container = settOppUtitlityConsumer(OPPGAVE_TOPIC)
@@ -80,8 +87,8 @@ class OppgaveErrorhandlerIntegrationTest {
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
 
-        // Verifiserer alle kall
-        verifiser()
+        verify(exactly =1) {kafkaCustomErrorHandlerBean.handle(any(), any(), any(), any())}
+
 
         // Shutdown
         shutdown(container)
