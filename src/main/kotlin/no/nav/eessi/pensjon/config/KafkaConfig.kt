@@ -63,13 +63,9 @@ class KafkaConfig {
         }
 
         fun hentMeldinger(records: MutableList<ConsumerRecord<*, *>>?): String {
-            var meldinger = ""
-            records?.forEach { it ->
-                meldinger += "--------------------------------------------------------------------------------\n"
-                meldinger += it.toString()
-                meldinger += "\n"
-            }
-            return meldinger
+            return records?.joinToString(separator = "") {
+                "--------------------------------------------------------------------------------\n$it\n"
+            } ?: ""
         }
     }
 }
