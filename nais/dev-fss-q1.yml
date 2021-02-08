@@ -16,7 +16,7 @@ spec:
     - name: SECURITYTOKENSERVICE_URL
       value: https://sts-q1.preprod.local/SecurityTokenServiceProvider/
     - name: OPPGAVE_OPPGAVER_URL
-      value: https://oppgave-q1.intern.dev.adeo.no/api/v1/oppgaver
+      value:  https://oppgave-q1.nais.preprod.local/api/v1/oppgaver
     - name: KAFKA_OPPGAVE_TOPIC
       value: privat-eessipensjon-oppgave-v1-q1
   image: {{ image }}
