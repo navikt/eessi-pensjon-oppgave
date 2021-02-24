@@ -282,24 +282,6 @@ class OppgaveIntegrationTest {
                         .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
-                                "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator" +
-                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                "  \"journalpostId\" : \"429434378\",$lineSeparator" +
-                                "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161\",$lineSeparator" +
-                                "  \"tema\" : \"PEN\",$lineSeparator" +
-                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                "}"),
-                VerificationTimes.exactly(1)
-        )
-        mockServer.verify(
-                request()
-                        .withMethod("POST")
-                        .withPath("/")
-                        .withBody("{$lineSeparator" +
                                 "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
                                 "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
                                 "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
