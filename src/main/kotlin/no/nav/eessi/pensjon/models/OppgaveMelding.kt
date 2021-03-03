@@ -7,15 +7,15 @@ import no.nav.eessi.pensjon.json.typeRefs
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class OppgaveMelding(
-        val sakNr: String?,
-        val sedType : String,
-        val journalpostId : String?,
-        val tildeltEnhetsnr : String,
-        val aktoerId : String?,
-        val oppgaveType : String,
-        val rinaSakId : String,
-        val hendelseType : String?,
-        var filnavn : String?
+    val sakNr: String?,
+    val sedType: SedType,
+    val journalpostId: String?,
+    val tildeltEnhetsnr: String,
+    val aktoerId: String?,
+    val oppgaveType: String,
+    val rinaSakId: String,
+    val hendelseType: HendelseType,
+    var filnavn: String?
     ) {
     override fun toString(): String {
         return toJson()
