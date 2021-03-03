@@ -60,7 +60,7 @@ class OppgaveErrorhandlerIntegrationTest {
     class TestConfig(){
         @Bean
         @Primary
-        fun kafkaCustomErrorHandlerBean(): KafkaConfig.KafkaCustomErrorHandler {
+        fun kafkaCustomErrorHandlerSpy(): KafkaConfig.KafkaCustomErrorHandler {
             return spy(KafkaConfig.KafkaCustomErrorHandler())
         }
     }

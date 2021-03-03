@@ -2,7 +2,6 @@ package no.nav.eessi.pensjon.listeners
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -17,13 +16,14 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import javax.annotation.PostConstruct
 
+private const val X_REQUEST_ID = "x_request_id"
+
 @Service
 class OppgaveListener(private val oppgaveService: OppgaveService,
         @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper(SimpleMeterRegistry())) {
 
     private val logger = LoggerFactory.getLogger(OppgaveListener::class.java)
     private val latch = CountDownLatch(3)
-    private val X_REQUEST_ID = "x_request_id"
 
     private lateinit var consumeOppgavemelding: MetricsHelper.Metric
 
@@ -42,7 +42,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
             groupId = "\${kafka.oppgave.groupid}",
             autoStartup = "false")
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
-        MDC.putCloseable("x_request_id", createUUID(cr)).use {
+        MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
 
                 logger.info("******************************************************************\r\n" +
@@ -53,7 +53,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                     logger.info("mottatt oppgavemelding : $melding")
                     val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
-                    oppgaveService.opprettOppgaveFraMelding(oppgaveMelding)
+                    oppgaveService.opprettOppgave(oppgaveMelding)
                     acknowledgment.acknowledge()
 
                     logger.info("******************************************************************\n" +

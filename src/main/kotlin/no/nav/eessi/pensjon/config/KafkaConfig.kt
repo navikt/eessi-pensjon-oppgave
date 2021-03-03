@@ -41,7 +41,7 @@ class KafkaConfig {
     }
 
     @Bean
-    fun KafkaCustomErrorHandlerBean() : KafkaCustomErrorHandler{
+    fun kafkaCustomErrorHandlerBean() : KafkaCustomErrorHandler{
         return KafkaCustomErrorHandler()
     }
 
