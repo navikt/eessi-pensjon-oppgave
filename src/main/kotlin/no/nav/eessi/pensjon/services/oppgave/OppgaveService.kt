@@ -58,7 +58,7 @@ class OppgaveService(
                                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
                                 journalpostId = opprettOppgave.journalpostId,
                                 opprettetAvEnhetsnr = "9999",
-                                tildeltEnhetsnr = if (opprettOppgave.oppgaveType == "KRAV") "" else opprettOppgave.tildeltEnhetsnr,
+                                tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
                                 fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                                 beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
                                     Oppgave.OppgaveType.JOURNALFORING -> beskrivelse
