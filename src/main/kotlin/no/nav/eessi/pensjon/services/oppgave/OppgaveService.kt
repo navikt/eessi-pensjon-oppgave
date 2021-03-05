@@ -42,7 +42,8 @@ class OppgaveService(
                 val oppgaveTypeMap = mapOf(
                         "GENERELL" to Oppgave.OppgaveType.GENERELL,
                         "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
-                        "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED
+                        "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
+                        "KRAV" to Oppgave.OppgaveType.KRAV
                 )
                 val beskrivelse = genererBeskrivelseTekst(opprettOppgave.sedType,
                     opprettOppgave.rinaSakId,
@@ -57,10 +58,11 @@ class OppgaveService(
                                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
                                 journalpostId = opprettOppgave.journalpostId,
                                 opprettetAvEnhetsnr = "9999",
-                                tildeltEnhetsnr = "", // opprettOppgave.tildeltEnhetsnr,
+                                tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
                                 fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                                 beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
                                     Oppgave.OppgaveType.JOURNALFORING -> beskrivelse
+                                    Oppgave.OppgaveType.KRAV -> beskrivelse
                                     Oppgave.OppgaveType.BEHANDLE_SED -> "Mottatt vedlegg: ${opprettOppgave.filnavn} tilhørende RINA sakId: ${opprettOppgave.rinaSakId} mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
                                     else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
                                 }), true)
@@ -138,7 +140,12 @@ private class Oppgave(
         BEHANDLE_SED {
             override fun toString() = "BEH_SED"
             override fun decode() = "Behandle SED"
+        },
+        KRAV {
+            override fun toString() = "KRA"
+            override fun decode() = "Krav"
         }
+
     }
 
     enum class Tema : Code {
