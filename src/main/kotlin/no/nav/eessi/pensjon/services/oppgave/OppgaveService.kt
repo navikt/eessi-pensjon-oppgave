@@ -49,6 +49,8 @@ class OppgaveService(
                     opprettOppgave.rinaSakId,
                     opprettOppgave.hendelseType)
 
+                val behandleSedBeskrivelse = behandleSedBeskrivelse(opprettOppgave)
+
                 val requestBody = mapAnyToJson(
                         Oppgave(
                                 oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
@@ -63,7 +65,8 @@ class OppgaveService(
                                 beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
                                     Oppgave.OppgaveType.JOURNALFORING -> beskrivelse
                                     Oppgave.OppgaveType.KRAV -> beskrivelse
-                                    Oppgave.OppgaveType.BEHANDLE_SED -> "Mottatt vedlegg: ${opprettOppgave.filnavn} tilhørende RINA sakId: ${opprettOppgave.rinaSakId} mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
+                                    Oppgave.OppgaveType.GENERELL -> beskrivelse
+                                    Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse
                                     else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
                                 }), true)
 
@@ -92,6 +95,19 @@ class OppgaveService(
             "Utgående $sedType / Rina saksnr: $rinaSakId"
         }
     }
+
+    fun behandleSedBeskrivelse(oppgaveMelding: OppgaveMelding): String {
+        if (oppgaveMelding.oppgaveType != "BEHANDLE_SED") return ""
+
+        return when {
+            oppgaveMelding.filnavn == null && oppgaveMelding.journalpostId != null && oppgaveMelding.rinaSakId.isNotEmpty() && oppgaveMelding.aktoerId != null && oppgaveMelding.sedType == SedType.P2200 -> "Det er mottatt ${oppgaveMelding.sedType}, med tilhørende RINA sakId: ${oppgaveMelding.rinaSakId}, vurder å opprette krav"
+            oppgaveMelding.filnavn == null && oppgaveMelding.journalpostId != null && oppgaveMelding.rinaSakId.isNotEmpty() && oppgaveMelding.aktoerId != null && oppgaveMelding.sedType != SedType.P2200-> "Det er mottatt ${oppgaveMelding.sedType}, med tilhørende RINA sakId: ${oppgaveMelding.rinaSakId}, følg opp saken"
+            oppgaveMelding.filnavn != null && oppgaveMelding.journalpostId == null && oppgaveMelding.rinaSakId.isNotEmpty()-> "Mottatt vedlegg: ${oppgaveMelding.filnavn} tilhørende RINA sakId: ${oppgaveMelding.rinaSakId} mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
+            else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
+        }
+    }
+
+
 }
 
 private class Oppgave(
@@ -131,7 +147,7 @@ private class Oppgave(
     enum class OppgaveType : Code {
         GENERELL {
             override fun toString() = "GEN"
-            override fun decode() = "Generell oppgave"
+            override fun decode() = "Generell"
         },
         JOURNALFORING {
             override fun toString() = "JFR"
