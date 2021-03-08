@@ -105,11 +105,12 @@ class OppgaveService(
         val rinaSakId = oppgaveMelding.rinaSakId
         val aktoerId = oppgaveMelding.aktoerId
         val sedType = oppgaveMelding.sedType
+        val behandlePBUC03 = filnavn == null && journalpostId != null && aktoerId != null
 
         return when {
-            filnavn == null && journalpostId != null && rinaSakId.isNotEmpty() && aktoerId != null && sedType == SedType.P2200 -> "Det er mottatt $sedType, med tilhørende RINA sakId: $rinaSakId, vurder å opprette krav"
-            filnavn == null && journalpostId != null && rinaSakId.isNotEmpty() && aktoerId != null && sedType != SedType.P2200-> "Det er mottatt $sedType, med tilhørende RINA sakId: $rinaSakId, følg opp saken"
-            filnavn != null && journalpostId == null && rinaSakId.isNotEmpty()-> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
+            behandlePBUC03 && sedType == SedType.P2200 -> "Det er mottatt $sedType, med tilhørende RINA sakId: $rinaSakId, vurder å opprette krav"
+            behandlePBUC03 && sedType != SedType.P2200-> "Det er mottatt $sedType, med tilhørende RINA sakId: $rinaSakId, følg opp saken"
+            filnavn != null && journalpostId == null-> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
             else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
         }
     }
