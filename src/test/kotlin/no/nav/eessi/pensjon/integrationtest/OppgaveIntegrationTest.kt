@@ -306,6 +306,25 @@ class OppgaveIntegrationTest {
 
         mockServer.verify(
                 request()
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody("{$lineSeparator"+
+                            "  \"tildeltEnhetsnr\" : \"4475\",$lineSeparator"  +
+                            "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                            "  \"journalpostId\" : \"429434378\",$lineSeparator" +
+                            "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                            "  \"beskrivelse\" : \"Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 148161, vurder å opprette krav\",$lineSeparator" +
+                            "  \"tema\" : \"PEN\",$lineSeparator" +
+                            "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
+                            "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                            "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                            "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                            "}"),
+                VerificationTimes.exactly(1)
+        )
+
+        mockServer.verify(
+                request()
                         .withMethod("POST")
                         .withPath("/")
                         .withBody("{$lineSeparator" +
