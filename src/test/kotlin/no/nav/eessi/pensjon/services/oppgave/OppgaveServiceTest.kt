@@ -4,7 +4,7 @@ import io.mockk.mockk
 import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.models.SedType
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.web.client.RestTemplate
 
@@ -27,6 +27,16 @@ internal class OppgaveServiceTest {
     @Test
     fun `BehandleSedBeskrivelse for behandling av kravSED P2200 for autojournalføring`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P2200, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, null)
+        val expected = """
+            Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321, vurder å opprette krav
+        """.trimIndent()
+
+        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+    }
+
+    @Test
+    fun `BehandleSedBeskrivelse for behandling av kravSED P2200 for autojournalføring filnavn er tomstreng`() {
+        val oppgaveMelding = OppgaveMelding(null, SedType.P2200, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, "")
         val expected = """
             Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321, vurder å opprette krav
         """.trimIndent()
