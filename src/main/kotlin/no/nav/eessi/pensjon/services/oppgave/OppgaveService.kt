@@ -70,7 +70,7 @@ class OppgaveService(
                     beskrivelse = beskrivelse)
 
             } catch (ex: Exception) {
-                logger.error("En oppstod under opprettelse av oppgave", ex)
+                logger.error("En feil oppstod under opprettelse av oppgave", ex)
                 throw RuntimeException(ex)
             }
 
