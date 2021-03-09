@@ -1,8 +1,7 @@
 package no.nav.eessi.pensjon.services.oppgave
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.eessi.pensjon.json.mapAnyToJson
-import no.nav.eessi.pensjon.json.toJson
+import no.nav.eessi.pensjon.json.toEmptyJson
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
@@ -38,41 +37,51 @@ class OppgaveService(
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
     fun opprettOppgave(opprettOppgave: OppgaveMelding) {
         opprettoppgave.measure {
-            try {
-                val oppgaveTypeMap = mapOf(
-                        "GENERELL" to Oppgave.OppgaveType.GENERELL,
-                        "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
-                        "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
-                        "KRAV" to Oppgave.OppgaveType.KRAV
-                )
-                val beskrivelse = genererBeskrivelseTekst(opprettOppgave.sedType,
-                    opprettOppgave.rinaSakId,
-                    opprettOppgave.hendelseType)
+            val oppgave = try {
 
+                val oppgaveTypeMap = mapOf(
+                    "GENERELL" to Oppgave.OppgaveType.GENERELL,
+                    "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
+                    "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
+                    "KRAV" to Oppgave.OppgaveType.KRAV
+                )
+
+                val generellbeskrivelse = genererBeskrivelseTekst(opprettOppgave.sedType, opprettOppgave.rinaSakId, opprettOppgave.hendelseType)
                 val behandleSedBeskrivelse = behandleSedBeskrivelse(opprettOppgave)
 
-                val requestBody = mapAnyToJson(
-                        Oppgave(
-                                oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
-                                tema = Oppgave.Tema.PENSJON.toString(),
-                                prioritet = Oppgave.Prioritet.NORM.toString(),
-                                aktoerId = opprettOppgave.aktoerId,
-                                aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                                journalpostId = opprettOppgave.journalpostId,
-                                opprettetAvEnhetsnr = "9999",
-                                tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
-                                fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
-                                beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
-                                    Oppgave.OppgaveType.JOURNALFORING -> beskrivelse
-                                    Oppgave.OppgaveType.KRAV -> beskrivelse
-                                    Oppgave.OppgaveType.GENERELL -> beskrivelse
-                                    Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse
-                                    else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
-                                }), true)
+                val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
+                    Oppgave.OppgaveType.JOURNALFORING -> generellbeskrivelse
+                    Oppgave.OppgaveType.KRAV -> generellbeskrivelse
+                    Oppgave.OppgaveType.GENERELL -> generellbeskrivelse
+                    Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse
+                    else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
+                }
+
+                Oppgave(
+                    oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
+                    tema = Oppgave.Tema.PENSJON.toString(),
+                    prioritet = Oppgave.Prioritet.NORM.toString(),
+                    aktoerId = opprettOppgave.aktoerId,
+                    aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+                    journalpostId = opprettOppgave.journalpostId,
+                    opprettetAvEnhetsnr = "9999",
+                    tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
+                    fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
+                    beskrivelse = beskrivelse)
+
+            } catch (ex: Exception) {
+                logger.error("En oppstod under opprettelse av oppgave", ex)
+                throw RuntimeException(ex)
+            }
+
+
+            try {
+                val requestBody = oppgave.toEmptyJson()
+                logger.info("Oppretter oppgave: $requestBody")
 
                 val httpEntity = HttpEntity(requestBody)
-                logger.info("Oppretter oppgave: ${opprettOppgave.toJson()}")
                 oppgaveOidcRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
+
                 logger.info("Opprettet journalforingsoppgave med tildeltEnhetsnr:  ${opprettOppgave.tildeltEnhetsnr}")
             } catch(ex: HttpStatusCodeException) {
                 logger.error("En feil oppstod under opprettelse av oppgave ex: $ex body: ${ex.responseBodyAsString}")
