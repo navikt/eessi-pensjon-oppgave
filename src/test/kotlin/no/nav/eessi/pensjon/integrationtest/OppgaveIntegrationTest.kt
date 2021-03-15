@@ -89,6 +89,11 @@ class OppgaveIntegrationTest {
         val key4 = UUID.randomUUID().toString()
         val data4 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingR005.json")))
         template.send(OPPGAVE_TOPIC, key4, data4)
+
+        val key5 = UUID.randomUUID().toString()
+        val data5 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2200.json")))
+        template.send(OPPGAVE_TOPIC, key5, data5)
+
     }
 
     private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
@@ -202,6 +207,28 @@ class OppgaveIntegrationTest {
                             .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                     )
             mockServer.`when`(
+                request()
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody("{$lineSeparator"+
+                            "  \"tildeltEnhetsnr\" : \"4475\",$lineSeparator"  +
+                            "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                            "  \"journalpostId\" : \"429434378\",$lineSeparator" +
+                            "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                            "  \"beskrivelse\" : \"Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 148161, vurder å opprette krav\",$lineSeparator" +
+                            "  \"tema\" : \"PEN\",$lineSeparator" +
+                            "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
+                            "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                            "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                            "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                            "}"))
+                .respond(HttpResponse.response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                )
+
+            mockServer.`when`(
                     request()
                             .withMethod("POST")
                             .withPath("/")
@@ -274,6 +301,25 @@ class OppgaveIntegrationTest {
                                 "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
                                 "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
                                 "}"),
+                VerificationTimes.exactly(1)
+        )
+
+        mockServer.verify(
+                request()
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody("{$lineSeparator"+
+                            "  \"tildeltEnhetsnr\" : \"4475\",$lineSeparator"  +
+                            "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
+                            "  \"journalpostId\" : \"429434378\",$lineSeparator" +
+                            "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
+                            "  \"beskrivelse\" : \"Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 148161, vurder å opprette krav\",$lineSeparator" +
+                            "  \"tema\" : \"PEN\",$lineSeparator" +
+                            "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
+                            "  \"prioritet\" : \"NORM\",$lineSeparator" +
+                            "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
+                            "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
+                            "}"),
                 VerificationTimes.exactly(1)
         )
 
