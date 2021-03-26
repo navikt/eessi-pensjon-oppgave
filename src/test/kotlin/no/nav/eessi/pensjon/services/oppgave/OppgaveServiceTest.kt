@@ -45,6 +45,16 @@ internal class OppgaveServiceTest {
     }
 
     @Test
+    fun `BehandleSedBeskrivelse for behandling av kravSED P2000 for autojournalføring filnavn er tomstreng`() {
+        val oppgaveMelding = OppgaveMelding(null, SedType.P2000, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, "")
+        val expected = """
+            Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 654654321, vurder å opprette krav
+        """.trimIndent()
+
+        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+    }
+
+    @Test
     fun `BehandleSedBeskrivelse for behandling av P5000 for autojournalføring`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P5000, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, null)
         val expected = """
