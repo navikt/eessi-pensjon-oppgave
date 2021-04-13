@@ -87,7 +87,6 @@ class OppgaveErrorhandlerIntegrationTest {
     }
 
     private fun produserOppgaveHendelser(template: KafkaTemplate<String, String>) {
-
         val key1 = UUID.randomUUID().toString()
         val data1 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))
         template.send(OPPGAVE_TOPIC, key1, data1)

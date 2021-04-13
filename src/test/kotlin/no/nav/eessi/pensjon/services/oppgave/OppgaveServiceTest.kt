@@ -28,7 +28,7 @@ internal class OppgaveServiceTest {
     fun `BehandleSedBeskrivelse for behandling av kravSED P2200 for autojournalføring`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P2200, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, null)
         val expected = """
-            Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321, vurder å opprette krav
+            Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
         assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
@@ -38,7 +38,7 @@ internal class OppgaveServiceTest {
     fun `BehandleSedBeskrivelse for behandling av kravSED P2200 for autojournalføring filnavn er tomstreng`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P2200, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, "")
         val expected = """
-            Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321, vurder å opprette krav
+            Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
         assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
@@ -48,7 +48,7 @@ internal class OppgaveServiceTest {
     fun `BehandleSedBeskrivelse for behandling av kravSED P2000 for autojournalføring filnavn er tomstreng`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P2000, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, "")
         val expected = """
-            Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 654654321, vurder å opprette krav
+            Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
         assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
@@ -58,7 +58,7 @@ internal class OppgaveServiceTest {
     fun `BehandleSedBeskrivelse for behandling av P5000 for autojournalføring`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P5000, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, null)
         val expected = """
-            Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 654654321, følg opp saken
+            Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
         assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
@@ -68,7 +68,7 @@ internal class OppgaveServiceTest {
     fun `BehandleSedBeskrivelse for behandling av P6000 for autojournalføring`() {
         val oppgaveMelding = OppgaveMelding(null, SedType.P6000, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", HendelseType.MOTTATT, null)
         val expected = """
-            Det er mottatt P6000 - Melding om vedtak, med tilhørende RINA sakId: 654654321, følg opp saken
+            Det er mottatt P6000 - Melding om vedtak, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
         assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
