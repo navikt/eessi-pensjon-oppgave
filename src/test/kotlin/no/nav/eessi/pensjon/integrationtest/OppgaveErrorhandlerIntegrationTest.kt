@@ -1,10 +1,8 @@
 package no.nav.eessi.pensjon.integrationtest
 
-
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.spy
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.spyk
+import io.mockk.verify
 import no.nav.eessi.pensjon.config.KafkaConfig
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -50,20 +48,12 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
-    @Autowired
+    @MockkBean
     lateinit var kafkaCustomErrorHandlerBean: KafkaConfig.KafkaCustomErrorHandler
 
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
-    @TestConfiguration
-    class TestConfig(){
-        @Bean
-        @Primary
-        fun kafkaCustomErrorHandlerSpy(): KafkaConfig.KafkaCustomErrorHandler {
-            return spy(KafkaConfig.KafkaCustomErrorHandler())
-        }
-    }
 
     @Test
     fun `Når en exception skjer så skal kafka-konsumering stoppe`() {
@@ -80,7 +70,7 @@ class OppgaveErrorhandlerIntegrationTest {
 
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
-        verify(kafkaCustomErrorHandlerBean, times(1)).handle(any(), any(), any(), any());
+        verify(exactly = 1) {kafkaCustomErrorHandlerBean.handle(any(), any(), any(), any())  }
 
         // Shutdown
         shutdown(container)
