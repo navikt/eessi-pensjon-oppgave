@@ -20,6 +20,7 @@ import java.time.Duration
 @Configuration
 class KafkaConfig {
 
+
     @Bean
     fun sedSendtAuthRetry(registry: KafkaListenerEndpointRegistry): ApplicationRunner? {
         return ApplicationRunner {
@@ -28,6 +29,7 @@ class KafkaConfig {
             sedSendtListenerContainer.start()
         }
     }
+
 
     @Bean
     fun kafkaListenerContainerFactory(configurer: ConcurrentKafkaListenerContainerFactoryConfigurer,
