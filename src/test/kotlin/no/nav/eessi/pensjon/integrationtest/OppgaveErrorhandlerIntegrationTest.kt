@@ -1,7 +1,6 @@
 package no.nav.eessi.pensjon.integrationtest
 
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.spyk
 import io.mockk.verify
 import no.nav.eessi.pensjon.config.KafkaConfig
 import no.nav.eessi.pensjon.listeners.OppgaveListener
@@ -15,9 +14,6 @@ import org.mockserver.model.HttpResponse
 import org.mockserver.model.HttpStatusCode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate

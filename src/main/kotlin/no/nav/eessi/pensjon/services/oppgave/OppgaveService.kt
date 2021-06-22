@@ -1,5 +1,7 @@
 package no.nav.eessi.pensjon.services.oppgave
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.json.toEmptyJson
 import no.nav.eessi.pensjon.metrics.MetricsHelper
@@ -27,12 +29,13 @@ class OppgaveService(
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private lateinit var opprettoppgave: MetricsHelper.Metric
+    private lateinit var enhetsCounter: Counter
+
 
     @PostConstruct
     fun initMetrics() {
         opprettoppgave = metricsHelper.init("opprettoppgave")
     }
-
 
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
     fun opprettOppgave(opprettOppgave: OppgaveMelding) {
@@ -79,6 +82,8 @@ class OppgaveService(
                 val requestBody = oppgave.toEmptyJson()
                 logger.info("Oppretter oppgave: $requestBody")
 
+                countEnthet(opprettOppgave.tildeltEnhetsnr)
+
                 val httpEntity = HttpEntity(requestBody)
                 oppgaveOidcRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
 
@@ -90,6 +95,14 @@ class OppgaveService(
                 logger.error("En feil oppstod under opprettelse av oppgave ex: $ex")
                 throw java.lang.RuntimeException("En feil oppstod under opprettelse av oppgave ex: ${ex.message}")
             }
+        }
+    }
+
+    fun countEnthet(tildeltEnhetsnr: String?) {
+        try {
+            Metrics.counter("TildeltEnhet",   "enhet", tildeltEnhetsnr).increment()
+        } catch (e: Exception) {
+            logger.warn("Metrics feilet på enhet: $tildeltEnhetsnr")
         }
     }
 
