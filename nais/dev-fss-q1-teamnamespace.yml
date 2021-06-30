@@ -1,8 +1,8 @@
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
-  name: eessi-pensjon-oppgave
-  namespace: q2
+  name: eessi-pensjon-oppgave-q1
+  namespace: eessipensjon
   labels:
     team: eessipensjon
 spec:
@@ -14,14 +14,14 @@ spec:
     - name: SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL
       value: https://security-token-service.nais.preprod.local/rest/v1/sts/.well-known/openid-configuration
     - name: SECURITYTOKENSERVICE_URL
-      value: https://sts-q2.preprod.local/SecurityTokenServiceProvider/
+      value: https://sts-q1.preprod.local/SecurityTokenServiceProvider/
     - name: OPPGAVE_OPPGAVER_URL
-      value: https://oppgave.dev.adeo.no/api/v1/oppgaver
+      value: https://oppgave-q1.nais.preprod.local/api/v1/oppgaver
     - name: KAFKA_OPPGAVE_TOPIC
-      value: privat-eessipensjon-oppgave-v1-q2
+      value: privat-eessipensjon-oppgave-v1-q1
   image: {{ image }}
   ingresses:
-    - https://eessi-pensjon-oppgave.nais.preprod.local
+    - https://eessi-pensjon-oppgave-q1.nais.preprod.local
   liveness:
     path: /internal/isalive
     port: 8080
@@ -50,5 +50,3 @@ spec:
     paths:
       - kvPath: {{serviceuserkv}}
         mountPath: /var/run/secrets/nais.io/srveessio
-      - kvPath: /apikey/appdynamics/dev
-        mountPath: /var/run/secrets/nais.io/vault
