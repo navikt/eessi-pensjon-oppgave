@@ -7,19 +7,6 @@ kafka:
 KAFKA_OPPGAVE_TOPIC: '${kafka.oppgave.topic}'
 NAIS_APP_NAME: 'eessi-pensjon-oppgave'
 
-spring:
-  kafka:
-    listener:
-      ack-mode: manual
-    consumer:
-      enable-auto-commit: false
-      auto-offset-reset: earliest
-    bootstrap-servers: ${spring.embedded.kafka.brokers}
-    properties:
-      security.protocol: PLAINTEXT
-#  main:
-#    allow-bean-definition-overriding: true
-
 securityTokenService:
   discoveryUrl: http://localhost:${mockServerport}/.well-known/openid-configuration
 

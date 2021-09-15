@@ -1,8 +1,9 @@
 package no.nav.eessi.pensjon.integrationtest
 
+import IntegrasjonsTestConfig
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
-import no.nav.eessi.pensjon.config.KafkaConfig
+import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -14,6 +15,7 @@ import org.mockserver.model.HttpResponse
 import org.mockserver.model.HttpStatusCode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpMethod
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -29,13 +31,13 @@ import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer: ClientAndServer
 
-@SpringBootTest()
+@SpringBootTest(classes = [IntegrasjonsTestConfig::class], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka"])
@@ -45,7 +47,7 @@ class OppgaveErrorhandlerIntegrationTest {
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
     @MockkBean
-    lateinit var kafkaCustomErrorHandlerBean: KafkaConfig.KafkaCustomErrorHandler
+    lateinit var kafkaCustomErrorHandler: KafkaCustomErrorHandler
 
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
@@ -66,7 +68,7 @@ class OppgaveErrorhandlerIntegrationTest {
 
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
-        verify(exactly = 1) {kafkaCustomErrorHandlerBean.handle(any(), any(), any(), any())  }
+        verify(exactly = 1) {kafkaCustomErrorHandler.handle(any(), any(), any(), any())  }
 
         // Shutdown
         shutdown(container)
@@ -119,6 +121,17 @@ class OppgaveErrorhandlerIntegrationTest {
                                             "}"
                             )
                     )
+            mockServer.`when`(
+                HttpRequest.request()
+                    .withMethod(HttpMethod.GET.name)
+                    .withQueryStringParameter("grant_type", "client_credentials")
+            )
+                .respond(
+                    HttpResponse.response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/sts/STStoken.json"))))
+                )
         }
 
         private fun randomFrom(from: Int = 2024, to: Int = 55535): Int {

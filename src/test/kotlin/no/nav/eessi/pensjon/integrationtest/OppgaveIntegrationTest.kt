@@ -1,6 +1,7 @@
 package no.nav.eessi.pensjon.integrationtest
 
 
+import IntegrasjonsTestConfig
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -37,7 +38,7 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 
-@SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class])
+@SpringBootTest(classes = [ OppgaveIntegrationTest.TestConfig::class, IntegrasjonsTestConfig::class ])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties= ["log.dir=out/embedded-kafka"])
