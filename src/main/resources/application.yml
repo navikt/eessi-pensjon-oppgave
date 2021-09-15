@@ -3,26 +3,8 @@ kafka:
     topic: ${KAFKA_OPPGAVE_TOPIC}
     groupid: 'eessi-pensjon-group'
 
-#Spring
-spring:
-  kafka:
-    listener:
-      ack-mode: manual
-      max-poll-records: 1
-    consumer:
-      enable-auto-commit: false
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS_URL}
-    properties:
-      security.protocol: SASL_SSL
-      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      sasl:
-        mechanism: PLAIN
-        jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${srvusername}" password="${srvpassword}";
-
 securityTokenService:
   discoveryUrl: ${SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL}
-
 
 #Metrics
 management:
