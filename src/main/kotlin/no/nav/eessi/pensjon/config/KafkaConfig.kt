@@ -39,23 +39,18 @@ class KafkaConfig(
         keyDeserializer.setRemoveTypeHeaders(true)
         keyDeserializer.addTrustedPackages("*")
         keyDeserializer.setUseTypeHeaders(false)
-
         val valueDeserializer = StringDeserializer()
-
         val configMap: MutableMap<String, Any> = HashMap()
         populerAivenCommonConfig(configMap)
         configMap[ConsumerConfig.CLIENT_ID_CONFIG] = "eessi-pensjon-oppgave"
         configMap[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = aivenBootstrapServers
         configMap[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
-
-
         return DefaultKafkaConsumerFactory(configMap, keyDeserializer, valueDeserializer)
     }
 
     fun onpremKafkaConsumerFactory(): ConsumerFactory<String, String> {
         val keyDeserializer: JsonDeserializer<String> = JsonDeserializer(String::class.java)
         keyDeserializer.setUseTypeHeaders(false)
-
         val configMap: MutableMap<String, Any> = HashMap()
         populerOnpremCommonConfig(configMap)
         configMap[ConsumerConfig.CLIENT_ID_CONFIG] = "eessi-pensjon-oppgave"
@@ -63,7 +58,6 @@ class KafkaConfig(
         configMap[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
         configMap[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         configMap[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 1
-
         return DefaultKafkaConsumerFactory(configMap, StringDeserializer(), StringDeserializer())
     }
 
