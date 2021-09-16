@@ -1,4 +1,5 @@
 kafka:
+  security.protocol: SSL
   oppgave:
     topic: ${KAFKA_OPPGAVE_TOPIC}
     groupid: 'eessi-pensjon-group'
