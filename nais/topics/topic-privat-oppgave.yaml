@@ -17,7 +17,7 @@ spec:
   acl:
     - team: eessipensjon
       application: eessi-pensjon-oppgave
-      access: write   # read, write, readwrite
+      access: read   # read, write, readwrite
     - team: eessipensjon
       application: eessi-pensjon-journalforing
       access: write

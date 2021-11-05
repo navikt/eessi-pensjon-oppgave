@@ -1,7 +1,7 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-  name: privat-oppgave-q2
+  name: privat-oppgave-q1
   namespace: eessipensjon
   labels:
     team: eessipensjon
@@ -16,8 +16,8 @@ spec:
     retentionHours: -1  # -1 means unlimited
   acl:
     - team: eessipensjon
-      application: eessi-pensjon-oppgave-q2
+      application: eessi-pensjon-oppgave-q1
       access: read   # read, write, readwrite
     - team: eessipensjon
-      application: eessi-pensjon-journalforing-q2
+      application: eessi-pensjon-journalforing-q1
       access: write
