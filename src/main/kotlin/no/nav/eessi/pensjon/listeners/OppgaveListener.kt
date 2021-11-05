@@ -37,7 +37,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
     }
 
     @KafkaListener(
-        containerFactory = "onpremKafkaListenerContainerFactory",
+        containerFactory = "aivenKafkaListenerContainerFactory",
             topics = ["\${kafka.oppgave.topic}"],
             groupId = "\${kafka.oppgave.groupid}"
     )
