@@ -1,11 +1,12 @@
-SPRING_PROFILES_ACTIVE : "test"
+PROFILES:
+  ACTIVE: 'integrationtest'
 
 kafka:
   security:
-    protocol: "dummy"
-  brokers: ${SPRING_EMBEDDED_KAFKA_BROKERS}
+    protocol: "plaintext"
+  brokers: "localhost:1920"
   truststore:
-    path: "dummy"
+    path: "dummt"
   credstore:
     password: "dummy"
   keystore:
@@ -30,8 +31,6 @@ srvpassword: somepass
 oppgave.oppgaver.url: http://localhost:${mockServerport}
 JOURNALPOST_V1_URL: http://localhost:${mockServerport}
 eessipennorg2service_URL: http://localhost:${mockServerport}
-
-
 
 #Metrics
 management:

@@ -36,10 +36,10 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer : ClientAndServer
 
-@SpringBootTest
+@SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
-@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties= ["log.dir=out/embedded-kafka"])
+@EmbeddedKafka(count = 1, controlledShutdown = true, ports = [1920], topics = [OPPGAVE_TOPIC], brokerProperties= ["log.dir=out/embedded-kafka2"])
 class OppgaveIntegrationTest {
 
     @Autowired
@@ -278,6 +278,7 @@ class OppgaveIntegrationTest {
         }
     }
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private fun verifiser() {
         val lineSeparator = System.lineSeparator()
 

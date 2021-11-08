@@ -21,7 +21,7 @@ import java.time.Duration
 @TestConfiguration
 class IntegrasjonsTestConfig(@Autowired val kafkaErrorHandler: KafkaCustomErrorHandler,
         @Autowired private val aivenKafkaConsumerMap: MutableMap<String, Any> ) {
-    @Value("\${" + EmbeddedKafkaBroker.SPRING_EMBEDDED_KAFKA_BROKERS + "}")
+    @Value("\${" + ≈ + "}")
     private lateinit var brokerAddresses: String
 
 

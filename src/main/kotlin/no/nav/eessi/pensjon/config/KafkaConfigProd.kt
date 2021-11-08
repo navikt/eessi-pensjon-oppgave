@@ -24,7 +24,8 @@ class KafkaConfigProd(
     @param:Value("\${kafka.truststore.path}") private val truststorePath: String,
     @param:Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
     @param:Value("\${kafka.security.protocol}") private val securityProtocol: String,
-    @param:Value("\${SPRING_PROFILES_ACTIVE}") private val profile : String) {
+    @param:Value("\${PROFILES.ACTIVE}") private val profile : String,
+    @Autowired private val kafkaErrorHandler: KafkaCustomErrorHandler) {
 
     fun aivenKafkaConsumerFactory(): ConsumerFactory<String, String> {
         val configMap: MutableMap<String, Any> = HashMap()
@@ -49,9 +50,12 @@ class KafkaConfigProd(
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         factory.containerProperties.authorizationExceptionRetryInterval =  Duration.ofSeconds(4L)
 
-/*        if(profile == "prod" || profile == "integrationtest") {
+//        if(profile == "prod" || profile == "integrationtest") {
+            println("Hva er handler: $kafkaErrorHandler")
+            println("Hva er profile: $profile")
+
             factory.setErrorHandler(kafkaErrorHandler)
-        }*/
+//        }
 
         return factory
     }
