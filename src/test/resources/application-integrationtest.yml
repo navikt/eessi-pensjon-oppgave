@@ -1,5 +1,15 @@
+SPRING_PROFILES_ACTIVE : "test"
 
 kafka:
+  security:
+    protocol: "dummy"
+  brokers: ${SPRING_EMBEDDED_KAFKA_BROKERS}
+  truststore:
+    path: "dummy"
+  credstore:
+    password: "dummy"
+  keystore:
+    path: "dummy"
   oppgave:
     topic: privat-eessipensjon-oppgave-v1-test
     groupid: eessi-pensjon-group
@@ -21,6 +31,8 @@ oppgave.oppgaver.url: http://localhost:${mockServerport}
 JOURNALPOST_V1_URL: http://localhost:${mockServerport}
 eessipennorg2service_URL: http://localhost:${mockServerport}
 
+
+
 #Metrics
 management:
   metrics:
@@ -36,3 +48,4 @@ management:
       show-details: "ALWAYS"
 
 no.nav.orgnummer: 889640782
+

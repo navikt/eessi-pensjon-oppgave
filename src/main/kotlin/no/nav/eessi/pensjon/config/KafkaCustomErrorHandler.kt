@@ -1,8 +1,9 @@
 package no.nav.eessi.pensjon.config
 
-import org.apache.kafka.clients.consumer.Consumer
+/*import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.kafka.listener.ContainerAwareErrorHandler
 import org.springframework.kafka.listener.ContainerStoppingErrorHandler
 import org.springframework.kafka.listener.MessageListenerContainer
@@ -10,7 +11,9 @@ import org.springframework.stereotype.Component
 import java.io.PrintWriter
 import java.io.StringWriter
 
-@Component
+@Component*/
+
+/*
 class KafkaCustomErrorHandler : ContainerAwareErrorHandler {
     private val logger = LoggerFactory.getLogger(KafkaCustomErrorHandler::class.java)
 
@@ -37,5 +40,4 @@ class KafkaCustomErrorHandler : ContainerAwareErrorHandler {
             "--------------------------------------------------------------------------------\n$it\n"
         } ?: ""
     }
-
-}
+}*/
