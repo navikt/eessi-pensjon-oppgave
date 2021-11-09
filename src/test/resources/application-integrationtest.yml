@@ -1,6 +1,3 @@
-PROFILES:
-  ACTIVE: 'integrationtest'
-
 kafka:
   security:
     protocol: "plaintext"

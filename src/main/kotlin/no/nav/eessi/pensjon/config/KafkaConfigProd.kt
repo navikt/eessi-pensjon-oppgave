@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
@@ -24,15 +25,15 @@ class KafkaConfigProd(
     @param:Value("\${kafka.truststore.path}") private val truststorePath: String,
     @param:Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
     @param:Value("\${kafka.security.protocol}") private val securityProtocol: String,
-    @param:Value("\${PROFILES.ACTIVE}") private val profile : String,
-    @Autowired private val kafkaErrorHandler: KafkaCustomErrorHandler) {
+    @Autowired private val kafkaErrorHandler: KafkaCustomErrorHandler,
+    @Autowired private val env: Environment) {
 
     fun aivenKafkaConsumerFactory(): ConsumerFactory<String, String> {
         val configMap: MutableMap<String, Any> = HashMap()
-        if(profile == "prod" || profile == "test") {
+        if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "test") {
             prodSecurityConfig(configMap)
         }
-        else if(profile == "integrationtest"){
+        else if(env.activeProfiles[0] == "integrationtest"){
             intergrationSecurityConfig(configMap)
         }
         configMap[ConsumerConfig.CLIENT_ID_CONFIG] = "eessi-pensjon-oppgave"
@@ -50,12 +51,9 @@ class KafkaConfigProd(
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         factory.containerProperties.authorizationExceptionRetryInterval =  Duration.ofSeconds(4L)
 
-//        if(profile == "prod" || profile == "integrationtest") {
-            println("Hva er handler: $kafkaErrorHandler")
-            println("Hva er profile: $profile")
-
+        if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "integrationtest") {
             factory.setErrorHandler(kafkaErrorHandler)
-//        }
+        }
 
         return factory
     }
