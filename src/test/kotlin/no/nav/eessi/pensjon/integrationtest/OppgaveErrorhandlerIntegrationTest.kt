@@ -42,7 +42,7 @@ private lateinit var mockServer: ClientAndServer
 @SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
-@EmbeddedKafka(count = 1, controlledShutdown = true, ports = [1920], topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka1"])
+@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka1"])
 class OppgaveErrorhandlerIntegrationTest {
 
     @Autowired

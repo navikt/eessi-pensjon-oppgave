@@ -4,7 +4,7 @@ PROFILES:
 kafka:
   security:
     protocol: "plaintext"
-  brokers: "localhost:1920"
+  brokers: '${spring.embedded.kafka.brokers}'
   truststore:
     path: "dummt"
   credstore:
