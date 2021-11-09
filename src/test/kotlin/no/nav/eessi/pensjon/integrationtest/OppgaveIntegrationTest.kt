@@ -89,9 +89,9 @@ class OppgaveIntegrationTest {
         val data4 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingR005.json")))
         template.send(OPPGAVE_TOPIC, key4, data4)
 
-        val key5 = UUID.randomUUID().toString()
+      /*  val key5 = UUID.randomUUID().toString()
         val data5 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2200.json")))
-        template.send(OPPGAVE_TOPIC, key5, data5)
+        template.send(OPPGAVE_TOPIC, key5, data5)*/
 
     }
 
@@ -129,6 +129,7 @@ class OppgaveIntegrationTest {
             // Start Mockserver in memory
             val lineSeparator = System.lineSeparator()
             val port = randomFrom()
+            println("############## portnummer $port")
             mockServer = ClientAndServer.startClientAndServer(port)
             System.setProperty("mockServerport", port.toString())
 
@@ -304,7 +305,7 @@ class OppgaveIntegrationTest {
                 VerificationTimes.exactly(1)
         )
 
-        mockServer.verify(
+       /* mockServer.verify(
                 request()
                     .withMethod("POST")
                     .withPath("/")
@@ -322,7 +323,7 @@ class OppgaveIntegrationTest {
                             "}"),
                 VerificationTimes.exactly(1)
         )
-
+*/
         mockServer.verify(
                 request()
                         .withMethod("POST")
