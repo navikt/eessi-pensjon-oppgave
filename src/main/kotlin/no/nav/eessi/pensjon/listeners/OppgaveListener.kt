@@ -51,8 +51,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
 
                 try {
                     logger.info("mottatt oppgavemelding : $melding")
-//                    val oppgaveMelding = OppgaveMelding.fromJson(melding)
-                    val oppgaveMelding = meldingsMapping(melding)
+                    val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
                     oppgaveService.opprettOppgave(oppgaveMelding)
                     acknowledgment.acknowledge()
@@ -66,23 +65,6 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                     throw RuntimeException(ex.message)
                 }
             latch.countDown()
-            }
-        }
-    }
-
-    fun meldingsMapping(hendelse: String): OppgaveMelding {
-        return try {
-            logger.info("Opprinnelig mapping av hendelse")
-            OppgaveMelding.fromJson(hendelse)
-        } catch (ex: Exception) {
-            try {
-                logger.info("Trimming og mapping av hendelse")
-                val json = hendelse.replace("\\n", "").replace("\\", "").replace("\"{", "{").replace("}\"", "}")
-                logger.debug("Trimmet json: $json")
-                OppgaveMelding.fromJson(json)
-            } catch (ex2: Exception) {
-                logger.error("Could not compute")
-                throw RuntimeException("Feiler ved mapping av OppgaveMelding")
             }
         }
     }
