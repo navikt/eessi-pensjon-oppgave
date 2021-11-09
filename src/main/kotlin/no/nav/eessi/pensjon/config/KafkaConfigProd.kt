@@ -9,33 +9,33 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
+import org.springframework.core.env.Environment
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
-import org.springframework.kafka.support.serializer.JsonDeserializer
 import java.time.Duration
 
 @EnableKafka
-@Profile("prod")
 @Configuration
 class KafkaConfigProd(
     @param:Value("\${kafka.keystore.path}") private val keystorePath: String,
     @param:Value("\${kafka.credstore.password}") private val credstorePassword: String,
     @param:Value("\${kafka.truststore.path}") private val truststorePath: String,
     @param:Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
-    @param:Value("\${ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL}") private val onpremBootstrapServers: String,
     @param:Value("\${kafka.security.protocol}") private val securityProtocol: String,
-    @param:Value("\${srvusername}") private val srvusername: String,
-    @param:Value("\${srvpassword}") private val srvpassword: String,
-    @Autowired val kafkaErrorHandler: KafkaCustomErrorHandler
-) {
+    @Autowired private val kafkaErrorHandler: KafkaCustomErrorHandler,
+    @Autowired private val env: Environment) {
 
     fun aivenKafkaConsumerFactory(): ConsumerFactory<String, String> {
         val configMap: MutableMap<String, Any> = HashMap()
-        populerAivenCommonConfig(configMap)
+        if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "test") {
+            prodSecurityConfig(configMap)
+        }
+        else if(env.activeProfiles[0] == "integrationtest"){
+            intergrationSecurityConfig(configMap)
+        }
         configMap[ConsumerConfig.CLIENT_ID_CONFIG] = "eessi-pensjon-oppgave"
         configMap[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = aivenBootstrapServers
         configMap[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
@@ -50,11 +50,15 @@ class KafkaConfigProd(
         factory.consumerFactory = aivenKafkaConsumerFactory()
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         factory.containerProperties.authorizationExceptionRetryInterval =  Duration.ofSeconds(4L)
-        factory.setErrorHandler(kafkaErrorHandler)
+
+        if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "integrationtest") {
+            factory.setErrorHandler(kafkaErrorHandler)
+        }
+
         return factory
     }
 
-    private fun populerAivenCommonConfig(configMap: MutableMap<String, Any>) {
+    private fun prodSecurityConfig(configMap: MutableMap<String, Any>) {
         configMap[SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG] = keystorePath
         configMap[SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG] = credstorePassword
         configMap[SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG] = credstorePassword
@@ -63,5 +67,8 @@ class KafkaConfigProd(
         configMap[SslConfigs.SSL_KEYSTORE_TYPE_CONFIG] = "PKCS12"
         configMap[SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG] = truststorePath
         configMap[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = securityProtocol
+    }
+    private fun intergrationSecurityConfig(configMap: MutableMap<String, Any>) {
+        configMap[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = "plaintext"
     }
 }

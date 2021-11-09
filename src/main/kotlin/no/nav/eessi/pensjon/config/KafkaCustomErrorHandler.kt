@@ -37,5 +37,4 @@ class KafkaCustomErrorHandler : ContainerAwareErrorHandler {
             "--------------------------------------------------------------------------------\n$it\n"
         } ?: ""
     }
-
 }

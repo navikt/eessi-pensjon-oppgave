@@ -1,5 +1,13 @@
-
 kafka:
+  security:
+    protocol: "plaintext"
+  brokers: '${spring.embedded.kafka.brokers}'
+  truststore:
+    path: "dummt"
+  credstore:
+    password: "dummy"
+  keystore:
+    path: "dummy"
   oppgave:
     topic: privat-eessipensjon-oppgave-v1-test
     groupid: eessi-pensjon-group
@@ -36,3 +44,4 @@ management:
       show-details: "ALWAYS"
 
 no.nav.orgnummer: 889640782
+

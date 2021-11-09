@@ -1,6 +1,8 @@
 package no.nav.eessi.pensjon.integrationtest
 
-import IntegrasjonsTestConfig
+/*
+import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
+*/
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
 import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
@@ -31,31 +33,31 @@ import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer: ClientAndServer
 
-@SpringBootTest(classes = [IntegrasjonsTestConfig::class], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
+@SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
-@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka"])
+@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka1"])
 class OppgaveErrorhandlerIntegrationTest {
 
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
+
     @MockkBean
     lateinit var kafkaCustomErrorHandler: KafkaCustomErrorHandler
+
 
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
-
     @Test
     fun `Når en exception skjer så skal kafka-konsumering stoppe`() {
-
         // Vent til kafka er klar
         val container = settOppUtitlityConsumer(OPPGAVE_TOPIC)
         container.start()
@@ -68,6 +70,7 @@ class OppgaveErrorhandlerIntegrationTest {
 
         // Venter på at sedListener skal consumeSedSendt meldingene
         oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
+
         verify(exactly = 1) {kafkaCustomErrorHandler.handle(any(), any(), any(), any())  }
 
         // Shutdown
