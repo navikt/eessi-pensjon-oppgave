@@ -1,6 +1,7 @@
 package no.nav.eessi.pensjon.integrationtest
 
 
+import no.nav.eessi.pensjon.json.toJson
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -87,7 +88,7 @@ class OppgaveIntegrationTest {
 
         val key4 = UUID.randomUUID().toString()
         val data4 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingR005.json")))
-        template.send(OPPGAVE_TOPIC, key4, data4)
+        template.send(OPPGAVE_TOPIC, key4, data4.toJson())
 
       /*  val key5 = UUID.randomUUID().toString()
         val data5 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2200.json")))
