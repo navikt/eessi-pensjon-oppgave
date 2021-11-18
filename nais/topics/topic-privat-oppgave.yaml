@@ -21,3 +21,7 @@ spec:
     - team: eessipensjon
       application: eessi-pensjon-journalforing
       access: write
+    - team: eessipensjon
+      application: eessi-pensjon-pdl-produsent
+      access: write   # read, write, readwrite
+
