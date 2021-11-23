@@ -256,6 +256,10 @@ enum class SedType: Code {
         override fun decode() = "X050"
         override fun toString() = "X050 - Unntaksfeil"
     },
+    X100 {
+        override fun decode() = "X100"
+        override fun toString() = "X100 - Endre deltaker"
+    },
 
     // Horisontale
     H001 {
