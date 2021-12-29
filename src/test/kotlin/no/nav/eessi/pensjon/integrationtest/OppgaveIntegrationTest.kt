@@ -8,7 +8,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,7 +20,6 @@ import org.mockserver.model.HttpStatusCode
 import org.mockserver.model.JsonBody.json
 import org.mockserver.model.StringBody.subString
 import org.mockserver.socket.PortFactory
-import org.mockserver.verify.VerificationTimes
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -51,7 +49,6 @@ private lateinit var mockServer: ClientAndServer
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(
-    partitions = 20,
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC]
 )
@@ -64,14 +61,12 @@ class OppgaveIntegrationTest {
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
-
-    private val listAppender = ListAppender<ILoggingEvent>()
-    private val deugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi") as Logger
-
     lateinit var container: KafkaMessageListenerContainer<String, String>
 
     lateinit var oppgaveProducerTemplate: KafkaTemplate<String, String>
 
+    val listAppender = ListAppender<ILoggingEvent>()
+    val deugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi") as Logger
     val today = LocalDate.now().toString()
     val tomorrrow = LocalDate.now().plusDays(1).toString()
 
@@ -194,13 +189,6 @@ class OppgaveIntegrationTest {
         template.sendDefault(String(Files.readAllBytes(Paths.get(message)))).get(10L, TimeUnit.SECONDS)
         oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
         Thread.sleep(10000)
-    }
-
-    private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
-        container.stop()
-        embeddedKafka.kafkaServers.forEach { it.shutdown() }
-        embeddedKafka.zookeeper.shutdown()
-        mockServer.stopAsync()
     }
 
     private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
@@ -394,120 +382,6 @@ class OppgaveIntegrationTest {
                         .withStatusCode(HttpStatusCode.OK_200.code())
                         .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                 )
-
         }
-    }
-
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    private fun verifiser() {
-
-        assertEquals(0, oppgaveListener.getLatch().count)
-
-        val today = LocalDate.now()
-        val tomorrrow = LocalDate.now().plusDays(1).toString()
-
-        // Verifiserer at det har blitt forsøkt å opprette PEN oppgave med aktørid
-        mockServer.verify(
-            request()
-                .withMethod("POST")
-                .withPath("/")
-                .withBody(subString("P2000"))
-                .withBody(
-                    json(
-                        """{
-                              "tildeltEnhetsnr" : "4303",
-                              "opprettetAvEnhetsnr" : "9999",
-                              "journalpostId" : "429434311",
-                              "aktoerId" : "1000101917111",
-                              "tema" : "PEN",
-                              "oppgavetype" : "JFR",
-                              "prioritet" : "NORM",
-                              "fristFerdigstillelse" : "$tomorrrow",
-                              "aktivDato" : "$today"
-                        }""" + MatchType.ONLY_MATCHING_FIELDS
-                    )
-                ),
-            VerificationTimes.exactly(1)
-        )
-
-        mockServer.verify(
-            request()
-                .withMethod("POST")
-                .withPath("/")
-            .withBody(subString("RINA sakId: 147666 mangler filnavn"))
-            .withBody(json(
-                """{
-                          "tildeltEnhetsnr" : "4803",
-                          "opprettetAvEnhetsnr" : "9999",
-                          "aktoerId" : "1000101917222",
-                          "tema" : "PEN",
-                          "oppgavetype" : "BEH_SED",
-                          "prioritet" : "NORM",
-                          "fristFerdigstillelse" : "$tomorrrow",
-                          "aktivDato" : "$today"
-                       }""".trimIndent()
-            )),
-            VerificationTimes.exactly(1)
-        )
-        //OKAY
-        mockServer.verify(
-            request()
-                .withMethod("POST")
-                .withPath("/")
-                .withBody(subString("P3000_NO"))
-                .withBody(
-                    json(
-                        """{
-                                  "tildeltEnhetsnr" : "4808",
-                                  "opprettetAvEnhetsnr" : "9999",
-                                  "journalpostId" : "429434333",
-                                  "aktoerId" : "2000101917444",
-                                  "tema" : "PEN",
-                                  "oppgavetype" : "JFR",
-                                  "prioritet" : "NORM",
-                                  "fristFerdigstillelse" : "2021-12-29",
-                                  "aktivDato" : "2021-12-28"
-                        }""" + MatchType.ONLY_MATCHING_FIELDS
-                    )
-                ),
-            VerificationTimes.exactly(1)
-        )
-        mockServer.verify(
-            request()
-                .withMethod("POST")
-                .withPath("/")
-                .withBody(subString("P2200"))
-                .withBody(json("""{
-                          "tildeltEnhetsnr" : "4475",
-                          "opprettetAvEnhetsnr" : "9999",
-                          "journalpostId" : "429434322",
-                          "aktoerId" : "1000101917333",
-                          "tema" : "PEN",
-                          "oppgavetype" : "BEH_SED",
-                          "prioritet" : "NORM",
-                          "fristFerdigstillelse" : "$tomorrrow",
-                          "aktivDato" : "$today"
-                    }""".trimIndent())),
-            VerificationTimes.exactly(1)
-        )
-
-        mockServer.verify(
-            request()
-                .withMethod("POST")
-                .withPath("/")
-                .withBody(subString("R005"))
-                .withBody(json("""{
-                          "tildeltEnhetsnr" : "4808",
-                          "opprettetAvEnhetsnr" : "9999",
-                          "journalpostId" : "429434380",
-                          "aktoerId" : "2000101917555",
-                          "tema" : "PEN",
-                          "oppgavetype" : "JFR",
-                          "prioritet" : "NORM",
-                          "fristFerdigstillelse" : "$tomorrrow",
-                          "aktivDato" : "$today"
-                    }""".trimIndent())),
-        VerificationTimes.exactly(1)
-        )
     }
 }
