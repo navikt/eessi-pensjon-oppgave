@@ -50,7 +50,8 @@ private lateinit var mockServer: ClientAndServer
 @DirtiesContext
 @EmbeddedKafka(
     controlledShutdown = true,
-    topics = [OPPGAVE_TOPIC]
+    topics = [OPPGAVE_TOPIC] ,
+    brokerProperties= ["log.dir=out/oppgaveintegrationtest"]
 )
 
 class OppgaveIntegrationTest {
