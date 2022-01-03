@@ -1,4 +1,24 @@
 buildscript {
+
+    ext {
+        kotlinVersion = '1.6.10'
+        springBootVersion = '2.6.1'
+        springBootVersionTest = '2.7.6'
+        springKafkaVersion = '2.8.1'
+        archunitVersion = '0.14.1'
+        epLoggingVersion = '1.0.15'
+        epMetricsVersion = '0.4.12'
+        epSecurityStsVersion = '0.0.21'
+        logstashLogbackVersion = '7.0.1'
+        jacksonKotlinVersion = '2.13.1'
+
+        // TEST
+        mockkVersion = '1.12.1'
+        jupiterVersion = '5.8.2'
+        ninjaMockkVersion = '3.1.0'
+        mockserverNettyVersion = '5.11.2'
+    }
+
     repositories {
         mavenCentral()
 
@@ -39,35 +59,16 @@ group = 'no.nav.eessi.pensjon'
 dependencies {
 
     // Spring-boot
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-aop:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-actuator:${springBootVersion}")
 
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    implementation 'org.springframework.kafka:spring-kafka'
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        exclude module: 'junit'
-        exclude module: "mockito-core"
-        exclude module: "junit-vintage-engine"
-    }
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    implementation "org.springframework.kafka:spring-kafka:$springKafkaVersion"
 
-    //mock - test
-    testImplementation("org.junit.jupiter:junit-jupiter:${jupiterVersion}")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
-    testImplementation("org.mock-server:mockserver-client-java:${mockServerClientJavaVersion}")
-    // Next version (5.5.4) fails, should be investigated
-    testImplementation("org.mock-server:mockserver-netty:${mockserverNettyVersion}") {
-        exclude module: 'junit'
-    }
-    testImplementation "io.mockk:mockk:${mockkVersion}"
-    testImplementation("com.ninja-squad:springmockk:3.0.1")
-
-    // Architecture tests
-    testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonKotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
     implementation("no.nav.eessi.pensjon:ep-security-sts:${epSecurityStsVersion}")
 
@@ -81,6 +82,31 @@ dependencies {
     implementation group: 'org.slf4j', name: 'jcl-over-slf4j'
     implementation("no.nav.eessi.pensjon:ep-logging:${epLoggingVersion}")
 
+    // TEST
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
+        exclude module: 'junit'
+        exclude module: "mockito-core"
+        exclude module: "junit-vintage-engine"
+    }
+    testImplementation "org.springframework.kafka:spring-kafka-test:$springBootVersionTest"
+
+    testImplementation("org.junit.jupiter:junit-jupiter:${jupiterVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
+
+    // Next version (5.5.4) fails, should be investigated
+    testImplementation("org.mock-server:mockserver-client-java:${mockserverNettyVersion}"){
+    }
+    testImplementation("org.mock-server:mockserver-netty:${mockserverNettyVersion}") {
+    }
+    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
+    testImplementation "io.mockk:mockk:$mockkVersion"
+    testImplementation("com.ninja-squad:springmockk:$ninjaMockkVersion")
+    implementation('net.logstash.logback:logstash-logback-encoder:7.0.1')
+    implementation('ch.qos.logback:logback-classic:1.2.9')
+
+    // Architecture tests
+    testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
 }
 
 test {
@@ -126,7 +152,7 @@ repositories {
 
 // https://docs.gradle.org/current/userguide/jacoco_plugin.html
 jacoco {
-    toolVersion = "0.8.4"
+	toolVersion = "0.8.7"
 }
 
 jacocoTestReport {

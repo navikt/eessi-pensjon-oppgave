@@ -1,17 +1,26 @@
 package no.nav.eessi.pensjon.integrationtest
 
-
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import no.nav.eessi.pensjon.listeners.OppgaveListener
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
+import org.mockserver.matchers.MatchType
 import org.mockserver.model.Header
 import org.mockserver.model.HttpRequest.request
-import org.mockserver.model.HttpResponse
+import org.mockserver.model.HttpResponse.response
 import org.mockserver.model.HttpStatusCode
-import org.mockserver.verify.VerificationTimes
+import org.mockserver.model.JsonBody.json
+import org.mockserver.model.StringBody.subString
+import org.mockserver.socket.PortFactory
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -34,12 +43,17 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
-private lateinit var mockServer : ClientAndServer
+private lateinit var mockServer: ClientAndServer
 
 @SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
-@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties= ["log.dir=out/embedded-kafka2"])
+@EmbeddedKafka(
+    controlledShutdown = true,
+    topics = [OPPGAVE_TOPIC] ,
+    brokerProperties= ["log.dir=out/oppgaveintegrationtest"]
+)
+
 class OppgaveIntegrationTest {
 
     @Autowired
@@ -48,57 +62,134 @@ class OppgaveIntegrationTest {
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
-    @Test
-    fun `Når en oppgavehendelse blir konsumert skal det opprettes en oppgave`() {
+    lateinit var container: KafkaMessageListenerContainer<String, String>
 
-        // Vent til kafka er klar
-        val container = settOppUtitlityConsumer(OPPGAVE_TOPIC)
+    lateinit var oppgaveProducerTemplate: KafkaTemplate<String, String>
+
+    val listAppender = ListAppender<ILoggingEvent>()
+    val deugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi") as Logger
+    val today = LocalDate.now().toString()
+    val tomorrrow = LocalDate.now().plusDays(1).toString()
+
+    @BeforeEach
+    fun setup() {
+        listAppender.start()
+        deugLogger.addAppender(listAppender)
+
+        container = initConsumer(OPPGAVE_TOPIC)
         container.start()
+        Thread.sleep(1000); // wait a bit for the container to start
         ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
 
-        // Sett opp producer
-        val oppgaveProducerTemplate = settOppProducerTemplate(OPPGAVE_TOPIC)
-
-        produserOppgaveHendelser(oppgaveProducerTemplate)
-
-        // Venter på at sedListener skal consumeSedSendt meldingene
-        oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
-
-        // Verifiserer alle kall
-        verifiser()
-
-        // Shutdown
-        shutdown(container)
-    }
-
-    private fun produserOppgaveHendelser(template: KafkaTemplate<String, String>) {
-
-        val key1 = UUID.randomUUID().toString()
-        val data1 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))
-        template.send(OPPGAVE_TOPIC, key1, data1).get()
-
-        val key2 = UUID.randomUUID().toString()
-        val data2 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")))
-        template.send(OPPGAVE_TOPIC, key2, data2).get()
-
-        val key3 = UUID.randomUUID().toString()
-        val data3 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP3000_NO.json")))
-        template.send(OPPGAVE_TOPIC, key3, data3).get()
-
-        val key4 = UUID.randomUUID().toString()
-        val data4 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingR005.json")))
-        template.send(OPPGAVE_TOPIC, key4, data4).get()
-
-      /*  val key5 = UUID.randomUUID().toString()
-        val data5 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2200.json")))
-        template.send(OPPGAVE_TOPIC, key5, data5)*/
+        oppgaveProducerTemplate = settOppProducerTemplate(OPPGAVE_TOPIC)
 
     }
 
-    private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
-        mockServer.stop()
+    @AfterEach
+    fun after() {
         container.stop()
-        embeddedKafka.kafkaServers.forEach { it.shutdown() }
+        listAppender.stop()
+    }
+    @Test
+    fun `Gitt det mottas en P2000 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+
+        // Sende meldinger på kafka
+        sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000.json")
+
+        OppgaveMeldingVerification("1000101917111")
+            .medAktivDato(today)
+            .medFristFerdigstillelse(tomorrrow)
+            .medJournalpostId("429434311")
+            .medtildeltEnhetsnr("4303")
+            .medBeskrivelse("Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161")
+            .medOppgavetype("JFR")
+    }
+
+    @Test
+    fun `Gitt en P2000 oppgavehendelse med feil så skal den lage en tilsvarende oppgave`() {
+
+        sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")
+        OppgaveMeldingVerification("1000101917222")
+            .medAktivDato(today)
+            .medFristFerdigstillelse(tomorrrow)
+            .medBeskrivelse("Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt")
+            .medOppgavetype("BEH_SED")
+            .medtildeltEnhetsnr("4803")
+            .medOppgavetype("BEH_SED")
+    }
+
+    @Test
+    fun `Gitt en P2200 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+
+        sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2200.json")
+        OppgaveMeldingVerification("1000101917333")
+            .medAktivDato(today)
+            .medFristFerdigstillelse(tomorrrow)
+            .medBeskrivelse("Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 148161")
+            .medtildeltEnhetsnr("4475")
+            .medOppgavetype("BEH_SED")
+            .medJournalpostId("429434322")
+    }
+
+    @Test
+    fun `Gitt en P3000 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+
+        sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP3000_NO.json")
+        OppgaveMeldingVerification("2000101917444")
+            .medAktivDato(today)
+            .medFristFerdigstillelse(tomorrrow)
+            .medBeskrivelse("Utgående P3000_NO - Landsspesifikk informasjon - Norge / Rina saksnr: 24242424")
+            .medOppgavetype("JFR")
+            .medtildeltEnhetsnr("4808")
+    }
+
+
+    @Test
+    fun `Gitt en R005 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+
+        sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingR005.json")
+        OppgaveMeldingVerification("2000101917555")
+            .medAktivDato(today)
+            .medFristFerdigstillelse(tomorrrow)
+            .medBeskrivelse("Utgående R005 - Anmodning om motregning i etterbetalinger (foreløpig eller endelig) / Rina saksnr: 24242424")
+            .medOppgavetype("JFR")
+            .medtildeltEnhetsnr("4808")
+            .medJournalpostId("429434380")
+    }
+
+
+    inner class OppgaveMeldingVerification(aktoerId: String) {
+        val logsList: List<ILoggingEvent> = listAppender.list
+        val meldingFraLog =
+            logsList.find { message ->
+                message.message.contains("Oppretter oppgave:") && message.message.contains(
+                    "\"aktoerId\" : \"$aktoerId\""
+                )
+            }?.message
+        fun medtildeltEnhetsnr(melding: String) = apply {
+            assertTrue(meldingFraLog!!.contains("\"tildeltEnhetsnr\" : \"$melding\""))
+        }
+        fun medBeskrivelse(melding: String) = apply {
+            assertTrue(meldingFraLog!!.contains("\"beskrivelse\" : \"$melding\""))
+        }
+        fun medOppgavetype(melding: String) = apply {
+            assertTrue(meldingFraLog!!.contains("\"oppgavetype\" : \"$melding\""))
+        }
+        fun medFristFerdigstillelse(melding: String) = apply {
+            assertTrue(meldingFraLog!!.contains("\"fristFerdigstillelse\" : \"$melding\""))
+        }
+        fun medAktivDato(melding: String) = apply {
+            assertTrue(meldingFraLog!!.contains("\"aktivDato\" : \"$melding\""))
+        }
+        fun medJournalpostId(melding: String) = apply {
+            assertTrue(meldingFraLog!!.contains("\"journalpostId\" : \"$melding\""))
+        }
+    }
+
+    private fun sendMessageWithDelay(template: KafkaTemplate<String, String>, message: String) {
+        template.sendDefault(String(Files.readAllBytes(Paths.get(message)))).get(10L, TimeUnit.SECONDS)
+        oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
+        Thread.sleep(10000)
     }
 
     private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
@@ -110,275 +201,188 @@ class OppgaveIntegrationTest {
         return template
     }
 
-    private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, String> {
-        val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
-        consumerProperties["auto.offset.reset"] = "earliest"
+    private fun initConsumer(topicNavn: String): KafkaMessageListenerContainer<String, String> {
+        val consumerProperties = KafkaTestUtils.consumerProps(
+            UUID.randomUUID().toString(),
+            "false",
+            embeddedKafka
+        )
+        consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        consumerProperties[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 1
 
-        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(consumerProperties, StringDeserializer(), StringDeserializer())
-        val containerProperties = ContainerProperties(topicNavn)
-        val container = KafkaMessageListenerContainer<String, String>(consumerFactory, containerProperties)
-        val messageListener = MessageListener<String, String> { record -> println("Konsumerer melding:  $record") }
-        container.setupMessageListener(messageListener)
-        return container
+        val consumerFactory =
+            DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
+
+        return KafkaMessageListenerContainer(consumerFactory, ContainerProperties(topicNavn)).apply {
+            setupMessageListener(MessageListener<String, String> { record -> println("Konsumerer melding:  $record") })
+        }
     }
 
-
     companion object {
-
         init {
             // Start Mockserver in memory
-            val lineSeparator = System.lineSeparator()
-            val port = randomFrom()
-            println("############## portnummer $port")
+            val port = PortFactory.findFreePort()
             mockServer = ClientAndServer.startClientAndServer(port)
             System.setProperty("mockServerport", port.toString())
 
-            // Mocker STS
+            val today = LocalDate.now()
+            val tomorrrow = LocalDate.now().plusDays(1).toString()
             mockServer.`when`(
-                    request()
-                            .withMethod("GET")
-                            .withQueryStringParameter("grant_type", "client_credentials"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/sts/STStoken.json"))))
-                    )
+                request()
+                    .withMethod("GET")
+                    .withQueryStringParameter("grant_type", "client_credentials"))
+                .respond(response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/sts/STStoken.json"))))
+                )
 
             // Mocker STS service discovery
             mockServer.`when`(
-                    request()
-                            .withMethod("GET")
-                            .withPath("/.well-known/openid-configuration"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(
-                                    "{\n" +
-                                            "  \"issuer\": \"http://localhost:$port\",\n" +
-                                            "  \"token_endpoint\": \"http://localhost:$port/rest/v1/sts/token\",\n" +
-                                            "  \"exchange_token_endpoint\": \"http://localhost:$port/rest/v1/sts/token/exchange\",\n" +
-                                            "  \"jwks_uri\": \"http://localhost:$port/rest/v1/sts/jwks\",\n" +
-                                            "  \"subject_types_supported\": [\"public\"]\n" +
-                                            "}"
-                            )
+                request()
+                    .withMethod("GET")
+                    .withPath("/.well-known/openid-configuration"))
+                .respond(response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(
+                        "{\n" +
+                                "  \"issuer\": \"http://localhost:$port\",\n" +
+                                "  \"token_endpoint\": \"http://localhost:$port/rest/v1/sts/token\",\n" +
+                                "  \"exchange_token_endpoint\": \"http://localhost:$port/rest/v1/sts/token/exchange\",\n" +
+                                "  \"jwks_uri\": \"http://localhost:$port/rest/v1/sts/jwks\",\n" +
+                                "  \"subject_types_supported\": [\"public\"]\n" +
+                                "}"
                     )
+                )
 
             // Mocker oppgavetjeneste
             mockServer.`when`(
-                    request()
-                            .withMethod("POST")
-                            .withPath("/")
-                            .withBody("{$lineSeparator"+
-                                    "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator"  +
-                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                    "  \"journalpostId\" : \"429434380\",$lineSeparator" +
-                                    "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
-                                    "  \"beskrivelse\" : \"Utgående P3000_NO - Landsspesifikk informasjon - Norge / Rina saksnr: 24242424\",$lineSeparator" +
-                                    "  \"tema\" : \"PEN\",$lineSeparator" +
-                                    "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                    "}"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                request()
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody(subString("P3000_NO"))
+                    .withBody(
+                        json(
+                            """{
+                                  "tildeltEnhetsnr" : "4808",
+                                  "opprettetAvEnhetsnr" : "9999",
+                                  "journalpostId" : "429434333",
+                                  "aktoerId" : "2000101917444",
+                                  "tema" : "PEN",
+                                  "oppgavetype" : "JFR",
+                                  "prioritet" : "NORM",
+                                  "fristFerdigstillelse" : "$tomorrrow",
+                                  "aktivDato" : "$today"
+                            }""".trimIndent() + MatchType.ONLY_MATCHING_FIELDS
+                        )
                     )
-            mockServer.`when`(
-                    request()
-                            .withMethod("POST")
-                            .withPath("/")
-                            .withBody("{$lineSeparator"+
-                                    "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator"  +
-                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                    "  \"journalpostId\" : \"429434378\",$lineSeparator" +
-                                    "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                    "  \"beskrivelse\" : \"Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161\",$lineSeparator" +
-                                    "  \"tema\" : \"PEN\",$lineSeparator" +
-                                    "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                    "}"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                    )
+            )
+                .respond(
+                    response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                )
             mockServer.`when`(
                 request()
                     .withMethod("POST")
                     .withPath("/")
-                    .withBody("{$lineSeparator"+
-                            "  \"tildeltEnhetsnr\" : \"4475\",$lineSeparator"  +
-                            "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                            "  \"journalpostId\" : \"429434378\",$lineSeparator" +
-                            "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                            "  \"beskrivelse\" : \"Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 148161\",$lineSeparator" +
-                            "  \"tema\" : \"PEN\",$lineSeparator" +
-                            "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
-                            "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                            "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                            "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                            "}"))
-                .respond(HttpResponse.response()
-                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                    .withStatusCode(HttpStatusCode.OK_200.code())
-                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                    .withBody(subString("P2000"))
+                    .withBody(
+                        json(
+                            """{
+                              "tildeltEnhetsnr" : "4303",
+                              "opprettetAvEnhetsnr" : "9999",
+                              "journalpostId" : "429434311",
+                              "aktoerId" : "1000101917111",
+                              "tema" : "PEN",
+                              "oppgavetype" : "JFR",
+                              "prioritet" : "NORM",
+                              "fristFerdigstillelse" : "$tomorrrow",
+                              "aktivDato" : "$today"
+                        }""" + MatchType.ONLY_MATCHING_FIELDS
+                        )
+                    )
+            )
+                .respond(
+                    response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                )
+            mockServer.`when`(
+                request()
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody(subString("P2200"))
+                    .withBody(json("""{
+                          "tildeltEnhetsnr" : "4475",
+                          "opprettetAvEnhetsnr" : "9999",
+                          "journalpostId" : "429434322",
+                          "aktoerId" : "1000101917333",
+                          "tema" : "PEN",
+                          "oppgavetype" : "BEH_SED",
+                          "prioritet" : "NORM",
+                          "fristFerdigstillelse" : "$tomorrrow",
+                          "aktivDato" : "$today"
+                    }""".trimIndent()))
+            )
+                .respond(
+                    response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                 )
 
             mockServer.`when`(
-                    request()
-                            .withMethod("POST")
-                            .withPath("/")
-                            .withBody("{$lineSeparator" +
-                                    "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
-                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                    "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                    "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt\",$lineSeparator" +
-                                    "  \"tema\" : \"PEN\",$lineSeparator" +
-                                    "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
-                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                    "}"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                    )
-
-            mockServer.`when`(
-                    request()
-                            .withMethod("POST")
-                            .withPath("/")
-                            .withBody("{$lineSeparator"+
-                                    "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator"  +
-                                    "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                    "  \"journalpostId\" : \"429434380\",$lineSeparator" +
-                                    "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
-                                    "  \"beskrivelse\" : \"Utgående R005 - Anmodning om motregning i etterbetalinger (foreløpig eller endelig) / Rina saksnr: 24242424\",$lineSeparator" +
-                                    "  \"tema\" : \"PEN\",$lineSeparator" +
-                                    "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                    "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                    "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                    "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                    "}"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                    )
-
-        }
-
-        private fun randomFrom(from: Int = 2024, to: Int = 55535): Int {
-            val random = Random()
-            return random.nextInt(to - from) + from
-        }
-    }
-
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    private fun verifiser() {
-        val lineSeparator = System.lineSeparator()
-
-        assertEquals(0, oppgaveListener.getLatch().count)
-
-        // Verifiserer at det har blitt forsøkt å opprette PEN oppgave med aktørid
-        mockServer.verify(
-                request()
-                        .withMethod("POST")
-                        .withPath("/")
-                        .withBody("{$lineSeparator" +
-                                "  \"tildeltEnhetsnr\" : \"4303\",$lineSeparator" +
-                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                "  \"journalpostId\" : \"429434378\",$lineSeparator" +
-                                "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Utgående P2000 - Krav om alderspensjon / Rina saksnr: 148161\",$lineSeparator" +
-                                "  \"tema\" : \"PEN\",$lineSeparator" +
-                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                "}"),
-                VerificationTimes.exactly(1)
-        )
-
-       /* mockServer.verify(
                 request()
                     .withMethod("POST")
                     .withPath("/")
-                    .withBody("{$lineSeparator"+
-                            "  \"tildeltEnhetsnr\" : \"4475\",$lineSeparator"  +
-                            "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                            "  \"journalpostId\" : \"429434378\",$lineSeparator" +
-                            "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                            "  \"beskrivelse\" : \"Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 148161\",$lineSeparator" +
-                            "  \"tema\" : \"PEN\",$lineSeparator" +
-                            "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
-                            "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                            "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                            "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                            "}"),
-                VerificationTimes.exactly(1)
-        )
-*/
-        mockServer.verify(
-                request()
-                        .withMethod("POST")
-                        .withPath("/")
-                        .withBody("{$lineSeparator" +
-                                "  \"tildeltEnhetsnr\" : \"4803\",$lineSeparator" +
-                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                "  \"aktoerId\" : \"1000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt\",$lineSeparator" +
-                                "  \"tema\" : \"PEN\",$lineSeparator" +
-                                "  \"oppgavetype\" : \"BEH_SED\",$lineSeparator" +
-                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                "}"),
-                VerificationTimes.exactly(1)
-        )
+                    .withBody(subString("RINA sakId: 147666 mangler filnavn"))
+                    .withBody(json(
+                        """{
+                          "tildeltEnhetsnr" : "4803",
+                          "opprettetAvEnhetsnr" : "9999",
+                          "aktoerId" : "1000101917222",
+                          "tema" : "PEN",
+                          "oppgavetype" : "BEH_SED",
+                          "prioritet" : "NORM",
+                          "fristFerdigstillelse" : "$tomorrrow",
+                          "aktivDato" : "$today"
+                       }""".trimIndent()
+                    ))
+            )
+                .respond(
+                    response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                )
 
-        mockServer.verify(
+            mockServer.`when`(
                 request()
-                        .withMethod("POST")
-                        .withPath("/")
-                        .withBody("{$lineSeparator" +
-                                "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator" +
-                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                "  \"journalpostId\" : \"429434380\",$lineSeparator" +
-                                "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Utgående P3000_NO - Landsspesifikk informasjon - Norge / Rina saksnr: 24242424\",$lineSeparator" +
-                                "  \"tema\" : \"PEN\",$lineSeparator" +
-                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                "}"),
-                VerificationTimes.exactly(1)
-        )
-
-        mockServer.verify(
-                request()
-                        .withMethod("POST")
-                        .withPath("/")
-                        .withBody("{$lineSeparator" +
-                                "  \"tildeltEnhetsnr\" : \"4808\",$lineSeparator" +
-                                "  \"opprettetAvEnhetsnr\" : \"9999\",$lineSeparator" +
-                                "  \"journalpostId\" : \"429434380\",$lineSeparator" +
-                                "  \"aktoerId\" : \"2000101917358\",$lineSeparator" +
-                                "  \"beskrivelse\" : \"Utgående R005 - Anmodning om motregning i etterbetalinger (foreløpig eller endelig) / Rina saksnr: 24242424\",$lineSeparator" +
-                                "  \"tema\" : \"PEN\",$lineSeparator" +
-                                "  \"oppgavetype\" : \"JFR\",$lineSeparator" +
-                                "  \"prioritet\" : \"NORM\",$lineSeparator" +
-                                "  \"fristFerdigstillelse\" : " + "\"" + LocalDate.now().plusDays(1).toString() + "\"," + lineSeparator +
-                                "  \"aktivDato\" : " + "\"" + LocalDate.now().toString() + "\"" + lineSeparator +
-                                "}"),
-                VerificationTimes.exactly(1)
-        )
-
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody(subString("R005"))
+                    .withBody(json("""{
+                          "tildeltEnhetsnr" : "4808",
+                          "opprettetAvEnhetsnr" : "9999",
+                          "journalpostId" : "429434380",
+                          "aktoerId" : "2000101917555",
+                          "tema" : "PEN",
+                          "oppgavetype" : "JFR",
+                          "prioritet" : "NORM",
+                          "fristFerdigstillelse" : "$tomorrrow",
+                          "aktivDato" : "$today"
+                    }""".trimIndent()))
+            )
+                .respond(
+                    response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                )
+        }
     }
 }
