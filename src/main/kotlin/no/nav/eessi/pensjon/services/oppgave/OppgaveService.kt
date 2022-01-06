@@ -84,7 +84,6 @@ class OppgaveService(
             }
 
             val oppgave = opprettGeneriskOppgave(oppgaveTypeMap, opprettOppgave, beskrivelse)
-            logger.debug("Opprettet oppgave for innsending: $oppgave")
             oppgave
 
         } catch (ex: Exception) {
