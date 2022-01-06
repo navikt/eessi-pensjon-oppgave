@@ -12,12 +12,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
-import org.mockserver.matchers.MatchType
 import org.mockserver.model.Header
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
 import org.mockserver.model.HttpStatusCode
-import org.mockserver.model.JsonBody.json
 import org.mockserver.model.StringBody.subString
 import org.mockserver.socket.PortFactory
 import org.slf4j.LoggerFactory
@@ -51,11 +49,12 @@ private lateinit var mockServer: ClientAndServer
 @EmbeddedKafka(
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC] ,
-    brokerProperties= ["log.dir=out/oppgaveintegrationtest"]
+    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-9RollingCryingEyes"]
 )
 
 class OppgaveIntegrationTest {
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
@@ -106,6 +105,34 @@ class OppgaveIntegrationTest {
     }
 
     @Test
+    fun `Gitt det mottas en oppgavehendelse fra pdl-produsent så skal den lage en tilsvarende behandlesed oppgave`() {
+
+        val meldingFraPdljson = """
+            {
+            "sedType" : null,
+            "journalpostId" : null,
+            "tildeltEnhetsnr" : "4303",
+            "aktoerId" : "1000101917111",
+            "oppgaveType" : "PDL",
+            "rinaSakId" : "3442342342342",
+            "hendelseType" : "MOTTATT",
+            "filnavn" : null
+            }
+        """.trimIndent()
+
+
+        // Sende meldinger på kafka
+        sendMessageFraJsonWithDelay(oppgaveProducerTemplate, meldingFraPdljson)
+
+//        OppgaveMeldingVerificationMedType("3442342342342", "beskrivelse")
+//            .medBeskrivelse("Det er mottatt en SED med utlandskid som er forkjellig fra det som finnes i PDL. tilhørende RINA sakId: 3442342342342")
+//            .medOppgavetype("BEH_SED")
+//            .medtildeltEnhetsnr("4803")
+//            .medAktivDato(today)
+
+    }
+
+    @Test
     fun `Gitt en P2000 oppgavehendelse med feil så skal den lage en tilsvarende oppgave`() {
 
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")
@@ -115,7 +142,6 @@ class OppgaveIntegrationTest {
             .medBeskrivelse("Mottatt vedlegg: etWordDokument.doxc tilhørende RINA sakId: 147666 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt")
             .medOppgavetype("BEH_SED")
             .medtildeltEnhetsnr("4803")
-            .medOppgavetype("BEH_SED")
     }
 
     @Test
@@ -157,13 +183,14 @@ class OppgaveIntegrationTest {
             .medJournalpostId("429434380")
     }
 
+    inner class OppgaveMeldingVerification(aktoerId: String): OppgaveMeldingVerificationMedType(aktoerId, "aktoerId")
 
-    inner class OppgaveMeldingVerification(aktoerId: String) {
+    open inner class OppgaveMeldingVerificationMedType(value: String, keyword: String) {
         val logsList: List<ILoggingEvent> = listAppender.list
         val meldingFraLog =
             logsList.find { message ->
                 message.message.contains("Oppretter oppgave:") && message.message.contains(
-                    "\"aktoerId\" : \"$aktoerId\""
+                    "\"$keyword\" : \"$value\""
                 )
             }?.message
         fun medtildeltEnhetsnr(melding: String) = apply {
@@ -186,8 +213,14 @@ class OppgaveIntegrationTest {
         }
     }
 
-    private fun sendMessageWithDelay(template: KafkaTemplate<String, String>, message: String) {
-        template.sendDefault(String(Files.readAllBytes(Paths.get(message)))).get(10L, TimeUnit.SECONDS)
+    private fun sendMessageWithDelay(template: KafkaTemplate<String, String>, messagePath: String) {
+        template.sendDefault(String(Files.readAllBytes(Paths.get(messagePath)))).get(10L, TimeUnit.SECONDS)
+        oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
+        Thread.sleep(10000)
+    }
+
+    private fun sendMessageFraJsonWithDelay(template: KafkaTemplate<String, String>, message: String) {
+        template.sendDefault(message).get(10L, TimeUnit.SECONDS)
         oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
         Thread.sleep(10000)
     }
@@ -225,7 +258,7 @@ class OppgaveIntegrationTest {
             mockServer = ClientAndServer.startClientAndServer(port)
             System.setProperty("mockServerport", port.toString())
 
-            val today = LocalDate.now()
+            val today = LocalDate.now().toString()
             val tomorrrow = LocalDate.now().plusDays(1).toString()
             mockServer.`when`(
                 request()
@@ -255,7 +288,7 @@ class OppgaveIntegrationTest {
                                 "}"
                     )
                 )
-
+/*
             // Mocker oppgavetjeneste
             mockServer.`when`(
                 request()
@@ -334,7 +367,33 @@ class OppgaveIntegrationTest {
                         .withStatusCode(HttpStatusCode.OK_200.code())
                         .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                 )
-
+*/
+            //mockserver for opprettelse oppgave fra pdl-produsent
+            mockServer.`when`(
+                request()
+                    .withMethod("POST")
+                    .withPath("/")
+                    .withBody(subString("tilhørende RINA sakId: 3442342342342"))
+//                    .withBody(json(
+//                        """{
+//                          "tildeltEnhetsnr" : "4303",
+//                          "opprettetAvEnhetsnr" : "9999",
+//                          "aktoerId" : "1000101917111",
+//                          "beskrivelse" : "Det er mottatt en SED med utlandskid som er forkjellig fra det som finnes i PDL. tilhørende RINA sakId: 3442342342342",
+//                          "tema" : "PEN",
+//                          "oppgavetype" : "BEH_SED",
+//                          "prioritet" : "NORM",
+//                          "fristFerdigstillelse" : "$tomorrrow",
+//                          "aktivDato" : "$today"
+//                    }""".trimIndent()))
+            )
+                .respond(
+                    response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+                )
+/*
             mockServer.`when`(
                 request()
                     .withMethod("POST")
@@ -383,6 +442,8 @@ class OppgaveIntegrationTest {
                         .withStatusCode(HttpStatusCode.OK_200.code())
                         .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
                 )
+*/
+
         }
     }
 }

@@ -53,7 +53,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                     logger.info("mottatt oppgavemelding : $melding")
                     val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
-                    oppgaveService.opprettOppgave(oppgaveMelding)
+                    oppgaveService.opprettOppgaveSendOppgaveInn(oppgaveMelding)
                     acknowledgment.acknowledge()
 
                     logger.info("******************************************************************\n" +
