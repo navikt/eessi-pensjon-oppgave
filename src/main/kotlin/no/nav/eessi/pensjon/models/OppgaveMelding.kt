@@ -8,7 +8,7 @@ import no.nav.eessi.pensjon.json.typeRefs
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class OppgaveMelding(
     val sakNr: String?,
-    val sedType: SedType,
+    val sedType: SedType?,
     val journalpostId: String?,
     val tildeltEnhetsnr: String,
     val aktoerId: String?,

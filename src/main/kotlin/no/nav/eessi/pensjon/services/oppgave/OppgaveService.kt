@@ -38,56 +38,21 @@ class OppgaveService(
     }
 
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
-    fun opprettOppgave(opprettOppgave: OppgaveMelding) {
+    fun opprettOppgaveSendOppgaveInn(oppgaveMelding: OppgaveMelding) {
         opprettoppgave.measure {
-            val oppgave = try {
 
-                val oppgaveTypeMap = mapOf(
-                    "GENERELL" to Oppgave.OppgaveType.GENERELL,
-                    "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
-                    "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
-                    "KRAV" to Oppgave.OppgaveType.KRAV
-                )
-
-                val generellbeskrivelse = genererBeskrivelseTekst(opprettOppgave.sedType, opprettOppgave.rinaSakId, opprettOppgave.hendelseType)
-                val behandleSedBeskrivelse = behandleSedBeskrivelse(opprettOppgave)
-
-                val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
-                    Oppgave.OppgaveType.JOURNALFORING -> generellbeskrivelse
-                    Oppgave.OppgaveType.KRAV -> generellbeskrivelse
-                    Oppgave.OppgaveType.GENERELL -> generellbeskrivelse
-                    Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse
-                    else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
-                }
-
-                Oppgave(
-                    oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
-                    tema = Oppgave.Tema.PENSJON.toString(),
-                    prioritet = Oppgave.Prioritet.NORM.toString(),
-                    aktoerId = opprettOppgave.aktoerId,
-                    aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                    journalpostId = opprettOppgave.journalpostId,
-                    opprettetAvEnhetsnr = "9999",
-                    tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
-                    fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
-                    beskrivelse = beskrivelse)
-
-            } catch (ex: Exception) {
-                logger.error("En feil oppstod under opprettelse av oppgave", ex)
-                throw RuntimeException(ex)
-            }
-
+            val oppgave = opprettOppgave(oppgaveMelding)
 
             try {
                 val requestBody = oppgave.toEmptyJson()
                 logger.info("Oppretter oppgave: $requestBody")
 
-                countEnthet(opprettOppgave.tildeltEnhetsnr)
+                countEnthet(oppgaveMelding.tildeltEnhetsnr)
 
                 val httpEntity = HttpEntity(requestBody)
                 oppgaveOidcRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
 
-                logger.info("Opprettet journalforingsoppgave med tildeltEnhetsnr:  ${opprettOppgave.tildeltEnhetsnr}")
+                logger.info("Opprettet journalforingsoppgave med tildeltEnhetsnr:  ${oppgaveMelding.tildeltEnhetsnr}")
             } catch(ex: HttpStatusCodeException) {
                 logger.error("En feil oppstod under opprettelse av oppgave ex: $ex body: ${ex.responseBodyAsString}")
                 throw java.lang.RuntimeException("En feil oppstod under opprettelse av oppgave ex: ${ex.message} body: ${ex.responseBodyAsString}")
@@ -96,6 +61,56 @@ class OppgaveService(
                 throw java.lang.RuntimeException("En feil oppstod under opprettelse av oppgave ex: ${ex.message}")
             }
         }
+    }
+
+    private fun opprettOppgave(opprettOppgave: OppgaveMelding): Oppgave {
+        return try {
+
+            val oppgaveTypeMap = mapOf(
+                "GENERELL" to Oppgave.OppgaveType.GENERELL,
+                "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
+                "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
+                "KRAV" to Oppgave.OppgaveType.KRAV,
+                "PDL" to Oppgave.OppgaveType.PDL
+            )
+
+            val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
+                Oppgave.OppgaveType.JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
+                else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
+            }
+
+            val oppgave = opprettGeneriskOppgave(oppgaveTypeMap, opprettOppgave, beskrivelse)
+            oppgave
+
+        } catch (ex: Exception) {
+            logger.error("En feil oppstod under opprettelse av oppgave", ex)
+            throw RuntimeException(ex)
+        }
+    }
+
+    private fun opprettGenerellBeskrivelse(opprettOppgave: OppgaveMelding): String {
+        val generellbeskrivelse =
+            opprettOppgave.sedType?.let { sedType -> genererBeskrivelseTekst(sedType, opprettOppgave.rinaSakId, opprettOppgave.hendelseType) } ?: throw RuntimeException("feiler med sedtype")
+        return generellbeskrivelse
+    }
+
+    private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, Oppgave.OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
+        return Oppgave(
+            oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
+            tema = Oppgave.Tema.PENSJON.toString(),
+            prioritet = Oppgave.Prioritet.NORM.toString(),
+            aktoerId = opprettOppgave.aktoerId,
+            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+            journalpostId = opprettOppgave.journalpostId,
+            opprettetAvEnhetsnr = "9999",
+            tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
+            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
+            beskrivelse = beskrivelse
+        )
     }
 
     fun countEnthet(tildeltEnhetsnr: String?) {
@@ -137,6 +152,10 @@ class OppgaveService(
         }
     }
 
+    fun behandleSedPdlUidBeskrivelse(oppgaveMelding: OppgaveMelding): String {
+        val rinaSakId = oppgaveMelding.rinaSakId
+        return "Det er mottatt en SED med utlandskid som er forkjellig fra det som finnes i PDL. tilhørende RINA sakId: $rinaSakId"
+    }
 
 }
 
@@ -190,7 +209,11 @@ private class Oppgave(
         KRAV {
             override fun toString() = "KRA"
             override fun decode() = "Krav"
-        }
+        },
+        PDL {
+            override fun toString() = "BEH_SED"
+            override fun decode() = "Behandle SED"
+        };
 
     }
 
