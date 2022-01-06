@@ -23,7 +23,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
         @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper(SimpleMeterRegistry())) {
 
     private val logger = LoggerFactory.getLogger(OppgaveListener::class.java)
-    private val latch = CountDownLatch(1)
+    private val latch = CountDownLatch(6)
 
     private lateinit var consumeOppgavemelding: MetricsHelper.Metric
 
