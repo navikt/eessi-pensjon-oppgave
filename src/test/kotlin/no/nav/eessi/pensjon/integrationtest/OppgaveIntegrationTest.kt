@@ -51,7 +51,7 @@ private lateinit var mockServer: ClientAndServer
 @EmbeddedKafka(
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC] ,
-    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe"]
+    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe8"]
 )
 
 class OppgaveIntegrationTest {
@@ -129,11 +129,11 @@ class OppgaveIntegrationTest {
         // Sende meldinger på kafka
         sendMessageFraJsonWithDelay(oppgaveProducerTemplate, meldingFraPdljson)
 
-        OppgaveMeldingVerificationMedType("Det er mottatt en SED med utlandskid som er forkjellig fra det som finnes i PDL. tilhørende RINA sakId: 3442342342342", "beskrivelse")
-                .medBeskrivelse("Det er mottatt en SED med utlandskid som er forkjellig fra det som finnes i PDL. tilhørende RINA sakId: 3442342342342")
-                .medOppgavetype("BEH_SED")
-                .medtildeltEnhetsnr("4303")
-                .medAktivDato(today)
+        OppgaveMeldingVerification("1000101917111")
+            .medBeskrivelse("Avvik i utenlandsk ID i PDL. I RINA saksnummer: 3442342342342 er det mottatt en SED med utenlandsk ID som er forskjellig fra den som finnes i PDL. Avklar hvilken som er korrekt.")
+            .medOppgavetype("BEH_SED")
+            .medtildeltEnhetsnr("4303")
+            .medAktivDato(today)
 
     }
 
@@ -329,7 +329,7 @@ class OppgaveIntegrationTest {
                 request()
                     .withMethod("POST")
                     .withPath("/")
-                    .withBody(subString("RINA sakId: 3442342342342"))
+                    .withBody(subString("Avvik i utenlandsk ID i PDL. I RINA saksnummer: 3442342342342"))
             )
                 .respond(
                     response()
