@@ -6,6 +6,7 @@ import ch.qos.logback.core.read.ListAppender
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.MockkBeans
 import io.mockk.mockk
+import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -51,13 +52,13 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer: ClientAndServer
 
-@SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
+@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC] ,
-    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe8123"]
+    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe"]
 )
 
 class OppgaveIntegrationTest {
@@ -65,9 +66,6 @@ class OppgaveIntegrationTest {
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
-
-//    @MockkBean
-//    lateinit var oppgaveOAuthRestTemplate: RestTemplate
 
     @Autowired
     lateinit var oppgaveService : OppgaveService
