@@ -24,7 +24,7 @@ import javax.annotation.PostConstruct
  */
 @Service
 class OppgaveService(
-        private val oppgaveOidcRestTemplate: RestTemplate,
+        private val oppgaveOAuthRestTemplate: RestTemplate,
         @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper(SimpleMeterRegistry())
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
@@ -50,7 +50,7 @@ class OppgaveService(
                 countEnthet(oppgaveMelding.tildeltEnhetsnr)
 
                 val httpEntity = HttpEntity(requestBody)
-                oppgaveOidcRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
+                oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
 
                 logger.info("Opprettet journalforingsoppgave med tildeltEnhetsnr:  ${oppgaveMelding.tildeltEnhetsnr}")
             } catch(ex: HttpStatusCodeException) {

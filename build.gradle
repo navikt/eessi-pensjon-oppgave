@@ -11,6 +11,7 @@ buildscript {
         epSecurityStsVersion = '0.0.21'
         logstashLogbackVersion = '7.0.1'
         jacksonKotlinVersion = '2.13.1'
+        oidcTokenSupportVersion = '1.3.9'
 
         // TEST
         mockkVersion = '1.12.1'
@@ -70,8 +71,6 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
-    implementation("no.nav.eessi.pensjon:ep-security-sts:${epSecurityStsVersion}")
-
     // Micrometer
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("no.nav.eessi.pensjon:ep-metrics:${epMetricsVersion}")
@@ -81,6 +80,12 @@ dependencies {
     configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
     implementation group: 'org.slf4j', name: 'jcl-over-slf4j'
     implementation("no.nav.eessi.pensjon:ep-logging:${epLoggingVersion}")
+
+    //Auth
+    implementation("no.nav.security:token-client-spring:${oidcTokenSupportVersion}")
+    implementation("no.nav.security:token-validation-spring:${oidcTokenSupportVersion}")
+    implementation("no.nav.security:token-validation-jaxrs:${oidcTokenSupportVersion}")
+    implementation("no.nav.security:token-validation-test-support:${oidcTokenSupportVersion}")
 
     // TEST
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {

@@ -1,4 +1,4 @@
-package no.nav.eessi.pensjon.config
+package no.nav.eessi.pensjon.integrationtest
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
@@ -18,49 +18,25 @@ import org.springframework.http.client.*
 import org.springframework.web.client.RestTemplate
 import java.util.*
 
-@Profile("prod", "test")
+@Profile("integrationtest")
 @Configuration
 class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
 
     @Value("\${oppgave.oppgaver.url}")
     lateinit var oppgaveUrl: String
 
-    @Value("\${srvusername}")
-    lateinit var username: String
-
-    @Value("\${srvpassword}")
-    lateinit var password: String
-
     @Bean
-    fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
+    fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder): RestTemplate {
         return templateBuilder
                 .rootUri(oppgaveUrl)
                 .additionalInterceptors(
-                        bearerTokenInterceptor(oAuth2AccessTokenService, clientConfigurationProperties),
                         RequestIdHeaderInterceptor(),
                         RequestInterceptor(),
                         RequestResponseLoggerInterceptor(),
-                        RequestCountInterceptor(meterRegistry),
                 )
                 .build().apply {
                     requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
                 }
-    }
-
-    private fun bearerTokenInterceptor(
-        oAuth2AccessTokenService: OAuth2AccessTokenService,
-        clientConfigurationProperties: ClientConfigurationProperties,
-    ): ClientHttpRequestInterceptor {
-        val clientProperties =
-            Optional.ofNullable(clientConfigurationProperties.registration["oppgave-credentials"])
-                .orElseThrow { RuntimeException("could not find oauth2 client config for example-onbehalfof") }
-        return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-            print("accesstoken før: ${request.headers}")
-            val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-            request.headers.setBearerAuth(response.accessToken)
-            print("legger til accesstoken: ${response.accessToken}")
-            execution.execute(request, body!!)
-        }
     }
 
     class RequestInterceptor : ClientHttpRequestInterceptor {

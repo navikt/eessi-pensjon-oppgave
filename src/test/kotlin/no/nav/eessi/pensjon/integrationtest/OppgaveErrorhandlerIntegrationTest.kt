@@ -7,6 +7,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
 import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
+import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Disabled
@@ -31,6 +32,7 @@ import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.web.client.RestTemplate
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -52,10 +54,14 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
-
     @MockkBean
     lateinit var kafkaCustomErrorHandler: KafkaCustomErrorHandler
 
+    @MockkBean
+    lateinit var oppgaveOAuthRestTemplate: RestTemplate
+
+    @Autowired
+    lateinit var oppgaveService : OppgaveService
 
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
@@ -110,35 +116,6 @@ class OppgaveErrorhandlerIntegrationTest {
             mockServer = ClientAndServer.startClientAndServer(port)
             System.setProperty("mockServerport", port.toString())
 
-            // Mocker STS service discovery
-            mockServer.`when`(
-                    HttpRequest.request()
-                            .withMethod("GET")
-                            .withPath("/.well-known/openid-configuration"))
-                    .respond(HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody(
-                                    "{\n" +
-                                            "  \"issuer\": \"http://localhost:$port\",\n" +
-                                            "  \"token_endpoint\": \"http://localhost:$port/rest/v1/sts/token\",\n" +
-                                            "  \"exchange_token_endpoint\": \"http://localhost:$port/rest/v1/sts/token/exchange\",\n" +
-                                            "  \"jwks_uri\": \"http://localhost:$port/rest/v1/sts/jwks\",\n" +
-                                            "  \"subject_types_supported\": [\"public\"]\n" +
-                                            "}"
-                            )
-                    )
-            mockServer.`when`(
-                HttpRequest.request()
-                    .withMethod(HttpMethod.GET.name)
-                    .withQueryStringParameter("grant_type", "client_credentials")
-            )
-                .respond(
-                    HttpResponse.response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/sts/STStoken.json"))))
-                )
         }
 
         private fun randomFrom(from: Int = 2024, to: Int = 55535): Int {

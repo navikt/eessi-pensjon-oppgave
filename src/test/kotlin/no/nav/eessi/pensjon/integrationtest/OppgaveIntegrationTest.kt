@@ -3,7 +3,11 @@ package no.nav.eessi.pensjon.integrationtest
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import com.ninjasquad.springmockk.MockkBean
+import com.ninjasquad.springmockk.MockkBeans
+import io.mockk.mockk
 import no.nav.eessi.pensjon.listeners.OppgaveListener
+import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -23,6 +27,7 @@ import org.mockserver.socket.PortFactory
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -35,6 +40,7 @@ import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.web.client.RestTemplate
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDate
@@ -51,7 +57,7 @@ private lateinit var mockServer: ClientAndServer
 @EmbeddedKafka(
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC] ,
-    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe8"]
+    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe8123"]
 )
 
 class OppgaveIntegrationTest {
@@ -59,6 +65,12 @@ class OppgaveIntegrationTest {
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
+
+//    @MockkBean
+//    lateinit var oppgaveOAuthRestTemplate: RestTemplate
+
+    @Autowired
+    lateinit var oppgaveService : OppgaveService
 
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
@@ -74,6 +86,7 @@ class OppgaveIntegrationTest {
 
     @BeforeEach
     fun setup() {
+
         listAppender.start()
         deugLogger.addAppender(listAppender)
 
@@ -266,34 +279,6 @@ class OppgaveIntegrationTest {
 
             val today = LocalDate.now()
             val tomorrrow = LocalDate.now().plusDays(1).toString()
-            mockServer.`when`(
-                request()
-                    .withMethod("GET")
-                    .withQueryStringParameter("grant_type", "client_credentials"))
-                .respond(response()
-                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                    .withStatusCode(HttpStatusCode.OK_200.code())
-                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/sts/STStoken.json"))))
-                )
-
-            // Mocker STS service discovery
-            mockServer.`when`(
-                request()
-                    .withMethod("GET")
-                    .withPath("/.well-known/openid-configuration"))
-                .respond(response()
-                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                    .withStatusCode(HttpStatusCode.OK_200.code())
-                    .withBody(
-                        "{\n" +
-                                "  \"issuer\": \"http://localhost:$port\",\n" +
-                                "  \"token_endpoint\": \"http://localhost:$port/rest/v1/sts/token\",\n" +
-                                "  \"exchange_token_endpoint\": \"http://localhost:$port/rest/v1/sts/token/exchange\",\n" +
-                                "  \"jwks_uri\": \"http://localhost:$port/rest/v1/sts/jwks\",\n" +
-                                "  \"subject_types_supported\": [\"public\"]\n" +
-                                "}"
-                    )
-                )
 
             // Mocker oppgavetjeneste
             mockServer.`when`(
