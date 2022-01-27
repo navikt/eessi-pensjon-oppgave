@@ -4,9 +4,11 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
 import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
 import no.nav.eessi.pensjon.metrics.RequestCountInterceptor
+import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import no.nav.security.token.support.client.core.ClientProperties
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
@@ -31,6 +33,9 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
     @Value("\${srvpassword}")
     lateinit var password: String
 
+    private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
+
+
     @Bean
     fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         return templateBuilder
@@ -39,8 +44,7 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
                         bearerTokenInterceptor(oAuth2AccessTokenService, clientConfigurationProperties),
                         RequestIdHeaderInterceptor(),
                         RequestInterceptor(),
-                        RequestResponseLoggerInterceptor(),
-                        RequestCountInterceptor(meterRegistry),
+                        RequestResponseLoggerInterceptor()
                 )
                 .build().apply {
                     requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
@@ -55,10 +59,10 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
             Optional.ofNullable(clientConfigurationProperties.registration["oppgave-credentials"])
                 .orElseThrow { RuntimeException("could not find oauth2 client config for example-onbehalfof") }
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-            print("accesstoken før: ${request.headers}")
+            logger.debug("accesstoken før: ${request.headers}")
             val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
             request.headers.setBearerAuth(response.accessToken)
-            print("legger til accesstoken: ${response.accessToken}")
+            logger.debug("legger til accesstoken: ${response.accessToken}")
             execution.execute(request, body!!)
         }
     }
