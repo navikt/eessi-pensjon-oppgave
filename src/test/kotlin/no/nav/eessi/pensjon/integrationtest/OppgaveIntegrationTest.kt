@@ -3,12 +3,8 @@ package no.nav.eessi.pensjon.integrationtest
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import com.ninjasquad.springmockk.MockkBean
-import com.ninjasquad.springmockk.MockkBeans
-import io.mockk.mockk
 import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.listeners.OppgaveListener
-import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -28,7 +24,6 @@ import org.mockserver.socket.PortFactory
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -41,7 +36,6 @@ import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.web.client.RestTemplate
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDate
@@ -66,9 +60,6 @@ class OppgaveIntegrationTest {
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
-
-    @Autowired
-    lateinit var oppgaveService : OppgaveService
 
     @Autowired
     lateinit var oppgaveListener: OppgaveListener

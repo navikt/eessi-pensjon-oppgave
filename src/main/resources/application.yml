@@ -1,5 +1,3 @@
-AZURE_APP_OPPGAVE_CLIENT_ID: 41ca50ba-e44f-4bc8-9e31-b745a0041926
-
 kafka:
   security.protocol: SSL
   oppgave:
@@ -12,7 +10,7 @@ no.nav.security.jwt:
       oppgave-credentials:
         token-endpoint-url: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
         grant-type: client_credentials
-        scope: api://${AZURE_APP_OPPGAVE_CLIENT_ID}/.default
+        scope: api://${OPPGAVE_CLIENT_ID}/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}

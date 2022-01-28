@@ -19,6 +19,8 @@ spec:
       value: https://sts.adeo.no/SecurityTokenServiceProvider/
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave.nais.adeo.no/api/v1/oppgaver
+    - name: OPPGAVE_CLIENT_ID
+      value:
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave
   image: {{ image }}

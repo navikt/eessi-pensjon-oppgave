@@ -28,6 +28,7 @@ srvpassword: somepass
 oppgave.oppgaver.url: http://localhost:${mockServerport}
 JOURNALPOST_V1_URL: http://localhost:${mockServerport}
 eessipennorg2service_URL: http://localhost:${mockServerport}
+OPPGAVE_CLIENT_ID: 32423
 
 #Metrics
 management:

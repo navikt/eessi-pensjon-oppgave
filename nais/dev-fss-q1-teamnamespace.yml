@@ -19,6 +19,8 @@ spec:
       value: https://sts-q1.preprod.local/SecurityTokenServiceProvider/
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave-q1.nais.preprod.local/api/v1/oppgaver
+    - name: OPPGAVE_CLIENT_ID
+      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q1
   image: {{ image }}

@@ -3,8 +3,6 @@ package no.nav.eessi.pensjon.config
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
 import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
-import no.nav.eessi.pensjon.metrics.RequestCountInterceptor
-import no.nav.eessi.pensjon.services.oppgave.OppgaveService
 import no.nav.security.token.support.client.core.ClientProperties
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
@@ -16,7 +14,11 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
-import org.springframework.http.client.*
+import org.springframework.http.client.BufferingClientHttpRequestFactory
+import org.springframework.http.client.ClientHttpRequestExecution
+import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.ClientHttpResponse
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import java.util.*
 
@@ -27,37 +29,26 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
     @Value("\${oppgave.oppgaver.url}")
     lateinit var oppgaveUrl: String
 
-    @Value("\${srvusername}")
-    lateinit var username: String
-
-    @Value("\${srvpassword}")
-    lateinit var password: String
-
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
-
     @Bean
-    fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
-        return templateBuilder
-                .rootUri(oppgaveUrl)
-                .additionalInterceptors(
-                        bearerTokenInterceptor(oAuth2AccessTokenService, clientConfigurationProperties),
-                        RequestIdHeaderInterceptor(),
-                        RequestInterceptor(),
-                        RequestResponseLoggerInterceptor()
-                )
-                .build().apply {
-                    requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
-                }
+    internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
+        val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") { throw IllegalStateException("Mangler Oauth2Client oppgave-credentials") }
+
+    return templateBuilder
+        .rootUri(oppgaveUrl)
+        .additionalInterceptors(
+            oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
+            RequestIdHeaderInterceptor(),
+            RequestInterceptor(),
+            RequestResponseLoggerInterceptor()
+        )
+        .build().apply {
+            requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
+        }
     }
 
-    private fun bearerTokenInterceptor(
-        oAuth2AccessTokenService: OAuth2AccessTokenService,
-        clientConfigurationProperties: ClientConfigurationProperties,
-    ): ClientHttpRequestInterceptor {
-        val clientProperties =
-            Optional.ofNullable(clientConfigurationProperties.registration["oppgave-credentials"])
-                .orElseThrow { RuntimeException("could not find oauth2 client config for example-onbehalfof") }
+    private fun oAuthBearerTokenInterceptor(oAuth2AccessTokenService: OAuth2AccessTokenService, clientProperties: ClientProperties): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
             logger.debug("accesstoken før: ${request.headers}")
             val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
@@ -67,7 +58,7 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
         }
     }
 
-    class RequestInterceptor : ClientHttpRequestInterceptor {
+    internal class RequestInterceptor : ClientHttpRequestInterceptor {
         override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution): ClientHttpResponse {
             request.headers["X-Correlation-ID"] = UUID.randomUUID().toString()
             request.headers["Content-Type"] = MediaType.APPLICATION_JSON.toString()
