@@ -13,6 +13,7 @@ spec:
   azure:
     application:
       enabled: true
+    #oppgave_clientid: dev-fss.oppgavehandtering.oppgave
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: test
@@ -21,7 +22,8 @@ spec:
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave.dev-fss-pub.nais.io/api/v1/oppgave
     - name: OPPGAVE_CLIENT_ID
-      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
+      value: dev-fss.oppgavehandtering.oppgave
+#      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q2
   image: {{ image }}

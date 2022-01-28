@@ -33,19 +33,20 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
 
     @Bean
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
-        val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") { throw IllegalStateException("Mangler Oauth2Client oppgave-credentials") }
-
-    return templateBuilder
-        .rootUri(oppgaveUrl)
-        .additionalInterceptors(
-            oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
-            RequestIdHeaderInterceptor(),
-            RequestInterceptor(),
-            RequestResponseLoggerInterceptor()
-        )
-        .build().apply {
-            requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
+        val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") {
+            throw IllegalStateException("Mangler Oauth2Client oppgave-credentials")
         }
+        return templateBuilder
+            .rootUri(oppgaveUrl)
+            .additionalInterceptors(
+                oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
+                RequestIdHeaderInterceptor(),
+                RequestInterceptor(),
+                RequestResponseLoggerInterceptor()
+            )
+            .build().apply {
+                requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
+            }
     }
 
     private fun oAuthBearerTokenInterceptor(oAuth2AccessTokenService: OAuth2AccessTokenService, clientProperties: ClientProperties): ClientHttpRequestInterceptor {
