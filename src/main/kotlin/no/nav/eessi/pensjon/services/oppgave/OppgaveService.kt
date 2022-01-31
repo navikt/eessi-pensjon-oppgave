@@ -152,11 +152,8 @@ class OppgaveService(
         }
     }
 
-    fun behandleSedPdlUidBeskrivelse(oppgaveMelding: OppgaveMelding): String {
-        val rinaSakId = oppgaveMelding.rinaSakId
-        return "Avvik i utenlandsk ID i PDL. I RINA saksnummer: $rinaSakId er det mottatt en SED med utenlandsk ID som er forskjellig fra den som finnes i PDL. Avklar hvilken som er korrekt."
-    }
-
+    fun behandleSedPdlUidBeskrivelse(oppgaveMelding: OppgaveMelding): String =
+        "Avvik i utenlandsk ID i PDL. I RINA saksnummer ${oppgaveMelding.rinaSakId} er det mottatt en SED med utenlandsk ID som er forskjellig fra den som finnes i PDL. Avklar hvilken som er korrekt eller om det skal legges til en utenlandsk ID."
 }
 
 private class Oppgave(
