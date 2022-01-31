@@ -132,7 +132,7 @@ class OppgaveIntegrationTest {
         sendMessageFraJsonWithDelay(oppgaveProducerTemplate, meldingFraPdljson)
 
         OppgaveMeldingVerification("1000101917111")
-            .medBeskrivelse("Avvik i utenlandsk ID i PDL. I RINA saksnummer: 3442342342342 er det mottatt en SED med utenlandsk ID som er forskjellig fra den som finnes i PDL. Avklar hvilken som er korrekt.")
+            .medBeskrivelse("Avvik i utenlandsk ID i PDL. I RINA saksnummer 3442342342342 er det mottatt en SED med utenlandsk ID som er forskjellig fra den som finnes i PDL. Avklar hvilken som er korrekt eller om det skal legges til en utenlandsk ID.")
             .medOppgavetype("BEH_SED")
             .medtildeltEnhetsnr("4303")
             .medAktivDato(today)
@@ -303,7 +303,7 @@ class OppgaveIntegrationTest {
                 request()
                     .withMethod("POST")
                     .withPath("/")
-                    .withBody(subString("Avvik i utenlandsk ID i PDL. I RINA saksnummer: 3442342342342"))
+                    .withBody(subString("Avvik i utenlandsk ID i PDL. I RINA saksnummer 3442342342342"))
             )
                 .respond(
                     response()
