@@ -8,6 +8,11 @@ metadata:
 spec:
   kafka:
     pool: nav-prod
+  envFrom:
+    - secret: eessi-pensjon-oppgave # value is the secret name in Google Secret Manager
+  azure:
+    application:
+      enabled: true
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod
@@ -45,10 +50,3 @@ spec:
     requests:
       cpu: 400m
       memory: 4024Mi
-  vault:
-    enabled: true
-    paths:
-      - kvPath: {{serviceuserkv}}
-        mountPath: /var/run/secrets/nais.io/srveessio
-      - kvPath: /apikey/appdynamics/prod
-        mountPath: /var/run/secrets/nais.io/vault
