@@ -9,10 +9,8 @@ import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
 import no.nav.eessi.pensjon.EessiPensjonJournalforingApplication
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-@Disabled
 class ArchitectureTest {
 
     companion object {
@@ -54,7 +52,6 @@ class ArchitectureTest {
         val JSON = "journalforing.json"
         val Logging = "oppgave.logging"
         val Metrics = "oppgave.metrics"
-        val STS = "oppgave.security.sts"
         val OppgaveService = "oppgave.services.oppgave"
         val IntegrationTest = "oppgave.integrationtest"
 
@@ -65,7 +62,6 @@ class ArchitectureTest {
                 Health to "$root.health",
                 JSON to "$root.json",
                 Listeners to "$root.listeners",
-                STS to "$root.security.sts",
                 Logging to "$root.logging",
                 Metrics to "$root.metrics",
                 OppgaveService to "$root.services.oppgave",
@@ -86,16 +82,13 @@ class ArchitectureTest {
                 .layer(Logging).definedBy(packages[Logging])
                 .layer(Metrics).definedBy(packages[Metrics])
                 .layer(OppgaveService).definedBy(packages[OppgaveService])
-                .layer(STS).definedBy(packages[STS])
                 .layer(IntegrationTest).definedBy(packages[IntegrationTest])
                 //define rules
                 .whereLayer(ROOT).mayNotBeAccessedByAnyLayer()
                 .whereLayer(Config).mayOnlyBeAccessedByLayers(IntegrationTest)
                 .whereLayer(Health).mayNotBeAccessedByAnyLayer()
-                .whereLayer(STS).mayOnlyBeAccessedByLayers(Config)
                 .whereLayer(Listeners).mayOnlyBeAccessedByLayers(IntegrationTest)
-                .whereLayer(Logging).mayOnlyBeAccessedByLayers(Config, STS)
-                .whereLayer(OppgaveService).mayOnlyBeAccessedByLayers(Listeners)
+                .whereLayer(OppgaveService).mayOnlyBeAccessedByLayers(Listeners, IntegrationTest)
                 //Verify rules
                 .check(classesToAnalyze)
     }
