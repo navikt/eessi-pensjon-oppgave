@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%magenta(%d{dd-MM-yyyy HH:mm:ss.SSS}) %highlight(%-5level) %logger{25} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io" level="INFO"/>
+    <logger name="org" level="ERROR"/>
+    <logger name="com" level="ERROR"/>
+    <logger name="kafka" level="WARN" />
+    <logger name="org.apache.zookeeper" level="WARN" />
+    <logger name="no.nav" level="DEBUG"/>
+    <logger name="no.nav.security" level="DEBUG"/>
+    <logger name="no.nav.eessi" level="DEBUG"/>
+    <root level="DEBUG">
+        <appender-ref ref="stdout" />
+    </root>
+
+</configuration>
