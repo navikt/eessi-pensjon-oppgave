@@ -2,6 +2,8 @@ package no.nav.eessi.pensjon.architecture
 
 import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.core.importer.ClassFileImporter
+import com.tngtech.archunit.core.importer.ImportOption
+import com.tngtech.archunit.core.importer.ImportOptions
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods
 import com.tngtech.archunit.library.Architectures.layeredArchitecture
@@ -12,7 +14,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-@Disabled
 class ArchitectureTest {
 
     companion object {
@@ -42,6 +43,7 @@ class ArchitectureTest {
 
     @Test
     fun `Services should not depend on eachother`() {
+
         slices().matching("..$root.services.(**)").should().notDependOnEachOther().check(classesToAnalyze)
     }
 
@@ -54,8 +56,9 @@ class ArchitectureTest {
         val JSON = "journalforing.json"
         val Logging = "oppgave.logging"
         val Metrics = "oppgave.metrics"
-        val OppgaveService = "oppgave.services.oppgave"
+        val OppgaveService = "oppgave.services"
         val IntegrationTest = "oppgave.integrationtest"
+        val Archtest = "oppgave.architecture"
 
 
         val packages: Map<String, String> = mapOf(
@@ -66,8 +69,9 @@ class ArchitectureTest {
                 Listeners to "$root.listeners",
                 Logging to "$root.logging",
                 Metrics to "$root.metrics",
-                OppgaveService to "$root.services.oppgave",
-                IntegrationTest to "$root.integrationtest"
+                OppgaveService to "$root.services",
+                IntegrationTest to "$root.integrationtest",
+                Archtest to "$root.architecture"
         )
 
         /*
@@ -85,8 +89,9 @@ class ArchitectureTest {
                 .layer(Metrics).definedBy(packages[Metrics])
                 .layer(OppgaveService).definedBy(packages[OppgaveService])
                 .layer(IntegrationTest).definedBy(packages[IntegrationTest])
+                .layer(Archtest).definedBy(packages[Archtest])
                 //define rules
-                .whereLayer(ROOT).mayNotBeAccessedByAnyLayer()
+                .whereLayer(ROOT).mayOnlyBeAccessedByLayers(IntegrationTest, Archtest)
                 .whereLayer(Config).mayOnlyBeAccessedByLayers(IntegrationTest)
                 .whereLayer(Health).mayNotBeAccessedByAnyLayer()
                 .whereLayer(Listeners).mayOnlyBeAccessedByLayers(IntegrationTest)

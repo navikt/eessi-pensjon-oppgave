@@ -3,7 +3,7 @@ package no.nav.eessi.pensjon.listeners
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.services.oppgave.OppgaveService
+import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC

@@ -7,7 +7,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
 import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
-import no.nav.eessi.pensjon.services.oppgave.OppgaveService
+import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Disabled

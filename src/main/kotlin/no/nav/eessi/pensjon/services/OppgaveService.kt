@@ -1,4 +1,4 @@
-package no.nav.eessi.pensjon.services.oppgave
+package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
