@@ -5,7 +5,7 @@ import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 */
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
-import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
+import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -13,13 +13,8 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
-import org.mockserver.model.Header
-import org.mockserver.model.HttpRequest
-import org.mockserver.model.HttpResponse
-import org.mockserver.model.HttpStatusCode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.HttpMethod
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -55,7 +50,7 @@ class OppgaveErrorhandlerIntegrationTest {
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
     @MockkBean
-    lateinit var kafkaCustomErrorHandler: KafkaCustomErrorHandler
+    lateinit var kafkaCustomErrorHandler: KafkaStoppingErrorHandler
 
     @MockkBean
     lateinit var oppgaveOAuthRestTemplate: RestTemplate
