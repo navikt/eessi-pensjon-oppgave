@@ -14,11 +14,10 @@ import java.lang.Exception
 @Component
 class KafkaStoppingErrorHandler : ContainerAwareErrorHandler {
     private val logger = LoggerFactory.getLogger(KafkaStoppingErrorHandler::class.java)
-
     private val stopper = CommonContainerStoppingErrorHandler()
 
     override fun handle(
-        thrownException: Exception,
+        thrownException: java.lang.Exception,
         records: MutableList<ConsumerRecord<*, *>>?,
         consumer: Consumer<*, *>,
         container: MessageListenerContainer
@@ -26,14 +25,15 @@ class KafkaStoppingErrorHandler : ContainerAwareErrorHandler {
         val stacktrace = StringWriter()
         thrownException.printStackTrace(PrintWriter(stacktrace))
 
-        logger.error("En feil oppstod under kafka konsumering av meldinger: \n ${hentMeldinger(records)} \n" +
-                "Stopper containeren ! Restart er nødvendig for å fortsette konsumering, $stacktrace")
+        logger.error("En feil oppstod under kafka konsumering av meldinger: \n" +
+                textListingOf(records ?: emptyList()) +
+                "\nStopper containeren ! Restart er nødvendig for å fortsette konsumering, $stacktrace")
         stopper.handleRemaining(thrownException, records?: emptyList(), consumer, container)
     }
 
-    fun hentMeldinger(records: MutableList<ConsumerRecord<*, *>>?): String {
-        return records?.joinToString(separator = "") {
-            "--------------------------------------------------------------------------------\n$it\n"
-        } ?: ""
-    }
+    fun textListingOf(records: List<ConsumerRecord<*, *>>) =
+        records.joinToString(separator = "\n") {
+            "--------------------------------------------------------------------------------\n$it"
+        }
+
 }
