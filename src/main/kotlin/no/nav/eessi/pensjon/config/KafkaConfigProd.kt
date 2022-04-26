@@ -25,7 +25,7 @@ class KafkaConfigProd(
     @param:Value("\${kafka.truststore.path}") private val truststorePath: String,
     @param:Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
     @param:Value("\${kafka.security.protocol}") private val securityProtocol: String,
-    @Autowired private val kafkaErrorHandler: KafkaCustomErrorHandler,
+    @Autowired private val kafkaErrorHandler: KafkaStoppingErrorHandler,
     @Autowired private val env: Environment) {
 
     fun aivenKafkaConsumerFactory(): ConsumerFactory<String, String> {
