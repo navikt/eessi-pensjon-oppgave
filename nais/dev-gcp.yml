@@ -1,32 +1,36 @@
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
-  name: eessi-pensjon-oppgave
+  name: eessi-pensjon-oppgave-q2
   namespace: eessipensjon
   labels:
     team: eessipensjon
 spec:
   kafka:
-    pool: nav-prod
+    pool: nav-dev
   envFrom:
-    - secret: oppgave # value is the secret name in Google Secret Manager
+    - secret: eessi-pensjon-oppgave # value is the secret name in Google Secret Manager
   azure:
     application:
       enabled: true
+    #oppgave_clientid: dev-fss.oppgavehandtering.oppgave
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: prod
+      value: test
     - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
-      value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
+      value: SSL://b27apvl00045.preprod.local:8443,SSL://b27apvl00046.preprod.local:8443,SSL://b27apvl00047.preprod.local:8443
     - name: OPPGAVE_OPPGAVER_URL
-      value: https://oppgave.prod-fss-pub.nais.io/api/v1/oppgaver
+#      value: https://oppgave.dev-fss-pub.nais.io/api/v1/oppgaver
+      value: https://eessi-pensjon-onprem-proxy-q2.dev-fss-pub.nais.io/api/v1/oppgaver
     - name: OPPGAVE_CLIENT_ID
-      value: prod-fss.oppgavehandtering.oppgave
+      value: dev-gcp.oppgavehandtering.oppgave
+    - name: AZURE_APP_PROXY_CLIENT_ID
+      value: dev-fss.eessipensjon.eessi-pensjon-onprem-proxy-q2
     - name: KAFKA_OPPGAVE_TOPIC
-      value: eessipensjon.privat-oppgave
+      value: eessipensjon.privat-oppgave-q2
   image: {{ image }}
   ingresses:
-    - https://eessi-pensjon-oppgave.nais.adeo.no
+    - https://eessi-pensjon-oppgave-q2.dev.intern.nav.no
   liveness:
     path: /internal/isalive
     port: 8080

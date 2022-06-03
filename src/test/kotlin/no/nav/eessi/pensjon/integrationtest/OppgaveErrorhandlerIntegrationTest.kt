@@ -5,12 +5,12 @@ import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 */
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
+import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,12 +37,11 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer: ClientAndServer
 
-@SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
+@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka1"])
 
-@Disabled
 class OppgaveErrorhandlerIntegrationTest {
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
