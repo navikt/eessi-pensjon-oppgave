@@ -14,7 +14,7 @@ buildscript {
         oidcTokenSupportTestVersion = '2.0.5'
 
         // TEST
-        mockkVersion = '1.12.3'
+        mockkVersion = '1.12.4'
         jupiterVersion = '5.8.2'
         ninjaMockkVersion = '3.1.1'
         mockserverNettyVersion = '5.13.2'
