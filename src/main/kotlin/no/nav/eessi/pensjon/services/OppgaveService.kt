@@ -1,8 +1,6 @@
 package no.nav.eessi.pensjon.services
 
-import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.json.toEmptyJson
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
@@ -25,11 +23,10 @@ import javax.annotation.PostConstruct
 @Service
 class OppgaveService(
         private val oppgaveOAuthRestTemplate: RestTemplate,
-        @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper(SimpleMeterRegistry())
+        @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private lateinit var opprettoppgave: MetricsHelper.Metric
-    private lateinit var enhetsCounter: Counter
 
 
     @PostConstruct

@@ -7,7 +7,7 @@ buildscript {
         springKafkaVersion = '2.8.4'
         archunitVersion = '0.23.1'
         epLoggingVersion = '1.0.24'
-        epMetricsVersion = '0.4.29'
+        epMetricsVersion = '0.5.0'
         logstashLogbackVersion = '7.1'
         jacksonKotlinVersion = '2.13.3'
         oidcTokenSupportVersion = '2.0.14'
@@ -15,7 +15,6 @@ buildscript {
 
         // TEST
         mockkVersion = '1.12.4'
-        jupiterVersion = '5.8.2'
         ninjaMockkVersion = '3.1.1'
         mockserverNettyVersion = '5.13.2'
     }
@@ -32,14 +31,14 @@ buildscript {
         }
     }
 
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
-    }
 }
 
 plugins {
+    id "org.jetbrains.kotlin.jvm" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion"
+    id "org.jetbrains.kotlin.plugin.allopen" version "${kotlinVersion}"
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id "io.spring.dependency-management" version "1.0.11.RELEASE"
     id 'com.github.ben-manes.versions' version '0.42.0'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id "org.owasp.dependencycheck" version "7.1.1"
@@ -49,11 +48,6 @@ plugins {
 }
 
 assert JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17): "Java 17 or newer is required"
-
-apply plugin: 'kotlin'
-apply plugin: 'kotlin-spring'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
 
 group = 'no.nav.eessi.pensjon'
 
@@ -73,9 +67,7 @@ dependencies {
 
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonKotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
-    // Micrometer
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("no.nav.eessi.pensjon:ep-metrics:${epMetricsVersion}")
 
@@ -92,23 +84,22 @@ dependencies {
     implementation("no.nav.security:token-validation-test-support:${oidcTokenSupportTestVersion}")
 
     // TEST
-    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude module: 'junit'
         exclude module: "mockito-core"
         exclude module: "junit-vintage-engine"
     }
     testImplementation "org.springframework.kafka:spring-kafka-test:$springBootVersionTest"
 
-    testImplementation("org.junit.jupiter:junit-jupiter:${jupiterVersion}")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
+    testImplementation(platform("org.junit:junit-bom:5.8.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
 
     // Next version (5.5.4) fails, should be investigated
     testImplementation("org.mock-server:mockserver-client-java:${mockserverNettyVersion}"){
     }
     testImplementation("org.mock-server:mockserver-netty:${mockserverNettyVersion}") {
     }
-    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
     testImplementation "io.mockk:mockk:$mockkVersion"
     testImplementation("com.ninja-squad:springmockk:$ninjaMockkVersion")
     implementation('net.logstash.logback:logstash-logback-encoder:7.0.1')

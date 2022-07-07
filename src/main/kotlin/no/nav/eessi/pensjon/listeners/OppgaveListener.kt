@@ -1,6 +1,5 @@
 package no.nav.eessi.pensjon.listeners
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.services.OppgaveService
@@ -20,7 +19,7 @@ private const val X_REQUEST_ID = "x_request_id"
 
 @Service
 class OppgaveListener(private val oppgaveService: OppgaveService,
-        @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper(SimpleMeterRegistry())) {
+        @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()) {
 
     private val logger = LoggerFactory.getLogger(OppgaveListener::class.java)
     private val latch = CountDownLatch(6)
