@@ -8,7 +8,7 @@ buildscript {
         archunitVersion = '0.23.1'
         epLoggingVersion = '1.0.28'
         epMetricsVersion = '0.5.1'
-        logstashLogbackVersion = '7.1'
+        logstashLogbackVersion = '7.2'
         jacksonKotlinVersion = '2.13.3'
         oidcTokenSupportVersion = '2.0.14'
         oidcTokenSupportTestVersion = '2.0.5'
@@ -104,7 +104,7 @@ dependencies {
     }
     testImplementation "io.mockk:mockk:$mockkVersion"
     testImplementation("com.ninja-squad:springmockk:$ninjaMockkVersion")
-    implementation('net.logstash.logback:logstash-logback-encoder:7.0.1')
+    implementation('net.logstash.logback:logstash-logback-encoder:7.2')
     implementation('ch.qos.logback:logback-classic:1.2.11')
 
     // Architecture tests
