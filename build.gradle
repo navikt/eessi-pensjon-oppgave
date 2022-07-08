@@ -3,8 +3,7 @@ buildscript {
     ext {
         kotlinVersion = '1.7.10'
         springBootVersion = '2.7.1'
-        springBootVersionTest = '2.8.4'
-        springKafkaVersion = '2.8.4'
+        springKafkaVersion = '2.8.7'
         archunitVersion = '0.23.1'
         epLoggingVersion = '1.0.28'
         epMetricsVersion = '0.5.1'
@@ -91,7 +90,7 @@ dependencies {
         exclude module: "mockito-core"
         exclude module: "junit-vintage-engine"
     }
-    testImplementation "org.springframework.kafka:spring-kafka-test:$springBootVersionTest"
+    testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
 
     testImplementation(platform("org.junit:junit-bom:5.8.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
