@@ -7,7 +7,6 @@ import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -79,7 +78,7 @@ class OppgaveIntegrationTest {
         listAppender.start()
         deugLogger.addAppender(listAppender)
 
-        container = initConsumer(OPPGAVE_TOPIC)
+        container = initConsumer()
         container.start()
         Thread.sleep(10000); // wait a bit for the container to start
         ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
@@ -234,15 +233,12 @@ class OppgaveIntegrationTest {
     }
 
     private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
-        val senderProps = KafkaTestUtils.producerProps(embeddedKafka.brokersAsString)
-
-        val pf = DefaultKafkaProducerFactory<String, String>(senderProps, StringSerializer(), StringSerializer())
-        val template = KafkaTemplate<String, String>(pf)
-        template.defaultTopic = topicNavn
-        return template
+        return KafkaTemplate<String, String>(DefaultKafkaProducerFactory(KafkaTestUtils.producerProps(embeddedKafka.brokersAsString))).apply {
+            defaultTopic = OPPGAVE_TOPIC
+        }
     }
 
-    private fun initConsumer(topicNavn: String): KafkaMessageListenerContainer<String, String> {
+    private fun initConsumer(): KafkaMessageListenerContainer<String, String> {
         val consumerProperties = KafkaTestUtils.consumerProps(
             UUID.randomUUID().toString(),
             "false",
@@ -251,10 +247,9 @@ class OppgaveIntegrationTest {
         consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         consumerProperties[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 1
 
-        val consumerFactory =
-            DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
+        val consumerFactory =  DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
 
-        return KafkaMessageListenerContainer(consumerFactory, ContainerProperties(topicNavn)).apply {
+        return KafkaMessageListenerContainer(consumerFactory, ContainerProperties(OPPGAVE_TOPIC)).apply {
             setupMessageListener(MessageListener<String, String> { record -> println("Oppgaveintegrasjonstest konsumerer melding:  $record") })
         }
     }

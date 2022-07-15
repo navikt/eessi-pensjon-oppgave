@@ -5,12 +5,13 @@ import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 */
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
+import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.OppgaveService
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +26,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.kafka.test.utils.KafkaTestUtils.*
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.RestTemplate
@@ -37,12 +39,13 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
 private lateinit var mockServer: ClientAndServer
 
-@SpringBootTest(value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
+@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
-@EmbeddedKafka(count = 1, controlledShutdown = true, topics = [OPPGAVE_TOPIC], brokerProperties = ["log.dir=out/embedded-kafka1"])
-
-@Disabled
+@EmbeddedKafka(
+    controlledShutdown = true,
+    topics = [OPPGAVE_TOPIC]
+)
 class OppgaveErrorhandlerIntegrationTest {
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -64,12 +67,12 @@ class OppgaveErrorhandlerIntegrationTest {
     @Test
     fun `Når en exception skjer så skal kafka-konsumering stoppe`() {
         // Vent til kafka er klar
-        val container = settOppUtitlityConsumer(OPPGAVE_TOPIC)
+        val container = settOppUtitlityConsumer()
         container.start()
         ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
 
         // Sett opp producer
-        val oppgaveProducerTemplate = settOppProducerTemplate(OPPGAVE_TOPIC)
+        val oppgaveProducerTemplate = settOppProducerTemplate()
 
         produserOppgaveHendelser(oppgaveProducerTemplate)
 
@@ -94,13 +97,10 @@ class OppgaveErrorhandlerIntegrationTest {
         embeddedKafka.kafkaServers.forEach { it.shutdown() }
     }
 
-    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
-        val senderProps = KafkaTestUtils.producerProps(embeddedKafka.brokersAsString)
-
-        val pf = DefaultKafkaProducerFactory<String, String>(senderProps, StringSerializer(), StringSerializer())
-        val template = KafkaTemplate<String, String>(pf)
-        template.defaultTopic = topicNavn
-        return template
+    private fun settOppProducerTemplate(): KafkaTemplate<String, String> {
+        return KafkaTemplate(DefaultKafkaProducerFactory(producerProps(embeddedKafka.brokersAsString), StringSerializer(), StringSerializer())).apply {
+                defaultTopic = OPPGAVE_TOPIC
+            }
     }
 
     companion object {
@@ -119,15 +119,14 @@ class OppgaveErrorhandlerIntegrationTest {
         }
     }
 
-        private fun settOppUtitlityConsumer(topicNavn: String): KafkaMessageListenerContainer<String, String> {
-            val consumerProperties = KafkaTestUtils.consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
-            consumerProperties["auto.offset.reset"] = "earliest"
+        private fun settOppUtitlityConsumer(): KafkaMessageListenerContainer<String, String> {
+            val consumerProperties = consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
+            consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 
-            val consumerFactory = DefaultKafkaConsumerFactory<String, String>(consumerProperties, StringDeserializer(), StringDeserializer())
-            val containerProperties = ContainerProperties(topicNavn)
-            val container = KafkaMessageListenerContainer<String, String>(consumerFactory, containerProperties)
-            val messageListener = MessageListener<String, String> { record -> println("Konsumerer melding:  $record") }
-            container.setupMessageListener(messageListener)
+            val consumerFactory = DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
+            val container = KafkaMessageListenerContainer(consumerFactory, ContainerProperties(OPPGAVE_TOPIC)).apply {
+                setupMessageListener(MessageListener<String, String> { record -> println("Konsumerer melding:  $record") })
+            }
             return container
         }
     }
