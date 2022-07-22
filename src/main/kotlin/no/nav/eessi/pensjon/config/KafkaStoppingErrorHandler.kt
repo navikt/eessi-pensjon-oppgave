@@ -9,7 +9,6 @@ import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.stereotype.Component
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.lang.Exception
 
 @Component
 class KafkaStoppingErrorHandler : ContainerAwareErrorHandler {
@@ -17,7 +16,7 @@ class KafkaStoppingErrorHandler : ContainerAwareErrorHandler {
     private val stopper = CommonContainerStoppingErrorHandler()
 
     override fun handle(
-        thrownException: java.lang.Exception,
+        thrownException: Exception,
         records: MutableList<ConsumerRecord<*, *>>?,
         consumer: Consumer<*, *>,
         container: MessageListenerContainer
