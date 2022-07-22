@@ -49,7 +49,7 @@ class KafkaConfigProd(
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
         factory.consumerFactory = aivenKafkaConsumerFactory()
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
-        factory.containerProperties.authExceptionRetryInterval = Duration.ofSeconds(4L)
+        factory.containerProperties.setAuthExceptionRetryInterval( Duration.ofSeconds(4L) )
         if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "integrationtest") {
             factory.setCommonErrorHandler(kafkaErrorHandler)
         }
