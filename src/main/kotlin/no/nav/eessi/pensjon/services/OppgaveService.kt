@@ -90,9 +90,13 @@ class OppgaveService(
     }
 
     private fun opprettGenerellBeskrivelse(opprettOppgave: OppgaveMelding): String {
-        val generellbeskrivelse =
-            opprettOppgave.sedType?.let { sedType -> genererBeskrivelseTekst(sedType, opprettOppgave.rinaSakId, opprettOppgave.hendelseType) } ?: throw RuntimeException("feiler med sedtype")
-        return generellbeskrivelse
+        return opprettOppgave.sedType?.let { sedType ->
+            genererBeskrivelseTekst(
+                sedType,
+                opprettOppgave.rinaSakId,
+                opprettOppgave.hendelseType
+            )
+        } ?: throw RuntimeException("feiler med sedtype")
     }
 
     private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, Oppgave.OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
