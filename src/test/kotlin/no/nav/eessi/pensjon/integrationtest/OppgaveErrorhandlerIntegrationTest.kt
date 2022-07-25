@@ -3,8 +3,9 @@ package no.nav.eessi.pensjon.integrationtest
 /*
 import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
 */
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.verify
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
@@ -12,8 +13,12 @@ import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
+import org.mockserver.socket.PortFactory
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -25,11 +30,10 @@ import org.springframework.kafka.listener.MessageListener
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.ContainerTestUtils
-import org.springframework.kafka.test.utils.KafkaTestUtils
-import org.springframework.kafka.test.utils.KafkaTestUtils.*
+import org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps
+import org.springframework.kafka.test.utils.KafkaTestUtils.producerProps
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.web.client.RestTemplate
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -52,11 +56,8 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
-    @MockkBean
+    @Autowired
     lateinit var kafkaCustomErrorHandler: KafkaStoppingErrorHandler
-
-    @MockkBean
-    lateinit var oppgaveOAuthRestTemplate: RestTemplate
 
     @Autowired
     lateinit var oppgaveService : OppgaveService
@@ -64,8 +65,23 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
+    private val deugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi.pensjon") as Logger
+    private val listAppender = ListAppender<ILoggingEvent>()
+
+    @BeforeEach
+    fun `setup`(){
+        listAppender.start()
+        deugLogger.addAppender(listAppender)
+    }
+
+    @AfterEach
+    fun `afterTest`(){
+        listAppender.stop()
+    }
+
     @Test
-    fun `Når en exception skjer så skal kafka-konsumering stoppe`() {
+    fun `Når exception skjer så skal kafka-konsumering stoppe`() {
+
         // Vent til kafka er klar
         val container = settOppUtitlityConsumer()
         container.start()
@@ -77,9 +93,22 @@ class OppgaveErrorhandlerIntegrationTest {
         produserOppgaveHendelser(oppgaveProducerTemplate)
 
         // Venter på at sedListener skal consumeSedSendt meldingene
-        oppgaveListener.getLatch().await(15000, TimeUnit.MILLISECONDS)
+        oppgaveListener.getLatch().await(2, TimeUnit.SECONDS)
 
-        verify(exactly = 1) {kafkaCustomErrorHandler.handle(any(), any(), any(), any())  }
+        val feilMelding = listAppender.list.find { message ->
+            message.message.contains("En feil oppstod under kafka konsumering av meldinger")
+        }?.message
+
+        assert(feilMelding!!.contains("""
+            "sedType" : "P2000",
+            "journalpostId" : "429434311",
+            "tildeltEnhetsnr" : "4303",
+            "aktoerId" : "1000101917111",
+            "oppgaveType" : "JOURNALFORING",
+            "rinaSakId" : "148161",
+            "hendelseType" : "SENDT",
+            "filnavn" : null
+        """.trimIndent()))
 
         // Shutdown
         shutdown(container)
@@ -105,28 +134,20 @@ class OppgaveErrorhandlerIntegrationTest {
 
     companion object {
         init {
-            // Start Mockserver in memory
-            System.lineSeparator()
-            val port = randomFrom()
-            mockServer = ClientAndServer.startClientAndServer(port)
-            System.setProperty("mockServerport", port.toString())
-
-        }
-
-        private fun randomFrom(from: Int = 2024, to: Int = 55535): Int {
-            val random = Random()
-            return random.nextInt(to - from) + from
+            mockServer = ClientAndServer.startClientAndServer(PortFactory.findFreePort())
+            System.setProperty("mockServerport", mockServer.localPort.toString())
         }
     }
 
-        private fun settOppUtitlityConsumer(): KafkaMessageListenerContainer<String, String> {
-            val consumerProperties = consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
-            consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+    private fun settOppUtitlityConsumer(): KafkaMessageListenerContainer<String, String> {
+        val consumerProperties = consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
+        consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 
-            val consumerFactory = DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
-            val container = KafkaMessageListenerContainer(consumerFactory, ContainerProperties(OPPGAVE_TOPIC)).apply {
-                setupMessageListener(MessageListener<String, String> { record -> println("Konsumerer melding:  $record") })
-            }
-            return container
+        val consumerFactory = DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
+        val container = KafkaMessageListenerContainer(consumerFactory, ContainerProperties(OPPGAVE_TOPIC)).apply {
+            setupMessageListener(MessageListener<String, String> { record -> println("Konsumerer melding:  $record") })
         }
+        return container
     }
+
+}
