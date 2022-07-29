@@ -65,13 +65,13 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
-    private val deugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi.pensjon") as Logger
+    private val debugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi.pensjon") as Logger
     private val listAppender = ListAppender<ILoggingEvent>()
 
     @BeforeEach
     fun `setup`(){
         listAppender.start()
-        deugLogger.addAppender(listAppender)
+        debugLogger.addAppender(listAppender)
     }
 
     @AfterEach
@@ -99,9 +99,10 @@ class OppgaveErrorhandlerIntegrationTest {
             message.message.contains("En feil oppstod under kafka konsumering av meldinger")
         }?.message
 
+        // har gjort journalpostId til 11 siffer - den blir da tolket som fødselsnr - og erstattet md *** ... men bedre med litt for mye vask enn for lite (?)
         assert(feilMelding!!.contains("""
             "sedType" : "P2000",
-            "journalpostId" : "429434311",
+            "journalpostId" : "***",
             "tildeltEnhetsnr" : "4303",
             "aktoerId" : "1000101917111",
             "oppgaveType" : "JOURNALFORING",
@@ -116,7 +117,7 @@ class OppgaveErrorhandlerIntegrationTest {
 
     private fun produserOppgaveHendelser(template: KafkaTemplate<String, String>) {
         val key1 = UUID.randomUUID().toString()
-        val data1 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000.json")))
+        val data1 = String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/oppgavemeldingP2000_11sifre.json")))
         template.send(OPPGAVE_TOPIC, key1, data1)
     }
 
