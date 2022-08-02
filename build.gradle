@@ -3,7 +3,7 @@ buildscript {
     ext {
         kotlinVersion = '1.7.10'
         springBootVersion = '2.7.2'
-        springKafkaVersion = '2.8.7'
+        springKafkaVersion = '2.9.0'
         archunitVersion = '0.23.1'
         epLoggingVersion = '1.0.32'
         epMetricsVersion = '0.5.5'
