@@ -25,8 +25,6 @@ spec:
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave
   image: {{ image }}
-  ingresses:
-    - https://eessi-pensjon-oppgave.nais.adeo.no
   liveness:
     path: /internal/isalive
     port: 8080
