@@ -83,7 +83,7 @@ class OppgaveIntegrationTest {
         Thread.sleep(10000); // wait a bit for the container to start
         ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
 
-        oppgaveProducerTemplate = settOppProducerTemplate(OPPGAVE_TOPIC)
+        oppgaveProducerTemplate = settOppProducerTemplate()
 
     }
 
@@ -232,7 +232,7 @@ class OppgaveIntegrationTest {
         Thread.sleep(10000)
     }
 
-    private fun settOppProducerTemplate(topicNavn: String): KafkaTemplate<String, String> {
+    private fun settOppProducerTemplate(): KafkaTemplate<String, String> {
         return KafkaTemplate<String, String>(DefaultKafkaProducerFactory(KafkaTestUtils.producerProps(embeddedKafka.brokersAsString))).apply {
             defaultTopic = OPPGAVE_TOPIC
         }
