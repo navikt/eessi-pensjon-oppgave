@@ -99,7 +99,6 @@ dependencies {
     testImplementation "io.mockk:mockk:$mockkVersion"
     testImplementation("com.ninja-squad:springmockk:$ninjaMockkVersion")
     implementation('net.logstash.logback:logstash-logback-encoder:7.2')
-    implementation('ch.qos.logback:logback-classic:1.2.11')
 
     // Architecture tests
     testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
