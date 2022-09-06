@@ -8,7 +8,7 @@ buildscript {
         epLoggingVersion = '1.0.39'
         epMetricsVersion = '0.5.11'
         logstashLogbackVersion = '7.2'
-        jacksonKotlinVersion = '2.13.3'
+        jacksonKotlinVersion = '2.13.4'
         tokenSupportVersion = '2.1.4'
 
         // TEST
