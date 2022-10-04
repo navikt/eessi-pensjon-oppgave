@@ -7,7 +7,7 @@ buildscript {
         epMetricsVersion = '0.5.19'
         logstashLogbackVersion = '7.2'
         jacksonKotlinVersion = '2.13.4'
-        tokenSupportVersion = '2.1.4'
+        tokenSupportVersion = '2.1.6'
 
         // TEST
         mockkVersion = '1.12.5'
