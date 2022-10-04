@@ -77,12 +77,3 @@ dependencies {
     // Architecture tests
     testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
 }
-
-test {
-    failFast = true
-    testLogging {
-        exceptionFormat "full"
-        events "started", "skipped", "passed", "failed"
-        showStandardStreams true
-    }
-}
