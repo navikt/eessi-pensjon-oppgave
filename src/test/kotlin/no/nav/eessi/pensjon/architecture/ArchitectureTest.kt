@@ -2,8 +2,6 @@ package no.nav.eessi.pensjon.architecture
 
 import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.core.importer.ClassFileImporter
-import com.tngtech.archunit.core.importer.ImportOption
-import com.tngtech.archunit.core.importer.ImportOptions
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods
 import com.tngtech.archunit.library.Architectures.layeredArchitecture
@@ -11,7 +9,6 @@ import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
 import no.nav.eessi.pensjon.EessiPensjonJournalforingApplication
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class ArchitectureTest {
@@ -29,9 +26,7 @@ class ArchitectureTest {
         @JvmStatic
         fun `extract classes`() {
             classesToAnalyze = ClassFileImporter().importPackages(root)
-
-            assertTrue(classesToAnalyze.size > 150, "Sanity check on no. of classes to analyze")
-            assertTrue(classesToAnalyze.size < 800, "Sanity check on no. of classes to analyze")
+            assertTrue(classesToAnalyze.size in 150..800, "Sanity check on no. of classes to analyze (is ${classesToAnalyze.size})")
         }
     }
 
@@ -79,6 +74,7 @@ class ArchitectureTest {
         TODO look at/refactor the relationship between journalforing.JournalpostModel and services.journalpost.JournalpostService ...
          */
         layeredArchitecture()
+            .consideringOnlyDependenciesInAnyPackage(root)
                 //Define components
                 .layer(ROOT).definedBy(packages[ROOT])
                 .layer(Config).definedBy(packages[Config])
