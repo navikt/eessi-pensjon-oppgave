@@ -49,7 +49,7 @@ class OppgaveService(
                 val httpEntity = HttpEntity(requestBody)
                 oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
 
-                logger.info("Opprettet journalforingsoppgave med tildeltEnhetsnr:  ${oppgaveMelding.tildeltEnhetsnr}")
+                logger.info("Opprettet oppgave av type ${oppgaveMelding.oppgaveType} med tildeltEnhetsnr:  ${oppgaveMelding.tildeltEnhetsnr}")
             } catch(ex: HttpStatusCodeException) {
                 logger.error("En feil oppstod under opprettelse av oppgave ex: $ex body: ${ex.responseBodyAsString}")
                 throw RuntimeException("En feil oppstod under opprettelse av oppgave ex: ${ex.message} body: ${ex.responseBodyAsString}", ex)
