@@ -19,8 +19,8 @@ import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.http.client.SimpleClientHttpRequestFactory
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
+import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -41,7 +41,7 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
         return templateBuilder
             .rootUri(oppgaveUrl)
             .additionalInterceptors(
-                ResourceAccessRetryInterceptor(),
+                IOExceptionRetryInterceptor(),
                 oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
                 RequestIdHeaderInterceptor(),
                 RequestInterceptor(),
@@ -70,8 +70,8 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
         }
     }
 
-    internal class ResourceAccessRetryInterceptor : ClientHttpRequestInterceptor {
-        private val logger = LoggerFactory.getLogger(ResourceAccessRetryInterceptor::class.java)
+    internal class IOExceptionRetryInterceptor : ClientHttpRequestInterceptor {
+        private val logger = LoggerFactory.getLogger(IOExceptionRetryInterceptor::class.java)
 
         override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution) =
             withRetries { execution.execute(request, body) }
@@ -82,7 +82,7 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
             while (count < maxAttempts) {
                 try {
                     return func.invoke()
-                } catch (ex: ResourceAccessException) { // Dette bør ta seg av IOException - som typisk skjer der som det er nettverksissues.
+                } catch (ex: IOException) { // Dette bør ta seg av IOException - som typisk skjer der som det er nettverksissues.
                     count++
                     logger.warn("Attempt $count failed with ${ex.message} caused by ${ex.cause}")
                     failException = ex
