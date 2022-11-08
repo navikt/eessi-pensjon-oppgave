@@ -10,7 +10,7 @@ buildscript {
         tokenSupportVersion = '2.1.7'
 
         // TEST
-        mockkVersion = '1.12.5'
+        mockkVersion = '1.13.2'
         ninjaMockkVersion = '3.1.1'
     }
 }
