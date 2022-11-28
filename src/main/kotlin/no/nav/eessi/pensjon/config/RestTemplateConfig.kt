@@ -3,6 +3,7 @@ package no.nav.eessi.pensjon.config
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
 import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
+import no.nav.eessi.pensjon.metrics.RequestCountInterceptor
 import no.nav.security.token.support.client.core.ClientProperties
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
@@ -44,6 +45,7 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
                 IOExceptionRetryInterceptor(),
                 oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
                 RequestIdHeaderInterceptor(),
+                RequestCountInterceptor(meterRegistry),
                 RequestInterceptor(),
                 RequestResponseLoggerInterceptor()
             )

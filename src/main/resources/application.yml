@@ -19,7 +19,7 @@ no.nav.security.jwt:
 securityTokenService:
   discoveryUrl: ${SECURITY_TOKEN_SERVICE_OPENID_CONFIGURATION_URL}
 
-METRICS_REQUESTFILTER_ENABLE: false
+METRICS_REQUESTFILTER_ENABLE: true
 
 #Metrics
 management:
