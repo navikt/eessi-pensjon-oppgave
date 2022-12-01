@@ -37,9 +37,9 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
         return templateBuilder
             .rootUri(oppgaveUrl)
             .additionalInterceptors(
+                RequestIdHeaderInterceptor(),
                 IOExceptionRetryInterceptor(),
                 oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
-                RequestIdHeaderInterceptor(),
                 RequestCountInterceptor(meterRegistry),
                 RequestInterceptor(),
                 RequestResponseLoggerInterceptor()
