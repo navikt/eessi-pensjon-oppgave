@@ -11,7 +11,7 @@ class IOExceptionRetryInterceptor : ClientHttpRequestInterceptor {
     private val logger = LoggerFactory.getLogger(IOExceptionRetryInterceptor::class.java)
 
     override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution) =
-            withRetries { execution.execute(request, body) }
+        withRetries { execution.execute(request, body) }
 
     private fun <T> withRetries(maxAttempts: Int = 3, waitTime: Long = 1L, timeUnit: TimeUnit = TimeUnit.SECONDS, func: () -> T): T {
         var failException: Throwable? = null
@@ -27,6 +27,6 @@ class IOExceptionRetryInterceptor : ClientHttpRequestInterceptor {
             }
         }
         logger.warn("Giving up after $count attempts.")
-            throw failException!!
+        throw failException!!
     }
 }
