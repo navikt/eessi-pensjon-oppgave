@@ -11,7 +11,7 @@ buildscript {
 
         // TEST
         mockkVersion = '1.13.3'
-        ninjaMockkVersion = '3.1.2'
+        ninjaMockkVersion = '4.0.0'
     }
 }
 
