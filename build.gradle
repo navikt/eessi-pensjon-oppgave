@@ -4,7 +4,7 @@ buildscript {
         springKafkaVersion = '2.9.2'
         archunitVersion = '1.0.1'
         epLoggingVersion = '1.1.8'
-        epMetricsVersion = '1.0.2'
+        epMetricsVersion = '1.0.4'
         logstashLogbackVersion = '7.2'
         jacksonKotlinVersion = '2.14.1'
         tokenSupportVersion = '2.1.8'
