@@ -6,7 +6,6 @@ buildscript {
         epLoggingVersion = '1.1.11'
         epMetricsVersion = '1.0.7'
         logstashLogbackVersion = '7.2'
-        jacksonKotlinVersion = '2.14.1'
         tokenSupportVersion = '2.1.8'
 
         // TEST
@@ -38,7 +37,7 @@ dependencies {
 
     implementation "org.springframework.kafka:spring-kafka:$springKafkaVersion"
 
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonKotlinVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.14.1"
 
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
 
