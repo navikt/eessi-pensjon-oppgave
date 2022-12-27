@@ -41,7 +41,7 @@ dependencies {
 
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
 
-    implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.2")
     implementation("no.nav.eessi.pensjon:ep-metrics:${epMetricsVersion}")
 
     // Logging
