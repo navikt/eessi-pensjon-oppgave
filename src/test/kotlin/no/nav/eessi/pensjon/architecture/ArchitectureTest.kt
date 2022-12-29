@@ -48,7 +48,6 @@ class ArchitectureTest {
         val Config = "oppgave.Config"
         val Health = "oppgave.Health"
         val Listeners = "oppgave.listeners"
-        val JSON = "journalforing.json"
         val Logging = "oppgave.logging"
         val Metrics = "oppgave.metrics"
         val OppgaveService = "oppgave.services"
@@ -60,7 +59,6 @@ class ArchitectureTest {
                 ROOT to root,
                 Config to "$root.config",
                 Health to "$root.health",
-                JSON to "$root.json",
                 Listeners to "$root.listeners",
                 Logging to "$root.logging",
                 Metrics to "$root.metrics",
@@ -79,7 +77,6 @@ class ArchitectureTest {
                 .layer(ROOT).definedBy(packages[ROOT])
                 .layer(Config).definedBy(packages[Config])
                 .layer(Health).definedBy(packages[Health])
-                .layer(JSON).definedBy(packages[JSON])
                 .layer(Listeners).definedBy(packages[Listeners])
                 .layer(Logging).definedBy(packages[Logging])
                 .layer(Metrics).definedBy(packages[Metrics])

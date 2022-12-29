@@ -1,11 +1,11 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
-import no.nav.eessi.pensjon.json.toEmptyJson
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.models.SedType
+import no.nav.eessi.pensjon.utils.mapAnyToJson
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
@@ -41,7 +41,7 @@ class OppgaveService(
             val oppgave = opprettOppgave(oppgaveMelding)
 
             try {
-                val requestBody = oppgave.toEmptyJson()
+                val requestBody = mapAnyToJson(oppgave, true)
                 logger.info("Oppretter oppgave: $requestBody")
 
                 countEnthet(oppgaveMelding.tildeltEnhetsnr)

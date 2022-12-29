@@ -1,9 +1,8 @@
 package no.nav.eessi.pensjon.models
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import no.nav.eessi.pensjon.json.mapJsonToAny
-import no.nav.eessi.pensjon.json.toJson
-import no.nav.eessi.pensjon.json.typeRefs
+import no.nav.eessi.pensjon.utils.mapJsonToAny
+import no.nav.eessi.pensjon.utils.toJson
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class OppgaveMelding(
@@ -21,6 +20,6 @@ data class OppgaveMelding(
         return toJson()
     }
     companion object {
-        fun fromJson(json: String) = mapJsonToAny(json, typeRefs<OppgaveMelding>())
+        fun fromJson(json: String) = mapJsonToAny<OppgaveMelding>(json)
     }
 }

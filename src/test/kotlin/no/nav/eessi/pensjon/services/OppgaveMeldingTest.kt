@@ -1,8 +1,7 @@
 package no.nav.eessi.pensjon.services
 
-import no.nav.eessi.pensjon.json.mapJsonToAny
-import no.nav.eessi.pensjon.json.typeRefs
 import no.nav.eessi.pensjon.models.OppgaveMelding
+import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.junit.jupiter.api.Test
 
 class OppgaveMeldingTest {
@@ -23,6 +22,6 @@ class OppgaveMeldingTest {
         """.trimIndent()
         OppgaveMelding.fromJson(json)
 
-        mapJsonToAny(json, typeRefs<OppgaveMelding>())
+        mapJsonToAny<OppgaveMelding>(json)
     }
 }
