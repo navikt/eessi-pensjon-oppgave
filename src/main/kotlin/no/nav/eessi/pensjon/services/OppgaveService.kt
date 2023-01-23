@@ -1,10 +1,10 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
+import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.models.SedType
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -128,9 +128,9 @@ class OppgaveService(
      */
     private fun genererBeskrivelseTekst(sedType: SedType, rinaSakId: String, hendelseType: HendelseType): String {
         return if(hendelseType == HendelseType.MOTTATT) {
-            "Inngående $sedType / Rina saksnr: $rinaSakId"
+            "Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
         } else {
-            "Utgående $sedType / Rina saksnr: $rinaSakId"
+            "Utgående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
         }
     }
 
@@ -143,11 +143,10 @@ class OppgaveService(
         val rinaSakId = oppgaveMelding.rinaSakId
         val aktoerId = oppgaveMelding.aktoerId
         val sedType = oppgaveMelding.sedType
-        val behandlePBUC01eller03 = (filnavn == null || filnavn.isEmpty()) && journalpostId != null && aktoerId != null
+        val behandlePBUC01eller03 = filnavn.isNullOrEmpty() && journalpostId != null && aktoerId != null
 
-        //behandlePBUC01eller03 && (sedType == SedType.P2200 || sedType == SedType.P2000) -> "Det er mottatt $sedType, med tilhørende RINA sakId: $rinaSakId"
         return when {
-            behandlePBUC01eller03 -> "Det er mottatt $sedType, med tilhørende RINA sakId: $rinaSakId"
+            behandlePBUC01eller03 -> "Det er mottatt $sedType - ${sedType?.beskrivelse}, med tilhørende RINA sakId: $rinaSakId"
             filnavn != null && journalpostId == null -> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
             else -> throw RuntimeException("Ukjent eller manglende parametere under opprettelse av beskrivelse for behandle SED")
         }

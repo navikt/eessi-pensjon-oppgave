@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.listeners.OppgaveListener
+import no.nav.eessi.pensjon.utils.toJson
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.junit.jupiter.api.AfterEach
@@ -98,6 +99,7 @@ class OppgaveIntegrationTest {
 
         // Sende meldinger på kafka
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000.json")
+
 
         OppgaveMeldingVerification("1000101917111")
             .medAktivDato(today)
@@ -204,6 +206,7 @@ class OppgaveIntegrationTest {
             assertTrue(meldingFraLog!!.contains("\"tildeltEnhetsnr\" : \"$melding\""))
         }
         fun medBeskrivelse(melding: String) = apply {
+            println(melding.toJson())
             assertTrue(meldingFraLog!!.contains("\"beskrivelse\" : \"$melding\""))
         }
         fun medOppgavetype(melding: String) = apply {
