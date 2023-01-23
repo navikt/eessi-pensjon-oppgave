@@ -5,6 +5,8 @@ import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
+import no.nav.eessi.pensjon.services.Oppgave.*
+import no.nav.eessi.pensjon.services.Oppgave.OppgaveType.*
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,19 +66,19 @@ class OppgaveService(
         return try {
 
             val oppgaveTypeMap = mapOf(
-                "GENERELL" to Oppgave.OppgaveType.GENERELL,
-                "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
-                "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
-                "KRAV" to Oppgave.OppgaveType.KRAV,
-                "PDL" to Oppgave.OppgaveType.PDL
+                "GENERELL" to GENERELL,
+                "JOURNALFORING" to JOURNALFORING,
+                "BEHANDLE_SED" to BEHANDLE_SED,
+                "KRAV" to KRAV,
+                "PDL" to PDL
             )
 
             val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
-                Oppgave.OppgaveType.JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
-                Oppgave.OppgaveType.KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
-                Oppgave.OppgaveType.GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
-                Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
-                Oppgave.OppgaveType.PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
+                JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
+                KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
+                GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
+                BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
+                PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
                 else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
             }
 
@@ -99,11 +101,11 @@ class OppgaveService(
         } ?: throw RuntimeException("feiler med sedtype")
     }
 
-    private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, Oppgave.OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
+    private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
         return Oppgave(
             oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
-            tema = Oppgave.Tema.PENSJON.toString(),
-            prioritet = Oppgave.Prioritet.NORM.toString(),
+            tema = Tema.PENSJON.toString(),
+            prioritet = Prioritet.NORM.toString(),
             aktoerId = opprettOppgave.aktoerId,
             aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
             journalpostId = opprettOppgave.journalpostId,
