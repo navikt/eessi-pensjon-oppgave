@@ -77,6 +77,7 @@ class OppgaveErrorhandlerIntegrationTest {
     @AfterEach
     fun `afterTest`(){
         listAppender.stop()
+        mockServer.reset()
     }
 
     @Test
@@ -122,9 +123,11 @@ class OppgaveErrorhandlerIntegrationTest {
     }
 
     private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
+/*
         mockServer.stop()
+*/
         container.stop()
-        embeddedKafka.kafkaServers.forEach { it.shutdown() }
+/*        embeddedKafka.kafkaServers.forEach { it.shutdown() }*/
     }
 
     private fun settOppProducerTemplate(): KafkaTemplate<String, String> {

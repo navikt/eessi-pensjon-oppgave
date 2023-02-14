@@ -44,17 +44,15 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
+private var mockServerPort = PortFactory.findFreePort()
 private lateinit var mockServer: ClientAndServer
 
 @SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(
-    controlledShutdown = true,
-    topics = [OPPGAVE_TOPIC] ,
-    brokerProperties= ["log.dir=out/kafkatestout/oppgaveintegrationtest-ChangeMe"]
+    topics = [OPPGAVE_TOPIC]
 )
-
 class OppgaveIntegrationTest {
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -73,6 +71,15 @@ class OppgaveIntegrationTest {
     val today = LocalDate.now().toString()
     val tomorrrow = LocalDate.now().plusDays(1).toString()
 
+    companion object {
+        init {
+            // nødvendig for mockserver
+            System.setProperty("mockServerport", mockServerPort.toString())
+            // Start Mockserver in memory
+            mockServer = ClientAndServer.startClientAndServer(mockServerPort)
+        }
+    }
+
     @BeforeEach
     fun setup() {
 
@@ -81,7 +88,7 @@ class OppgaveIntegrationTest {
 
         container = initConsumer()
         container.start()
-        Thread.sleep(10000); // wait a bit for the container to start
+        Thread.sleep(5000); // wait a bit for the container to start
         ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
 
         oppgaveProducerTemplate = settOppProducerTemplate()
@@ -92,10 +99,35 @@ class OppgaveIntegrationTest {
     fun after() {
         container.stop()
         listAppender.stop()
+        mockServer.reset()
     }
 
     @Test
     fun `Gitt det mottas en P2000 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+        mockServer.`when`(
+            request()
+                .withMethod("POST")
+                .withBody(subString("P2000"))
+                .withBody(
+                    json("""{
+                                          "tildeltEnhetsnr" : "4303",
+                                          "opprettetAvEnhetsnr" : "9999",
+                                          "journalpostId" : "429434311",
+                                          "aktoerId" : "1000101917111",
+                                          "tema" : "PEN",
+                                          "oppgavetype" : "JFR",
+                                          "prioritet" : "NORM",
+                                          "fristFerdigstillelse" : "$tomorrrow",
+                                          "aktivDato" : "$today" }""" + MatchType.ONLY_MATCHING_FIELDS
+                    )
+                )
+        )
+            .respond(
+                response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+            )
 
         // Sende meldinger på kafka
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000.json")
@@ -114,6 +146,19 @@ class OppgaveIntegrationTest {
 
     @Test
     fun `Gitt det mottas en oppgavehendelse fra pdl-produsent så skal den lage en tilsvarende behandlesed oppgave`() {
+        //mockserver for opprettelse oppgave fra pdl-produsent
+        mockServer.`when`(
+            request()
+                .withMethod("POST")
+                .withPath("/")
+                .withBody(subString("Avvik i utenlandsk ID i PDL. I RINA saksnummer 3442342342342"))
+        )
+            .respond(
+                response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+            )
 
         val meldingFraPdljson = """
             {
@@ -142,7 +187,31 @@ class OppgaveIntegrationTest {
 
     @Test
     fun `Gitt en R005 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+        // Mocker oppgavetjeneste
 
+        mockServer.`when`(
+            request()
+                .withMethod("POST")
+                .withPath("/")
+                .withBody(subString("R005"))
+                .withBody(json("""{
+                          "tildeltEnhetsnr" : "4808",
+                          "opprettetAvEnhetsnr" : "9999",
+                          "journalpostId" : "429434380",
+                          "aktoerId" : "2000101917555",
+                          "tema" : "PEN",
+                          "oppgavetype" : "JFR",
+                          "prioritet" : "NORM",
+                          "fristFerdigstillelse" : "$tomorrrow",
+                          "aktivDato" : "$today"
+                    }""".trimIndent() + MatchType.ONLY_MATCHING_FIELDS))
+        )
+            .respond(
+                response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+            )
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingR005.json")
         OppgaveMeldingVerification("2000101917555")
             .medAktivDato(today)
@@ -156,6 +225,31 @@ class OppgaveIntegrationTest {
     @Test
     fun `Gitt en P2000 oppgavehendelse med feil så skal den lage en tilsvarende oppgave`() {
 
+        mockServer.`when`(
+            request()
+                .withMethod("POST")
+                .withPath("/")
+                .withBody(subString("RINA sakId: 147666 mangler filnavn"))
+                .withBody(json(
+                    """{
+                          "tildeltEnhetsnr" : "4803",
+                          "opprettetAvEnhetsnr" : "9999",
+                          "aktoerId" : "1000101917222",
+                          "tema" : "PEN",
+                          "oppgavetype" : "BEH_SED",
+                          "prioritet" : "NORM",
+                          "fristFerdigstillelse" : "$tomorrrow",
+                          "aktivDato" : "$today"
+                       }""".trimIndent()
+                ))
+        )
+            .respond(
+                response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+            )
+
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000_feilfil.json")
         OppgaveMeldingVerification("1000101917222")
             .medAktivDato(today)
@@ -167,6 +261,29 @@ class OppgaveIntegrationTest {
 
     @Test
     fun `Gitt en P2200 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+        mockServer.`when`(
+            request()
+                .withMethod("POST")
+                .withPath("/")
+                .withBody(subString("P2200"))
+                .withBody(json("""{
+                          "tildeltEnhetsnr" : "4475",
+                          "opprettetAvEnhetsnr" : "9999",
+                          "journalpostId" : "429434322",
+                          "aktoerId" : "1000101917333",
+                          "tema" : "PEN",
+                          "oppgavetype" : "BEH_SED",
+                          "prioritet" : "NORM",
+                          "fristFerdigstillelse" : "$tomorrrow",
+                          "aktivDato" : "$today"
+                    }""".trimIndent()))
+        )
+            .respond(
+                response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+            )
 
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2200.json")
         OppgaveMeldingVerification("1000101917333")
@@ -182,6 +299,34 @@ class OppgaveIntegrationTest {
 
     @Test
     fun `Gitt en P3000 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
+        // Mocker oppgavetjeneste
+        mockServer.`when`(
+            request()
+                .withMethod("POST")
+                .withPath("/")
+                .withBody(subString("P3000_NO"))
+                .withBody(
+                    json(
+                        """{
+                                  "tildeltEnhetsnr" : "4808",
+                                  "opprettetAvEnhetsnr" : "9999",
+                                  "journalpostId" : "429434333",
+                                  "aktoerId" : "2000101917444",
+                                  "tema" : "PEN",
+                                  "oppgavetype" : "JFR",
+                                  "prioritet" : "NORM",
+                                  "fristFerdigstillelse" : "$tomorrrow",
+                                  "aktivDato" : "$today"
+                            }""".trimIndent() + MatchType.ONLY_MATCHING_FIELDS
+                    )
+                )
+        )
+            .respond(
+                response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
+            )
 
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP3000_NO.json")
         OppgaveMeldingVerification("2000101917444")
@@ -224,14 +369,14 @@ class OppgaveIntegrationTest {
     }
 
     private fun sendMessageWithDelay(template: KafkaTemplate<String, String>, messagePath: String) {
-        template.sendDefault(String(Files.readAllBytes(Paths.get(messagePath)))).get(20L, TimeUnit.SECONDS)
+        template.sendDefault(String(Files.readAllBytes(Paths.get(messagePath)))).get(20, TimeUnit.SECONDS)
         oppgaveListener.getLatch().await(20, TimeUnit.SECONDS)
         Thread.sleep(1000)
     }
 
     private fun sendMessageFraJsonWithDelay(template: KafkaTemplate<String, String>, message: String) {
-        template.sendDefault(message).get(10L, TimeUnit.SECONDS)
-        oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
+        template.sendDefault(message).get(20, TimeUnit.SECONDS)
+        oppgaveListener.getLatch().await(20, TimeUnit.SECONDS)
         Thread.sleep(10000)
     }
 
@@ -248,170 +393,11 @@ class OppgaveIntegrationTest {
             embeddedKafka
         )
         consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        consumerProperties[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 1
 
         val consumerFactory =  DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
 
         return KafkaMessageListenerContainer(consumerFactory, ContainerProperties(OPPGAVE_TOPIC)).apply {
             setupMessageListener(MessageListener<String, String> { record -> println("Oppgaveintegrasjonstest konsumerer melding:  $record") })
-        }
-    }
-
-    companion object {
-        init {
-            // Start Mockserver in memory
-            val port = PortFactory.findFreePort()
-            mockServer = ClientAndServer.startClientAndServer(port)
-            System.setProperty("mockServerport", port.toString())
-
-            val today = LocalDate.now()
-            val tomorrrow = LocalDate.now().plusDays(1).toString()
-
-            // Mocker oppgavetjeneste
-            mockServer.`when`(
-                request()
-                    .withMethod("POST")
-                    .withPath("/")
-                    .withBody(subString("P2000"))
-                    .withBody(
-                        json(
-                            """{
-                              "tildeltEnhetsnr" : "4303",
-                              "opprettetAvEnhetsnr" : "9999",
-                              "journalpostId" : "429434311",
-                              "aktoerId" : "1000101917111",
-                              "tema" : "PEN",
-                              "oppgavetype" : "JFR",
-                              "prioritet" : "NORM",
-                              "fristFerdigstillelse" : "$tomorrrow",
-                              "aktivDato" : "$today"
-                        }""" + MatchType.ONLY_MATCHING_FIELDS
-                        )
-                    )
-            )
-                .respond(
-                    response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                )
-
-            //mockserver for opprettelse oppgave fra pdl-produsent
-            mockServer.`when`(
-                request()
-                    .withMethod("POST")
-                    .withPath("/")
-                    .withBody(subString("Avvik i utenlandsk ID i PDL. I RINA saksnummer 3442342342342"))
-            )
-                .respond(
-                    response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                )
-
-            mockServer.`when`(
-                request()
-                    .withMethod("POST")
-                    .withPath("/")
-                    .withBody(subString("R005"))
-                    .withBody(json("""{
-                          "tildeltEnhetsnr" : "4808",
-                          "opprettetAvEnhetsnr" : "9999",
-                          "journalpostId" : "429434380",
-                          "aktoerId" : "2000101917555",
-                          "tema" : "PEN",
-                          "oppgavetype" : "JFR",
-                          "prioritet" : "NORM",
-                          "fristFerdigstillelse" : "$tomorrrow",
-                          "aktivDato" : "$today"
-                    }""".trimIndent()))
-            )
-                .respond(
-                    response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                )
-
-            mockServer.`when`(
-                request()
-                    .withMethod("POST")
-                    .withPath("/")
-                    .withBody(subString("P2200"))
-                    .withBody(json("""{
-                          "tildeltEnhetsnr" : "4475",
-                          "opprettetAvEnhetsnr" : "9999",
-                          "journalpostId" : "429434322",
-                          "aktoerId" : "1000101917333",
-                          "tema" : "PEN",
-                          "oppgavetype" : "BEH_SED",
-                          "prioritet" : "NORM",
-                          "fristFerdigstillelse" : "$tomorrrow",
-                          "aktivDato" : "$today"
-                    }""".trimIndent()))
-            )
-                .respond(
-                    response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                )
-
-            // Mocker oppgavetjeneste
-            mockServer.`when`(
-                request()
-                    .withMethod("POST")
-                    .withPath("/")
-                    .withBody(subString("P3000_NO"))
-                    .withBody(
-                        json(
-                            """{
-                                  "tildeltEnhetsnr" : "4808",
-                                  "opprettetAvEnhetsnr" : "9999",
-                                  "journalpostId" : "429434333",
-                                  "aktoerId" : "2000101917444",
-                                  "tema" : "PEN",
-                                  "oppgavetype" : "JFR",
-                                  "prioritet" : "NORM",
-                                  "fristFerdigstillelse" : "$tomorrrow",
-                                  "aktivDato" : "$today"
-                            }""".trimIndent() + MatchType.ONLY_MATCHING_FIELDS
-                        )
-                    )
-            )
-                .respond(
-                    response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                )
-
-            mockServer.`when`(
-                request()
-                    .withMethod("POST")
-                    .withPath("/")
-                    .withBody(subString("RINA sakId: 147666 mangler filnavn"))
-                    .withBody(json(
-                        """{
-                          "tildeltEnhetsnr" : "4803",
-                          "opprettetAvEnhetsnr" : "9999",
-                          "aktoerId" : "1000101917222",
-                          "tema" : "PEN",
-                          "oppgavetype" : "BEH_SED",
-                          "prioritet" : "NORM",
-                          "fristFerdigstillelse" : "$tomorrrow",
-                          "aktivDato" : "$today"
-                       }""".trimIndent()
-                    ))
-            )
-                .respond(
-                    response()
-                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withBody(String(Files.readAllBytes(Paths.get("src/test/resources/oppgave/opprettOppgaveResponse.json"))))
-                )
-
         }
     }
 }
