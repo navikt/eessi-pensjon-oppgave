@@ -1,10 +1,10 @@
 buildscript {
     ext {
-        springBootVersion = '2.7.5'
-        springKafkaVersion = '2.9.2'
+        springBootVersion = '3.0.2'
+        springKafkaVersion = '3.0.2'
         archunitVersion = '1.0.1'
         logstashLogbackVersion = '7.2'
-        tokenSupportVersion = '2.1.8'
+        tokenSupportVersion = '3.0.3'
 
         // TEST
         ninjaMockkVersion = '4.0.0'
@@ -31,7 +31,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-actuator")
 
     // Spring Framework BOM-fil overstyrer så vi får siste patch-versjon av Spring Framework
-    implementation(platform("org.springframework:spring-framework-bom:5.3.23"))
+    implementation(platform("org.springframework:spring-framework-bom:6.0.4"))
 
     implementation "org.springframework.kafka:spring-kafka:$springKafkaVersion"
 
@@ -39,15 +39,18 @@ dependencies {
 
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
 
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.2.1")
+
+
     implementation("io.micrometer:micrometer-registry-prometheus:1.10.2")
-    implementation("no.nav.eessi.pensjon:ep-metrics:1.0.10")
-    implementation("no.nav.eessi.pensjon:ep-eux:1.4.19")
+    implementation("no.nav.eessi.pensjon:ep-metrics:1.0.12")
+    implementation("no.nav.eessi.pensjon:ep-eux:1.4.23")
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:${logstashLogbackVersion}")
     configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
     implementation group: 'org.slf4j', name: 'jcl-over-slf4j'
-    implementation("no.nav.eessi.pensjon:ep-logging:1.1.16")
+    implementation("no.nav.eessi.pensjon:ep-logging:1.1.17")
 
     //Auth
     implementation("no.nav.security:token-client-spring:${tokenSupportVersion}")
