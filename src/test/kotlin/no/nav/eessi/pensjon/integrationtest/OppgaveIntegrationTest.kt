@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
-import org.mockserver.matchers.MatchType
 import org.mockserver.model.Body
 import org.mockserver.model.Header
 import org.mockserver.model.HttpRequest.request
@@ -109,7 +108,7 @@ class OppgaveIntegrationTest {
     @Test
     fun `Gitt det mottas en P2000 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
         val json = "src/test/resources/oppgave/opprettOppgaveResponse.json"
-        medRequest("P2000", mockOppgave(ID_OG_FORDELING,"429434311", "1000101917111"), HttpMethod.POST, json)
+        medRequest("P2000", mockOppgave(ID_OG_FORDELING, "429434311", "1000101917111", "JFR"), HttpMethod.POST, json)
 
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2000.json")
 
@@ -156,7 +155,7 @@ class OppgaveIntegrationTest {
     @Test
     fun `Gitt en R005 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
         val response = "src/test/resources/oppgave/opprettOppgaveResponse.json"
-        val mockOppgave = mockOppgave("4808", "429434380", "2000101917555")
+        val mockOppgave = mockOppgave("4808", "429434380", "2000101917555", "JFR")
 
         medRequest("P2000", mockOppgave, HttpMethod.POST, response)
 
@@ -190,7 +189,7 @@ class OppgaveIntegrationTest {
     fun `Gitt en P2200 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
 
         val response = "src/test/resources/oppgave/opprettOppgaveResponse.json"
-        medRequest("P2200", mockOppgave(UFORE_UTLAND, "429434322" , "1000101917333"), HttpMethod.POST, response)
+        medRequest("P2200", mockOppgave(UFORE_UTLAND, "429434322" , "1000101917333",  "BEH_SED"), HttpMethod.POST, response)
 
         sendMessageWithDelay(oppgaveProducerTemplate, "src/test/resources/oppgave/oppgavemeldingP2200.json")
         OppgaveMeldingVerification("1000101917333")
@@ -204,7 +203,7 @@ class OppgaveIntegrationTest {
 
     @Test
     fun `Gitt en P3000 oppgavehendelse så skal den lage en tilsvarende oppgave`() {
-        val mockOppgave = mockOppgave("4808", "429434333", "2000101917444")
+        val mockOppgave = mockOppgave("4808", "429434333", "2000101917444", "JFR")
 
         medRequest("P3000_NO", mockOppgave, HttpMethod.POST, "src/test/resources/oppgave/opprettOppgaveResponse.json")
 
@@ -217,13 +216,13 @@ class OppgaveIntegrationTest {
             .medtildeltEnhetsnr("4808")
     }
 
-    private fun mockOppgave(tildeltEnhetsnr: String, journalpostId: String, aktoerId: String): Body<String> {
+    private fun mockOppgave(tildeltEnhetsnr: String, journalpostId: String, aktoerId: String, oppgavetype: String): Body<String> {
         return json("""{
                   "tildeltEnhetsnr" : "$tildeltEnhetsnr",
                   "journalpostId" :  "$journalpostId",
                   "aktoerId" : "$aktoerId",
                   "tema" : "PEN",
-                  "oppgavetype" : "JFR",
+                  "oppgavetype" : "$oppgavetype",
                   "prioritet" : "NORM",
                   "fristFerdigstillelse" : "$tomorrrow",
                   "aktivDato" : "$today"
