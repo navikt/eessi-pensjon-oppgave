@@ -14,15 +14,15 @@ jobs:
       - run: |
           echo "versjon: ${{ github.event.client_payload.slash_command.arg1 }}"
           echo "cluster: ${{ github.event.client_payload.slash_command.arg2 }}"
-          echo "resource: ${{ github.event.client_payload.slash_command.arg2 }}-${{ github.event.client_payload.slash_command.arg3 }}.yml"
-          echo "vars: ${{ github.event.client_payload.slash_command.arg2 }}-${{ github.event.client_payload.slash_command.arg3 }}.json"
+          echo "resource: ${{ github.event.client_payload.slash_command.arg2 }}.yml"
           echo "image: ghcr.io/${{ github.repository }}/eessi-pensjon-oppgave:${{ github.event.client_payload.slash_command.arg1 }}"
 
       # DEPLOYER TIL NAIS
-      - name: 'Deploy to NAIS'
+      - name: 'Deploy to NAIS '
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ github.event.client_payload.slash_command.arg2 }}
-          RESOURCE: nais/${{ github.event.client_payload.slash_command.arg2 }}-${{ github.event.client_payload.slash_command.arg3 }}.yml
+          RESOURCE: nais/${{ github.event.client_payload.slash_command.arg2 }}.yml
           IMAGE: ghcr.io/${{ github.repository }}/eessi-pensjon-oppgave:${{ github.event.client_payload.slash_command.arg1 }}
+
