@@ -1,5 +1,6 @@
 package no.nav.eessi.pensjon.listeners
 
+import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.services.OppgaveService
@@ -13,7 +14,6 @@ import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CountDownLatch
-import javax.annotation.PostConstruct
 
 private const val X_REQUEST_ID = "x_request_id"
 

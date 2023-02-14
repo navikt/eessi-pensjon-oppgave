@@ -33,9 +33,7 @@ class KafkaConfigProd(
         if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "test") {
             prodSecurityConfig(configMap)
         }
-        else if(env.activeProfiles[0] == "integrationtest"){
-            intergrationSecurityConfig(configMap)
-        }
+
         configMap[ConsumerConfig.CLIENT_ID_CONFIG] = "eessi-pensjon-oppgave"
         configMap[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = aivenBootstrapServers
         configMap[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
@@ -53,7 +51,6 @@ class KafkaConfigProd(
         if(env.activeProfiles[0] == "prod" || env.activeProfiles[0] == "integrationtest") {
             factory.setCommonErrorHandler(kafkaErrorHandler)
         }
-
         return factory
     }
 
@@ -67,7 +64,5 @@ class KafkaConfigProd(
         configMap[SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG] = truststorePath
         configMap[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = securityProtocol
     }
-    private fun intergrationSecurityConfig(configMap: MutableMap<String, Any>) {
-        configMap[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = "plaintext"
-    }
+
 }

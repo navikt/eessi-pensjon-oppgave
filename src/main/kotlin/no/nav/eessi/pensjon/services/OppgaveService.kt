@@ -1,6 +1,7 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
+import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.HendelseType
@@ -17,7 +18,6 @@ import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import javax.annotation.PostConstruct
 
 /**
  * @param metricsHelper Usually injected by Spring Boot, can be set manually in tests - no way to read metrics if not set.
