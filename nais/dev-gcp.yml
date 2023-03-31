@@ -26,6 +26,11 @@ spec:
 #      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q2
+  accessPolicy:
+    outbound:
+      external:
+        - host: oppgave.dev-fss-pub.nais.io
+
   image: {{ image }}
   liveness:
     path: /internal/isalive
