@@ -14,7 +14,7 @@ spec:
     application:
       enabled: true
     #oppgave_clientid: dev-fss.oppgavehandtering.oppgave
-  accesspolicy:
+  accessPolicy:
     outbound:
       external:
         - host: oppgave.dev-fss-pub.nais.io
