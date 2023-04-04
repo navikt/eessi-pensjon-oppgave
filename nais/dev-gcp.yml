@@ -14,6 +14,10 @@ spec:
     application:
       enabled: true
     #oppgave_clientid: dev-fss.oppgavehandtering.oppgave
+  accesspolicy:
+    outbound:
+      external:
+        - host: oppgave.dev-fss-pub.nais.io
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: test
