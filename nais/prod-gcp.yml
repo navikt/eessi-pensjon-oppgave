@@ -13,6 +13,11 @@ spec:
   azure:
     application:
       enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: oppgave.prod-fss-pub.nais.io
+        - host: eessi-pensjon-journalforing.intern.nav.no
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod
