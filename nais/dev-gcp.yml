@@ -18,7 +18,7 @@ spec:
     outbound:
       external:
         - host: oppgave.dev-fss-pub.nais.io
-        - host: eessi-pensjon-journalforing-q2.dev.intern.nav.no
+        - host: eessi-pensjon-journalforing-q2.intern.dev.nav.no
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: test
