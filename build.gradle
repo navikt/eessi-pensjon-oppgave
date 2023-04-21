@@ -43,7 +43,7 @@ dependencies {
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.10.5")
     implementation("no.nav.eessi.pensjon:ep-metrics:2.0.14")
-    implementation("no.nav.eessi.pensjon:ep-eux:2.1.17")
+    implementation("no.nav.eessi.pensjon:ep-eux:2.1.20")
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:7.3")
