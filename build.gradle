@@ -42,14 +42,14 @@ dependencies {
 
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.10.5")
-    implementation("no.nav.eessi.pensjon:ep-metrics:2.0.11")
+    implementation("no.nav.eessi.pensjon:ep-metrics:2.0.14")
     implementation("no.nav.eessi.pensjon:ep-eux:2.1.17")
 
     // Logging
     implementation("net.logstash.logback:logstash-logback-encoder:7.3")
     configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
     implementation group: 'org.slf4j', name: 'jcl-over-slf4j'
-    implementation("no.nav.eessi.pensjon:ep-logging:2.1.7")
+    implementation("no.nav.eessi.pensjon:ep-logging:2.1.8")
 
     //Auth
     implementation("no.nav.security:token-client-spring:${tokenSupportVersion}")
