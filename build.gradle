@@ -46,7 +46,7 @@ dependencies {
     implementation("no.nav.eessi.pensjon:ep-eux:2.1.37")
 
     // Logging
-    implementation("net.logstash.logback:logstash-logback-encoder:7.3")
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
     configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
     implementation group: 'org.slf4j', name: 'jcl-over-slf4j'
     implementation("no.nav.eessi.pensjon:ep-logging:2.1.16")
@@ -71,7 +71,7 @@ dependencies {
     testImplementation("org.mock-server:mockserver-netty:5.15.0")
     testImplementation "io.mockk:mockk:1.13.5"
     testImplementation("com.ninja-squad:springmockk:$ninjaMockkVersion")
-    implementation('net.logstash.logback:logstash-logback-encoder:7.3')
+    implementation('net.logstash.logback:logstash-logback-encoder:7.4')
 
     // Architecture tests
     testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
