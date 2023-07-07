@@ -49,16 +49,18 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                         "******************************************************************")
 
                 try {
-                    logger.info("mottatt oppgavemelding : $melding")
-                    val oppgaveMelding = OppgaveMelding.fromJson(melding)
+                    if (cr.offset() in listOf(70362L)) {
+                        logger.warn("Hopper over offset: ${cr.offset()} grunnet feil")
+                    } else {
+                        logger.info("mottatt oppgavemelding : $melding")
+                        val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
-                    oppgaveService.opprettOppgaveSendOppgaveInn(oppgaveMelding)
+                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgaveMelding)
+                        logger.info("******************************************************************\n" +
+                                    "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
+                                    "******************************************************************")
+                    }
                     acknowledgment.acknowledge()
-
-                    logger.info("******************************************************************\n" +
-                            "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
-                            "******************************************************************")
-
                 } catch (ex: Exception) {
                     logger.error("Noe gikk galt under behandling av oppgavemelding:\n $melding \n ${ex.message}", ex)
                     throw RuntimeException(ex.message)
