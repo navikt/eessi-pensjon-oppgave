@@ -49,7 +49,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                         "******************************************************************")
 
                 try {
-                    if (cr.offset() in listOf(70362L)) {
+                    if (cr.offset() in listOf(70362L, 70648L)) {
                         logger.warn("Hopper over offset: ${cr.offset()} grunnet feil")
                     } else {
                         logger.info("mottatt oppgavemelding : $melding")
