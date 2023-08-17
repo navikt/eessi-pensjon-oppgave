@@ -1,8 +1,5 @@
 package no.nav.eessi.pensjon.integrationtest
 
-/*
-import no.nav.eessi.pensjon.config.KafkaCustomErrorHandler
-*/
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
@@ -41,8 +38,6 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
-private lateinit var mockServer: ClientAndServer
-
 @SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
@@ -68,20 +63,29 @@ class OppgaveErrorhandlerIntegrationTest {
     private val debugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi.pensjon") as Logger
     private val listAppender = ListAppender<ILoggingEvent>()
 
+    lateinit var mockServer: ClientAndServer
+
+    init {
+        if (System.getProperty("mockServerport") == null) {
+            mockServer = ClientAndServer(PortFactory.findFreePort()).also {
+                System.setProperty("mockServerport", it.localPort.toString())
+            }
+        }
+    }
+
     @BeforeEach
-    fun `setup`(){
+    fun setup(){
         listAppender.start()
         debugLogger.addAppender(listAppender)
     }
 
     @AfterEach
-    fun `afterTest`(){
+    fun afterTest(){
         listAppender.stop()
-        mockServer.reset()
+        embeddedKafka.kafkaServers.forEach { it.shutdown() }
     }
-
     @Test
-    fun `Når exception skjer så skal kafka-konsumering stoppe`() {
+    fun `Naar exception skjer saa skal kafka-konsumering stoppe og gi en feilmelding`() {
 
         // Vent til kafka er klar
         val container = settOppUtitlityConsumer()
@@ -112,8 +116,7 @@ class OppgaveErrorhandlerIntegrationTest {
             "filnavn" : null
         """.trimIndent()))
 
-        // Shutdown
-        shutdown(container)
+        oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
     }
 
     private fun produserOppgaveHendelser(template: KafkaTemplate<String, String>) {
@@ -122,25 +125,11 @@ class OppgaveErrorhandlerIntegrationTest {
         template.send(OPPGAVE_TOPIC, key1, data1)
     }
 
-    private fun shutdown(container: KafkaMessageListenerContainer<String, String>) {
-/*
-        mockServer.stop()
-*/
-        container.stop()
-/*        embeddedKafka.kafkaServers.forEach { it.shutdown() }*/
-    }
 
     private fun settOppProducerTemplate(): KafkaTemplate<String, String> {
         return KafkaTemplate(DefaultKafkaProducerFactory(producerProps(embeddedKafka.brokersAsString), StringSerializer(), StringSerializer())).apply {
                 defaultTopic = OPPGAVE_TOPIC
             }
-    }
-
-    companion object {
-        init {
-            mockServer = ClientAndServer.startClientAndServer(PortFactory.findFreePort())
-            System.setProperty("mockServerport", mockServer.localPort.toString())
-        }
     }
 
     private fun settOppUtitlityConsumer(): KafkaMessageListenerContainer<String, String> {
@@ -153,5 +142,4 @@ class OppgaveErrorhandlerIntegrationTest {
         }
         return container
     }
-
 }
