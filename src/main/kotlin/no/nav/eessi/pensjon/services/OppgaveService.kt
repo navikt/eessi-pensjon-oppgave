@@ -4,8 +4,9 @@ import io.micrometer.core.instrument.Metrics
 import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.HendelseType
 import no.nav.eessi.pensjon.models.OppgaveMelding
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType.*
 import no.nav.eessi.pensjon.services.Oppgave.*
 import no.nav.eessi.pensjon.services.Oppgave.OppgaveType.*
 import no.nav.eessi.pensjon.utils.mapAnyToJson
@@ -129,7 +130,7 @@ class OppgaveService(
      * Utgående PXXXX - [nav på SEDen] / Rina saksnr: xxxxxx
      */
     private fun genererBeskrivelseTekst(sedType: SedType, rinaSakId: String, hendelseType: HendelseType): String {
-        return if(hendelseType == HendelseType.MOTTATT) {
+        return if(hendelseType == MOTTATT) {
             "Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
         } else {
             "Utgående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
