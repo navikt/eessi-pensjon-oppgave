@@ -1,7 +1,7 @@
 buildscript {
     ext {
         springBootVersion = '3.1.4'
-        springKafkaVersion = '3.0.11'
+        springKafkaVersion = '3.0.12'
         archunitVersion = '1.1.0'
         tokenSupportVersion = '3.1.7'
 
@@ -43,7 +43,7 @@ dependencies {
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
     implementation("no.nav.eessi.pensjon:ep-metrics:2.0.39")
-    implementation("no.nav.eessi.pensjon:ep-eux:2.1.54")
+    implementation("no.nav.eessi.pensjon:ep-eux:2.1.68")
     implementation("no.nav.eessi.pensjon:ep-routing:1.0.86"){
         exclude module: 'ep-eux'
         exclude module: 'ep-metrics'
