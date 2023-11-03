@@ -1,6 +1,5 @@
 package no.nav.eessi.pensjon.listeners
 
-import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.services.OppgaveService
@@ -26,8 +25,7 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
 
     private lateinit var consumeOppgavemelding: MetricsHelper.Metric
 
-    @PostConstruct
-    fun initMetrics() {
+    init {
         consumeOppgavemelding = metricsHelper.init("consumeOppgavemelding")
     }
 

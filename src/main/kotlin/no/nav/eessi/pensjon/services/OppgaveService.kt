@@ -1,12 +1,11 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
-import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
-import no.nav.eessi.pensjon.oppgaverouting.HendelseType.*
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType.MOTTATT
 import no.nav.eessi.pensjon.services.Oppgave.*
 import no.nav.eessi.pensjon.services.Oppgave.OppgaveType.*
 import no.nav.eessi.pensjon.utils.mapAnyToJson
@@ -30,10 +29,7 @@ class OppgaveService(
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private lateinit var opprettoppgave: MetricsHelper.Metric
-
-
-    @PostConstruct
-    fun initMetrics() {
+    init {
         opprettoppgave = metricsHelper.init("opprettoppgave")
     }
 
