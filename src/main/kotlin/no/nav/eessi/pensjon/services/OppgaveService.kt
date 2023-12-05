@@ -221,6 +221,14 @@ private class Oppgave(
         UFORETRYGD {
             override fun toString() = "UFO"
             override fun decode() = "Uføretrygd"
+        },
+        OMSTILLING {
+            override fun toString() = "EYO"
+            override fun decode() = "Omstilling"
+        },
+        BARNEPENSJON {
+            override fun toString() = "EYB"
+            override fun decode() = "Barnepensjon"
         }
     }
 
