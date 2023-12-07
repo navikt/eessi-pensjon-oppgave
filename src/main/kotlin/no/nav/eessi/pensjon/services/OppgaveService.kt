@@ -101,7 +101,7 @@ class OppgaveService(
     private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
         return Oppgave(
             oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
-            tema = Tema.PENSJON.toString(),
+            tema = opprettOppgave.tema,
             prioritet = Prioritet.NORM.toString(),
             aktoerId = opprettOppgave.aktoerId,
             aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
