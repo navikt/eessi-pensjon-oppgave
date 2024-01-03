@@ -82,7 +82,6 @@ class OppgaveErrorhandlerIntegrationTest {
     @AfterEach
     fun afterTest(){
         listAppender.stop()
-        embeddedKafka.kafkaServers.forEach { it.shutdown() }
     }
     @Test
     fun `Naar exception skjer saa skal kafka-konsumering stoppe og gi en feilmelding`() {
