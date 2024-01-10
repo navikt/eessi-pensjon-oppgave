@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
-@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
+@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest="])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(

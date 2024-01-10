@@ -51,7 +51,7 @@ private const val ID_OG_FORDELING = "4303"
 private const val NFP_UTLAND_OSLO = "4803"
 private const val UFORE_UTLAND = "4475"
 
-@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest"])
+@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest="])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(
@@ -92,7 +92,7 @@ class OppgaveIntegrationTest {
 
         container = initConsumer()
         container.start()
-        Thread.sleep(5000); // wait a bit for the container to start
+        Thread.sleep(5000) // wait a bit for the container to start
         ContainerTestUtils.waitForAssignment(container, embeddedKafka.partitionsPerTopic)
 
         oppgaveProducerTemplate = settOppProducerTemplate()
