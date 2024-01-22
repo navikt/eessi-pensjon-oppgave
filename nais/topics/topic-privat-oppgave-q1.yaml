@@ -1,0 +1,26 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: privat-oppgave-q2
+  namespace: eessipensjon
+  labels:
+    team: eessipensjon
+spec:
+  pool: nav-dev
+  config:  # optional; all fields are optional too; defaults shown
+    cleanupPolicy: delete  # delete, compact, compact,delete
+    minimumInSyncReplicas: 1
+    partitions: 2
+    replication: 3  # see min/max requirements
+    retentionBytes: -1  # -1 means unlimited
+    retentionHours: -1  # -1 means unlimited
+  acl:
+    - team: eessipensjon
+      application: eessi-pensjon-oppgave-q2
+      access: read   # read, write, readwrite
+    - team: eessipensjon
+      application: eessi-pensjon-journalforing-q2
+      access: write
+    - team: eessipensjon
+      application: eessi-pensjon-pdl-produsent-q2
+      access: write   # read, write, readwrit
