@@ -29,8 +29,21 @@ spec:
     - name: OPPGAVE_CLIENT_ID
       value: dev-fss.oppgavehandtering.oppgave
 #      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
+    - name: GCP_BUCKET_NAME
+      value: eessi-pensjon-oppgave-q2
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q2
+
+  gcp:
+    buckets:
+      - name: eessi-pensjon-oppgave-q2
+        retentionPeriodDays: 30
+        lifecycleCondition:
+          age: 7
+          createdBefore: 2020-01-01
+          numNewerVersions: 2
+          withState: ANY
+        uniformBucketLevelAccess: true
 
   image: {{ image }}
   liveness:
