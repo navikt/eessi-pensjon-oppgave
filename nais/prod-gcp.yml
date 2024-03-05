@@ -18,6 +18,7 @@ spec:
       external:
         - host: oppgave.prod-fss-pub.nais.io
         - host: eessi-pensjon-journalforing.intern.nav.no
+        - host: saf.prod-fss-pub.nais.io
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod
@@ -27,8 +28,12 @@ spec:
       value: https://oppgave.prod-fss-pub.nais.io/api/v1/oppgaver
     - name: OPPGAVE_CLIENT_ID
       value: prod-fss.oppgavehandtering.oppgave
+    - name: SAF_GRAPHQL_URL
+      value: https://saf.prod-fss-pub.nais.io/graphql
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave
+    - name: AZURE_APP_SAF_CLIENT_ID
+      value: prod-fss.teamdokumenthandtering.saf
   image: {{ image }}
   liveness:
     path: /internal/isalive
