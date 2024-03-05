@@ -2,17 +2,16 @@ package no.nav.eessi.pensjon.services
 
 import io.mockk.mockk
 import no.nav.eessi.pensjon.eux.model.SedType.*
+import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.web.client.RestTemplate
 
-internal class OppgaveServiceTest {
+internal class oppgaveListenerTest {
 
-    val restTemplate = mockk<RestTemplate>()
-    val oppgaveservice = OppgaveService(restTemplate)
+    val oppgaveListener =  OppgaveListener(mockk<OppgaveService>())
 
     @Test
     fun `BehandleSedBeskrivelse for behandling av vedlegg som ikke støttes`() {
@@ -21,8 +20,7 @@ internal class OppgaveServiceTest {
             Mottatt vedlegg: bogus.doc tilhørende RINA sakId: 654654321 mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt
         """.trimIndent()
 
-        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
-
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
     }
 
     @Test
@@ -32,7 +30,7 @@ internal class OppgaveServiceTest {
             Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
-        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
     }
 
     @Test
@@ -42,7 +40,7 @@ internal class OppgaveServiceTest {
             Det er mottatt P2200 - Krav om uførepensjon, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
-        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
     }
 
     @Test
@@ -52,7 +50,7 @@ internal class OppgaveServiceTest {
             Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
-        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
     }
 
     @Test
@@ -62,7 +60,7 @@ internal class OppgaveServiceTest {
             Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
-        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
     }
 
     @Test
@@ -72,22 +70,19 @@ internal class OppgaveServiceTest {
             Det er mottatt P6000 - Melding om vedtak, med tilhørende RINA sakId: 654654321
         """.trimIndent()
 
-        assertEquals(expected, oppgaveservice.behandleSedBeskrivelse(oppgaveMelding))
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
     }
 
     @Test
     fun `BehandleSedBeskrivelse for behandling av SED der vi får en Runtime Exception når ingen parametre treffer`() {
         val oppgaveMelding = OppgaveMelding(null, P11000, null, "", null, "BEHANDLE_SED", "", MOTTATT, null)
         org.junit.jupiter.api.assertThrows<RuntimeException> {
-            oppgaveservice.behandleSedBeskrivelse(oppgaveMelding)
+            oppgaveListener.behandleSedBeskrivelse(oppgaveMelding)
         }
-
     }
 
     @Test
     fun `BehandleSedBeskrivelse returnerer tom streng dersom oppgavetype ikke er BEHANDLE_SED` () {
-        assertEquals("", oppgaveservice.behandleSedBeskrivelse(OppgaveMelding(null, P11000, null, "", null, "JOURNALFORING", "", MOTTATT, null)))
+        assertEquals("", oppgaveListener.behandleSedBeskrivelse(OppgaveMelding(null, P11000, null, "", null, "JOURNALFORING", "", MOTTATT, null)))
     }
-
-
 }
