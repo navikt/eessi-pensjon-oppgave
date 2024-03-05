@@ -1,7 +1,10 @@
 package no.nav.eessi.pensjon.listeners
 
+import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.OppgaveMelding
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType
+import no.nav.eessi.pensjon.services.Oppgave
 import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -11,6 +14,8 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -53,7 +58,8 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                         logger.info("mottatt oppgavemelding : $melding")
                         val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
-                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgaveMelding)
+                        val oppgave = opprettOppgave(oppgaveMelding)
+                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
                         logger.info("******************************************************************\n" +
                                     "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
                                     "******************************************************************")
@@ -65,6 +71,96 @@ class OppgaveListener(private val oppgaveService: OppgaveService,
                 }
             latch.countDown()
             }
+        }
+    }
+
+    fun opprettOppgave(opprettOppgave: OppgaveMelding): Oppgave {
+        return try {
+
+            val oppgaveTypeMap = mapOf(
+                "GENERELL" to Oppgave.OppgaveType.GENERELL,
+                "JOURNALFORING" to Oppgave.OppgaveType.JOURNALFORING,
+                "BEHANDLE_SED" to Oppgave.OppgaveType.BEHANDLE_SED,
+                "KRAV" to Oppgave.OppgaveType.KRAV,
+                "PDL" to Oppgave.OppgaveType.PDL
+            )
+
+            val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
+                Oppgave.OppgaveType.JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
+                Oppgave.OppgaveType.PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
+                else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
+            }
+
+            val oppgave = opprettGeneriskOppgave(oppgaveTypeMap, opprettOppgave, beskrivelse)
+            oppgave
+
+        } catch (ex: Exception) {
+            logger.error("En feil oppstod under opprettelse av oppgave", ex)
+            throw RuntimeException(ex)
+        }
+    }
+
+    fun behandleSedPdlUidBeskrivelse(oppgaveMelding: OppgaveMelding): String {
+        return "Avvik i utenlandsk ID i PDL. I RINA saksnummer ${oppgaveMelding.rinaSakId} " +
+                "er det mottatt en SED med utenlandsk ID som er forskjellig fra den som finnes i PDL. " +
+                "Avklar hvilken som er korrekt eller om det skal legges til en utenlandsk ID."
+    }
+
+    fun behandleSedBeskrivelse(oppgaveMelding: OppgaveMelding): String {
+        if (oppgaveMelding.oppgaveType != "BEHANDLE_SED") return ""
+        logger.info("Genererer beskrivelse for oppgaveType behandle SED")
+
+        val filnavn = oppgaveMelding.filnavn
+        val journalpostId = oppgaveMelding.journalpostId
+        val rinaSakId = oppgaveMelding.rinaSakId
+        val aktoerId = oppgaveMelding.aktoerId
+        val sedType = oppgaveMelding.sedType
+        val behandlePBUC01eller03 = filnavn.isNullOrEmpty() && journalpostId != null && aktoerId != null
+
+        return when {
+            behandlePBUC01eller03 -> "Det er mottatt $sedType - ${sedType?.beskrivelse}, med tilhørende RINA sakId: $rinaSakId"
+            filnavn != null && journalpostId == null -> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
+            else -> throw RuntimeException("Ukjent eller manglende parametere under opprettelse av beskrivelse for behandle SED")
+        }
+    }
+
+    private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, Oppgave.OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
+        return Oppgave(
+            oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
+            tema = opprettOppgave.tema,
+            prioritet = Oppgave.Prioritet.NORM.toString(),
+            aktoerId = opprettOppgave.aktoerId,
+            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+            journalpostId = opprettOppgave.journalpostId,
+            opprettetAvEnhetsnr = "9999",
+            tildeltEnhetsnr = opprettOppgave.tildeltEnhetsnr,
+            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
+            beskrivelse = beskrivelse
+        )
+    }
+
+    private fun opprettGenerellBeskrivelse(opprettOppgave: OppgaveMelding): String {
+        return opprettOppgave.sedType?.let { sedType ->
+            genererBeskrivelseTekst(
+                sedType,
+                opprettOppgave.rinaSakId,
+                opprettOppgave.hendelseType
+            )
+        } ?: throw RuntimeException("feiler med sedtype")
+    }
+
+    /**
+     * Genererer beskrivelse i format:
+     * Utgående PXXXX - [nav på SEDen] / Rina saksnr: xxxxxx
+     */
+    private fun genererBeskrivelseTekst(sedType: SedType, rinaSakId: String, hendelseType: HendelseType): String {
+        return if(hendelseType == HendelseType.MOTTATT) {
+            "Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
+        } else {
+            "Utgående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
         }
     }
 
