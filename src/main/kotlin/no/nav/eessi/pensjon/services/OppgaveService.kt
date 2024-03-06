@@ -1,19 +1,18 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
-import no.nav.eessi.pensjon.journalforing.saf.SafClient
-import no.nav.eessi.pensjon.journalforing.saf.SafRequest
+import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.Journalstatus
+import no.nav.eessi.pensjon.models.Oppgave
+import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
+import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
@@ -80,7 +79,6 @@ class OppgaveService(
      * kalle oppgave for å hente inn oppgaven ved hjelp av journalpostIden
      * Opprette nye oppgaver på journalpostene
      */
-
     fun lagOppgaveForJournalpost(): Boolean {
         gcpStorageService.hentJournalpostFilfraS3()
             ?.split(",")
@@ -94,7 +92,7 @@ class OppgaveService(
                             Oppgave(
                                 oppgavetype = "JFR",
                                 tema = oppgaveMelding.tema,
-                                prioritet = Oppgave.Prioritet.NORM.toString(),
+                                prioritet = Prioritet.NORM.toString(),
                                 aktoerId = oppgaveMelding.aktoerId,
                                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
                                 journalpostId = oppgaveMelding.journalpostId,

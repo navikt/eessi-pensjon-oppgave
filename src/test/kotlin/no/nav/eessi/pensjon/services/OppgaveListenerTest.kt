@@ -7,7 +7,6 @@ import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.springframework.web.client.RestTemplate
 
 class OppgaveListenerTest {
 

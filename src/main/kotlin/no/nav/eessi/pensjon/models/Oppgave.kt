@@ -35,11 +35,4 @@ data class Oppgave(
         val endretTidspunkt: String? = null,
         val status: String? = null,
         val metadata: Map<String, String>? = null
-) {
-
-    enum class Prioritet {
-        HOY,
-        NORM,
-        LAV
-    }
-}
+)
