@@ -1,0 +1,45 @@
+package no.nav.eessi.pensjon.models
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Oppgave(
+        val id: Long? = null,
+        val tildeltEnhetsnr: String? = null,
+        val endretAvEnhetsnr: String? = null,
+        val opprettetAvEnhetsnr: String? = null,
+        val journalpostId: String? = null,
+        val journalpostkilde: String? = null,
+        val behandlesAvApplikasjon: String? = null,
+        val saksreferanse: String? = null,
+        val bnr: String? = null,
+        val samhandlernr: String? = null,
+        val aktoerId: String? = null,
+        val orgnr: String? = null,
+        val tilordnetRessurs: String? = null,
+        val beskrivelse: String? = null,
+        val temagruppe: String? = null,
+        val tema: String? = null,
+        val behandlingstema: String? = null,
+        val oppgavetype: String? = null,
+        val behandlingstype: String? = null,
+        val prioritet: String? = null,
+        val versjon: String? = null,
+        val mappeId: String? = null,
+        val fristFerdigstillelse: String? = null,
+        val aktivDato: String? = null,
+        val opprettetTidspunkt: String? = null,
+        val opprettetAv: String? = null,
+        val endretAv: String? = null,
+        val ferdigstiltTidspunkt: String? = null,
+        val endretTidspunkt: String? = null,
+        val status: String? = null,
+        val metadata: Map<String, String>? = null
+) {
+
+    enum class Prioritet {
+        HOY,
+        NORM,
+        LAV
+    }
+}
