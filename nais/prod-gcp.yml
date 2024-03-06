@@ -32,8 +32,24 @@ spec:
       value: https://saf.prod-fss-pub.nais.io/graphql
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave
+    - name: GCP_BUCKET_NAME
+      value: eessi-pensjon-oppgave
+    - name: GCP_STORAGE_API_URL
+      value: https://storage.googleapis.com
     - name: AZURE_APP_SAF_CLIENT_ID
       value: prod-fss.teamdokumenthandtering.saf
+
+  gcp:
+    buckets:
+      - name: eessi-pensjon-oppgave
+        retentionPeriodDays: 30
+        lifecycleCondition:
+          age: 7
+          createdBefore: 2020-01-01
+          numNewerVersions: 2
+          withState: ANY
+        uniformBucketLevelAccess: true
+
   image: {{ image }}
   liveness:
     path: /internal/isalive
