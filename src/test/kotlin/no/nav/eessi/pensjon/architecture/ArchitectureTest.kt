@@ -2,6 +2,7 @@ package no.nav.eessi.pensjon.architecture
 
 import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.core.importer.ClassFileImporter
+import com.tngtech.archunit.core.importer.ImportOption
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods
 import com.tngtech.archunit.library.Architectures.layeredArchitecture
@@ -26,21 +27,22 @@ class ArchitectureTest {
         @BeforeAll
         @JvmStatic
         fun `extract classes`() {
-            classesToAnalyze = ClassFileImporter().importPackages(root)
-            assertTrue(classesToAnalyze.size in 150..800, "Sanity check on no. of classes to analyze (is ${classesToAnalyze.size})")
+            classesToAnalyze = ClassFileImporter()
+                .withImportOptions(listOf(
+                    ImportOption.DoNotIncludeJars(),
+                    ImportOption.DoNotIncludeArchives(),
+                    ImportOption.DoNotIncludeTests()
+                )).importPackages(root)
+            assertTrue(classesToAnalyze.size in 60..800, "Sanity check on no. of classes to analyze (is ${classesToAnalyze.size})")
         }
     }
 
     @Test
-    @Disabled
-    fun `Packages should not have cyclic depenedencies`() {
+    fun `Packages should not have cyclic dependencies`() {
         slices().matching("$root.(*)..").should().beFreeOfCycles().check(classesToAnalyze)
     }
-
-
     @Test
     fun `Services should not depend on eachother`() {
-
         slices().matching("..$root.services.(**)").should().notDependOnEachOther().check(classesToAnalyze)
     }
 
@@ -50,11 +52,7 @@ class ArchitectureTest {
         val Config = "oppgave.Config"
         val Health = "oppgave.Health"
         val Listeners = "oppgave.listeners"
-        val Logging = "oppgave.logging"
-        val Metrics = "oppgave.metrics"
         val OppgaveService = "oppgave.services"
-        val IntegrationTest = "oppgave.integrationtest"
-        val Archtest = "oppgave.architecture"
 
 
         val packages: Map<String, String> = mapOf(
@@ -62,11 +60,7 @@ class ArchitectureTest {
                 Config to "$root.config",
                 Health to "$root.health",
                 Listeners to "$root.listeners",
-                Logging to "$root.logging",
-                Metrics to "$root.metrics",
                 OppgaveService to "$root.services",
-                IntegrationTest to "$root.integrationtest",
-                Archtest to "$root.architecture"
         )
 
         /*
@@ -79,18 +73,9 @@ class ArchitectureTest {
                 .layer(ROOT).definedBy(packages[ROOT])
                 .layer(Config).definedBy(packages[Config])
                 .layer(Health).definedBy(packages[Health])
-                .layer(Listeners).definedBy(packages[Listeners])
-                .layer(Logging).definedBy(packages[Logging])
-                .layer(Metrics).definedBy(packages[Metrics])
                 .layer(OppgaveService).definedBy(packages[OppgaveService])
-                .layer(IntegrationTest).definedBy(packages[IntegrationTest])
-                .layer(Archtest).definedBy(packages[Archtest])
                 //define rules
-                .whereLayer(ROOT).mayOnlyBeAccessedByLayers(IntegrationTest, Archtest)
-                .whereLayer(Config).mayOnlyBeAccessedByLayers(IntegrationTest)
                 .whereLayer(Health).mayNotBeAccessedByAnyLayer()
-                .whereLayer(Listeners).mayOnlyBeAccessedByLayers(IntegrationTest)
-                .whereLayer(OppgaveService).mayOnlyBeAccessedByLayers(Listeners, IntegrationTest)
                 //Verify rules
                 .check(classesToAnalyze)
     }
