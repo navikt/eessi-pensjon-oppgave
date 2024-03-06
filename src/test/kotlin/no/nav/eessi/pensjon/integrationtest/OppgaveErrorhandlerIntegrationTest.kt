@@ -3,10 +3,12 @@ package no.nav.eessi.pensjon.integrationtest
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import com.ninjasquad.springmockk.MockkBean
 import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.OppgaveService
+import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -50,6 +52,9 @@ class OppgaveErrorhandlerIntegrationTest {
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
+
+    @MockkBean
+    lateinit var gcpStorageService: GcpStorageService
 
     @Autowired
     lateinit var kafkaCustomErrorHandler: KafkaStoppingErrorHandler

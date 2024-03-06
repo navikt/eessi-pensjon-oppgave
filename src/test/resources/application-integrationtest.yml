@@ -20,7 +20,7 @@ securityTokenService:
 
 app.name: ${NAIS_APP_NAME}
 NAIS_NAMESPACE: 'test'
-
+GCP_BUCKET_NAME: "dummy_bucket"
 EUX_RINA_API_V1_URL: http://localhost:${mockServerport}
 securitytokenservice.url: http://someurl
 srvusername: someuser

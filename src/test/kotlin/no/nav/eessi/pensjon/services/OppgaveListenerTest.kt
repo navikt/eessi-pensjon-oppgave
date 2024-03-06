@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.web.client.RestTemplate
 
-internal class oppgaveListenerTest {
+class OppgaveListenerTest {
 
-    val oppgaveListener =  OppgaveListener(mockk<OppgaveService>())
+    val oppgaveListener =  OppgaveListener(OppgaveService(mockk(), mockk(), mockk()))
 
     @Test
     fun `BehandleSedBeskrivelse for behandling av vedlegg som ikke støttes`() {
