@@ -1,4 +1,4 @@
-package no.nav.eessi.pensjon.journalforing.saf
+package no.nav.eessi.pensjon.services.saf
 
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 

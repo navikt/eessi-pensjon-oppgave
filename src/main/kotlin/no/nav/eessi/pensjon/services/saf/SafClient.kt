@@ -1,8 +1,7 @@
-package no.nav.eessi.pensjon.journalforing.saf
+package no.nav.eessi.pensjon.services.saf
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.JournalpostResponse
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
