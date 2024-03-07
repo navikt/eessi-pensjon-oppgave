@@ -6,15 +6,14 @@ import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.eessi.pensjon.services.saf.SafClient
-import no.nav.eessi.pensjon.services.saf.SafClient.*
 import no.nav.eessi.pensjon.models.Behandlingstema
 import no.nav.eessi.pensjon.models.Oppgave
-import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.models.Tema
+import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.JournalpostResponse
 import no.nav.eessi.pensjon.services.saf.Journalstatus
+import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.junit.jupiter.api.BeforeEach
@@ -51,17 +50,36 @@ class OppgaverForJournalpostTest {
     @Test
     fun `gitt at vi har en ferdigstilt oppgave på en journalpost som er i status D så skal vi opprette en ny oppgave på samme journalpost`() {
 
-        //TODO: Hente listen fra gcp
-        every { gcpStorageService.hentJournalpostFilfraS3() } returns """
-            645601988,
-            645950501
-        """.trimIndent()
+        // Hente listen fra gcp
+        val journalpostIds = listOf("645601988", "645950501")
+        every { gcpStorageService.hentJournalpostFilfraS3() } returns journalpostIds.joinToString(separator = ",")
 
-        //TODO: Kalle joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
+        // Kalle joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
+        val journalpostResponse = journalpostResponse(journalpostIds)
 
-        val journalpostId1 = "645601988"
+        // Sjekk om den er ferdigstilt (sjekker mot joark)
+        every { safClient.hentJournalpost(eq(journalpostIds[0])) } returns journalpostResponse
+        every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[0]}", String::class.java) } returns ResponseEntity(
+            lagJournalpost(journalpostIds),
+            HttpStatus.OK
+        )
+
+        // kalle oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
+        oppgaveService.lagOppgaveForJournalpost()
+        val actualResult = forventetResulatFraOppgave(journalpostIds)
+
+        // Sjekke at den faktiske oppgaven blir sendt
+        verify (exactly = 1) {
+            oppgaveOAuthRestTemplate.exchange(
+                "/", HttpMethod.POST,
+                HttpEntity(mapAnyToJson(actualResult, true)), String::class.java
+            )
+        }
+    }
+
+    private fun journalpostResponse(journalpostIds: List<String>): JournalpostResponse {
         val journalpostResponse = JournalpostResponse(
-            journalpostId1,
+            journalpostIds[0],
             Tema.PENSJON,
             Journalstatus.UNDER_ARBEID,
             true,
@@ -72,60 +90,46 @@ class OppgaverForJournalpostTest {
             null,
             LocalDateTime.now()
         )
+        return journalpostResponse
+    }
 
-        //TODO: Sjekk om den er ferdigstilt (sjekker mot joark)
-        every { safClient.hentJournalpost(eq("645601988")) } returns journalpostResponse
-
-        val mockOppgave = """
-            {
-              "id": 192136,
-              "tildeltEnhetsnr": "4303",
-              "opprettetAvEnhetsnr": "9999",
-              "journalpostId": "645601988",
-              "beskrivelse": "Inngående P8000 - Forespørsel om informasjon / Rina saksnr: 1447360",
-              "tema": "PEN",
-              "oppgavetype": "JFR",
-              "versjon": 1,
-              "opprettetAv": "eessi-pensjon-oppgave-q2",
-              "prioritet": "NORM",
-              "status": "FERDIGSTILT",
-              "metadata": {},
-              "fristFerdigstillelse": "2024-02-07",
-              "aktivDato": "2024-02-06",
-              "opprettetTidspunkt": "2024-02-06T11:58:37.984+01:00"
-            }
-        """.trimIndent()
-
-        every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId1", String::class.java) } returns ResponseEntity(
-            mockOppgave,
-            HttpStatus.OK
-        )
-
-        //TODO: kalle oppgave for å hente inn oppgaven
-        //TODO: Opprette ny oppgave med samme journalpostid
-        //TODO: Sjekke at den faktiske oppgaven blir sendt
-
-        oppgaveService.lagOppgaveForJournalpost()
-
+    private fun forventetResulatFraOppgave(journalpostIds: List<String>): Oppgave {
         val actualResult = mapJsonToAny<Oppgave>(
             """{         
-              "tildeltEnhetsnr" : "4303",
-              "opprettetAvEnhetsnr" : "9999",
-              "journalpostId" : "645601988",
-              "beskrivelse" : "Inngående P8000 - Forespørsel om informasjon / Rina saksnr: 1447360",
-              "tema" : "PEN",
-              "oppgavetype" : "JFR",
-              "prioritet" : "NORM",
-              "fristFerdigstillelse" : "${LocalDate.now().plusDays(1)}",
-              "aktivDato" : "${LocalDate.now()}"            
-        }""", false
+                  "tildeltEnhetsnr" : "4303",
+                  "opprettetAvEnhetsnr" : "9999",
+                  "journalpostId" : "${journalpostIds[0]}",
+                  "beskrivelse" : "Inngående P8000 - Forespørsel om informasjon / Rina saksnr: 1447360",
+                  "tema" : "PEN",
+                  "oppgavetype" : "JFR",
+                  "prioritet" : "NORM",
+                  "fristFerdigstillelse" : "${LocalDate.now().plusDays(1)}",
+                  "aktivDato" : "${LocalDate.now()}"            
+            }""", false
         )
+        return actualResult
+    }
 
-        verify (exactly = 1) {
-            oppgaveOAuthRestTemplate.exchange(
-                "/", HttpMethod.POST,
-                HttpEntity(mapAnyToJson(actualResult, true)), String::class.java
-            )
-        }
+    private fun lagJournalpost(journalpostIds: List<String>): String {
+        val mockOppgave = """
+                {
+                  "id": 192136,
+                  "tildeltEnhetsnr": "4303",
+                  "opprettetAvEnhetsnr": "9999",
+                  "journalpostId": "${journalpostIds[0]}",
+                  "beskrivelse": "Inngående P8000 - Forespørsel om informasjon / Rina saksnr: 1447360",
+                  "tema": "PEN",
+                  "oppgavetype": "JFR",
+                  "versjon": 1,
+                  "opprettetAv": "eessi-pensjon-oppgave-q2",
+                  "prioritet": "NORM",
+                  "status": "FERDIGSTILT",
+                  "metadata": {},
+                  "fristFerdigstillelse": "${LocalDate.now().plusDays(1)}",
+                  "aktivDato": "${LocalDate.now()}",
+                  "opprettetTidspunkt": "2024-02-06T11:58:37.984+01:00"
+                }
+            """.trimIndent()
+        return mockOppgave
     }
 }
