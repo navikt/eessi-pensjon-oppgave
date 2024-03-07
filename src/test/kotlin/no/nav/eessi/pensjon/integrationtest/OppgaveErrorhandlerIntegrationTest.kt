@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.ninjasquad.springmockk.MockkBean
+import com.ninjasquad.springmockk.MockkBeans
 import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
 import no.nav.eessi.pensjon.listeners.OppgaveListener
@@ -40,12 +41,16 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
-@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest="])
+@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC]
+)
+
+@MockkBeans(
+    MockkBean(name = "gcpStorageService", classes = [GcpStorageService::class]),
 )
 class OppgaveErrorhandlerIntegrationTest {
 
@@ -53,16 +58,9 @@ class OppgaveErrorhandlerIntegrationTest {
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
-    @MockkBean
-    lateinit var gcpStorageService: GcpStorageService
-
-    @Autowired
-    lateinit var kafkaCustomErrorHandler: KafkaStoppingErrorHandler
-
     @Autowired
     lateinit var oppgaveService : OppgaveService
 
-    @Autowired
     lateinit var oppgaveListener: OppgaveListener
 
     private val debugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi.pensjon") as Logger
@@ -82,6 +80,7 @@ class OppgaveErrorhandlerIntegrationTest {
     fun setup(){
         listAppender.start()
         debugLogger.addAppender(listAppender)
+        oppgaveListener = OppgaveListener(oppgaveService)
     }
 
     @AfterEach
