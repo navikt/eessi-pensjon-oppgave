@@ -3,6 +3,10 @@ package no.nav.eessi.pensjon.integrationtest
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import com.google.cloud.storage.Blob
+import com.google.cloud.storage.BlobId
+import com.google.cloud.storage.Bucket
+import com.google.cloud.storage.Storage
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,8 +32,6 @@ import org.springframework.web.client.RestTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
-
 class OppgaverForJournalpostTest {
 
     private val gcpStorageService = mockk<GcpStorageService>()
@@ -53,7 +55,18 @@ class OppgaverForJournalpostTest {
     }
 
     @Test
-    fun `gitt at vi har en ferdigstilt oppgave på en journalpost som er i status D så skal vi opprette en ny oppgave på samme journalpost`() {
+    fun `Gitt at det ikke finnes en fil paa gcp saa skal det ikke lages oppgave og avslutte uten feil`() {
+        every { gcpStorageService.hentJournalpostFilfraS3() } returns null
+
+        oppgaveService.lagOppgaveForJournalpost()
+
+        verify (exactly = 0) {
+            oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, any(), String::class.java )
+        }
+    }
+
+    @Test
+    fun `Gitt at vi har en ferdigstilt oppgave paa en journalpost som er i status D saa skal vi opprette en ny oppgave på samme journalpost`() {
 
         // Hente listen fra gcp
         val journalpostIds = listOf("645601988", "645950501")
