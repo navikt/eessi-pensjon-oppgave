@@ -82,9 +82,9 @@ class OppgaveService(
      * kalle oppgave for å hente inn oppgaven ved hjelp av journalpostIden
      * Opprette nye oppgaver på journalpostene
      */
-    fun lagOppgaveForJournalpost(): Boolean {
-        gcpStorageService.hentJournalpostFilfraS3()
-            ?.split(",")
+    fun lagOppgaveForJournalpost(): List<String>? {
+        val journalpostIds = gcpStorageService.hentJournalpostFilfraS3()?.split(",")
+        journalpostIds
             ?.forEach { journalpostId ->
                 logger.info("Sjekker journalpost: $journalpostId")
                 if (erJournalpostenFerdigstilt(journalpostId)) {
@@ -102,15 +102,15 @@ class OppgaveService(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse
                         )
-                        if(env.activeProfiles[0] == "test"){
+                        if (env.activeProfiles[0] == "test") {
                             opprettOppgaveSendOppgaveInn(oppgave)
                         }
                         logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
-                        return true
+                        journalpostIds.removeFirst()
                     }
                 }
             }
-        return false
+        return journalpostIds
     }
 
     private fun erJournalpostenFerdigstilt(journalpostId: String): Boolean {

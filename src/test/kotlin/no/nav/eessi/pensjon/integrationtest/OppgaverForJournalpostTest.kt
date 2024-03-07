@@ -20,6 +20,8 @@ import no.nav.eessi.pensjon.services.saf.JournalpostResponse
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -68,31 +70,35 @@ class OppgaverForJournalpostTest {
     @Test
     fun `Gitt at vi har en ferdigstilt oppgave paa en journalpost som er i status D saa skal vi opprette en ny oppgave på samme journalpost`() {
 
-        // Hente listen fra gcp
+        // henter listen med journalpostIDer fra gcp
         val journalpostIds = listOf("645601988", "645950501")
         every { gcpStorageService.hentJournalpostFilfraS3() } returns journalpostIds.joinToString(separator = ",")
 
-        // Kalle joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
+        // kaller joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
         val journalpostResponse = journalpostResponse(journalpostIds)
 
-        // Sjekk om den er ferdigstilt (sjekker mot joark)
+        // sjekker om den er ferdigstilt (sjekker mot joark)
         every { safClient.hentJournalpost(eq(journalpostIds[0])) } returns journalpostResponse
         every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[0]}", String::class.java) } returns ResponseEntity(
             lagJournalpost(journalpostIds),
             HttpStatus.OK
         )
 
-        // kalle oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
-        oppgaveService.lagOppgaveForJournalpost()
+        // kaller oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
+        val resterendeJournalpostIDer = oppgaveService.lagOppgaveForJournalpost()
         val actualResult = forventetResulatFraOppgave(journalpostIds)
 
-        // Sjekke at den faktiske oppgaven blir sendt
+        // sjekker at den faktiske oppgaven blir sendt
         verify (exactly = 1) {
             oppgaveOAuthRestTemplate.exchange(
                 "/", HttpMethod.POST,
                 HttpEntity(mapAnyToJson(actualResult, true)), String::class.java
             )
         }
+
+        // har kun sjekket og kjørt en av oppgavene
+        assertEquals(resterendeJournalpostIDer!!.size, 1)
+        assertEquals(resterendeJournalpostIDer[0], "645950501")
     }
 
     private fun journalpostResponse(journalpostIds: List<String>): JournalpostResponse {
