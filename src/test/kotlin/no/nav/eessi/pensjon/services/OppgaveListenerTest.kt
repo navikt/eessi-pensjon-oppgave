@@ -1,5 +1,6 @@
 package no.nav.eessi.pensjon.services
 
+import io.mockk.every
 import io.mockk.mockk
 import no.nav.eessi.pensjon.eux.model.SedType.*
 import no.nav.eessi.pensjon.listeners.OppgaveListener
@@ -7,10 +8,11 @@ import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.springframework.core.env.Environment
 
 class OppgaveListenerTest {
 
-    val oppgaveListener =  OppgaveListener(OppgaveService(mockk(), mockk(), mockk()))
+    val oppgaveListener =  OppgaveListener(OppgaveService(mockk(), mockk(), mockk(), mockk<Environment>()))
 
     @Test
     fun `BehandleSedBeskrivelse for behandling av vedlegg som ikke støttes`() {

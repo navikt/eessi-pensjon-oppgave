@@ -9,8 +9,10 @@ import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
+import no.nav.eessi.pensjon.utils.toJson
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
@@ -27,6 +29,7 @@ class OppgaveService(
     private val oppgaveOAuthRestTemplate: RestTemplate,
     private val gcpStorageService: GcpStorageService,
     private val safClient: SafClient,
+    @Autowired private val env: Environment,
     @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
@@ -87,21 +90,22 @@ class OppgaveService(
                 if (erJournalpostenFerdigstilt(journalpostId)) {
                     val oppgaveMelding = hentOppgave(journalpostId)
                     if (oppgaveMelding.status == "FERDIGSTILT") {
-                        logger.info("Journalposten $journalpostId har en ferdigstilt oppgave")
-                        opprettOppgaveSendOppgaveInn(
-                            Oppgave(
-                                oppgavetype = "JFR",
-                                tema = oppgaveMelding.tema,
-                                prioritet = Prioritet.NORM.toString(),
-                                aktoerId = oppgaveMelding.aktoerId,
-                                aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                                journalpostId = oppgaveMelding.journalpostId,
-                                opprettetAvEnhetsnr = "9999",
-                                tildeltEnhetsnr = oppgaveMelding.tildeltEnhetsnr,
-                                fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
-                                beskrivelse = oppgaveMelding.beskrivelse
-                            )
+                        val oppgave = Oppgave(
+                            oppgavetype = "JFR",
+                            tema = oppgaveMelding.tema,
+                            prioritet = Prioritet.NORM.toString(),
+                            aktoerId = oppgaveMelding.aktoerId,
+                            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+                            journalpostId = oppgaveMelding.journalpostId,
+                            opprettetAvEnhetsnr = "9999",
+                            tildeltEnhetsnr = oppgaveMelding.tildeltEnhetsnr,
+                            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
+                            beskrivelse = oppgaveMelding.beskrivelse
                         )
+                        if(env.activeProfiles[0] == "test"){
+                            opprettOppgaveSendOppgaveInn(oppgave)
+                        }
+                        logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
                         return true
                     }
                 }

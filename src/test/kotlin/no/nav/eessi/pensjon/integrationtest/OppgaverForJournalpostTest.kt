@@ -6,6 +6,7 @@ import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.models.Behandlingstema
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.Tema
@@ -13,12 +14,12 @@ import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.JournalpostResponse
 import no.nav.eessi.pensjon.services.saf.Journalstatus
-import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -44,7 +45,11 @@ class OppgaverForJournalpostTest {
     fun setup() {
         listAppender.start()
         logger.addAppender(listAppender)
-        oppgaveService = OppgaveService(oppgaveOAuthRestTemplate, gcpStorageService, safClient)
+        oppgaveService = OppgaveService(
+            oppgaveOAuthRestTemplate,
+            gcpStorageService,
+            safClient,
+            mockk<Environment>().apply { every { activeProfiles } returns arrayOf("test") })
     }
 
     @Test
