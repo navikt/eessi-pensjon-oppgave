@@ -65,7 +65,7 @@ class OppgaveIntegrationTest {
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var gcpStorageService: GcpStorageService
 
     @Autowired
