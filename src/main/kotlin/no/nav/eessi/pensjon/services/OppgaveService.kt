@@ -41,6 +41,7 @@ class OppgaveService(
 
     @PostConstruct
     fun startJournalpostAnalyse(){
+        logger.info("Sjekker om det er journalposter som ikke er prossesert")
         val journalposterSomIkkeBleBehandlet = lagOppgaveForJournalpost()
         if (journalposterSomIkkeBleBehandlet.isNotEmpty()) {
             logger.warn("Det ble ikke laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
