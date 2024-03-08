@@ -97,7 +97,7 @@ class OppgaverForJournalpostTest {
         }
 
         // har kun sjekket og kjørt en av oppgavene
-        assertEquals(resterendeJournalpostIDer!!.size, 1)
+        assertEquals(resterendeJournalpostIDer.size, 1)
         assertEquals(resterendeJournalpostIDer[0], "645950501")
     }
 

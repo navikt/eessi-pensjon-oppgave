@@ -24,8 +24,9 @@ import java.util.concurrent.CountDownLatch
 private const val X_REQUEST_ID = "x_request_id"
 
 @Service
-class OppgaveListener(private val oppgaveService: OppgaveService,
-        @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()) {
+class OppgaveListener(
+    private val oppgaveService: OppgaveService,
+    @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()) {
 
     private val logger = LoggerFactory.getLogger(OppgaveListener::class.java)
     private val latch = CountDownLatch(6)

@@ -5,8 +5,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.MockkBeans
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.eessi.pensjon.EessiPensjonOppgaveApplicationTest
 import no.nav.eessi.pensjon.config.KafkaStoppingErrorHandler
+import no.nav.eessi.pensjon.eux.klient.EuxKlientLib
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
@@ -21,6 +24,8 @@ import org.mockserver.socket.PortFactory
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -34,6 +39,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps
 import org.springframework.kafka.test.utils.KafkaTestUtils.producerProps
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.web.client.RestTemplate
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -41,7 +47,7 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
-@SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ])
+@SpringBootTest(classes =  [EessiPensjonOppgaveApplicationTest::class])
 @ActiveProfiles("integrationtest")
 @DirtiesContext
 @EmbeddedKafka(
@@ -49,18 +55,15 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
     topics = [OPPGAVE_TOPIC]
 )
 
-@MockkBeans(
-    MockkBean(name = "gcpStorageService", classes = [GcpStorageService::class]),
-)
 class OppgaveErrorhandlerIntegrationTest {
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafka: EmbeddedKafkaBroker
+    @MockkBean(relaxed = true)
+    lateinit var gcpStorageService: GcpStorageService
 
     @Autowired
-    lateinit var oppgaveService : OppgaveService
-
     lateinit var oppgaveListener: OppgaveListener
 
     private val debugLogger: Logger = LoggerFactory.getLogger("no.nav.eessi.pensjon") as Logger
@@ -76,11 +79,17 @@ class OppgaveErrorhandlerIntegrationTest {
         }
     }
 
+//    @TestConfiguration
+//    class TestConfig {
+//        @Bean
+//        fun gcpStorageService(): GcpStorageService = mockk<GcpStorageService>(relaxed = true)
+//  }
+
     @BeforeEach
     fun setup(){
         listAppender.start()
         debugLogger.addAppender(listAppender)
-        oppgaveListener = OppgaveListener(oppgaveService)
+        every { gcpStorageService.hentJournalpostFilfraS3() } returns null
     }
 
     @AfterEach

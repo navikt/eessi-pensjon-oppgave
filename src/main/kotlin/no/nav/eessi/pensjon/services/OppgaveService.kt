@@ -1,6 +1,7 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
+import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.Oppgave
@@ -36,6 +37,14 @@ class OppgaveService(
     private lateinit var opprettoppgave: MetricsHelper.Metric
     init {
         opprettoppgave = metricsHelper.init("opprettoppgave")
+    }
+
+    @PostConstruct
+    fun startJournalpostAnalyse(){
+        val journalposterSomIkkeBleBehandlet = lagOppgaveForJournalpost()
+        if (journalposterSomIkkeBleBehandlet.isNotEmpty()) {
+            logger.warn("Det ble ikke laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
+        }
     }
 
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
@@ -82,7 +91,7 @@ class OppgaveService(
      * kalle oppgave for å hente inn oppgaven ved hjelp av journalpostIden
      * Opprette nye oppgaver på journalpostene
      */
-    fun lagOppgaveForJournalpost(): List<String>? {
+    final fun lagOppgaveForJournalpost(): List<String> {
         val journalpostIds = gcpStorageService.hentJournalpostFilfraS3()?.split(",")
         journalpostIds
             ?.forEach { journalpostId ->
@@ -110,7 +119,7 @@ class OppgaveService(
                     }
                 }
             }
-        return journalpostIds
+        return journalpostIds ?: emptyList()
     }
 
     private fun erJournalpostenFerdigstilt(journalpostId: String): Boolean {
