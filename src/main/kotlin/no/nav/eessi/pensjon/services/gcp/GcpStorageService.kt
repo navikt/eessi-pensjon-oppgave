@@ -40,7 +40,7 @@ class GcpStorageService( @param:Value("\${GCP_BUCKET_NAME}") var bucketname: Str
         val jsonHendelse =  gcpStorage.get(BlobId.of(bucketname, "journalpostIderSomTrengerNyeOppgaver.txt"))
 
         if(jsonHendelse!= null && jsonHendelse.exists()) {
-            return jsonHendelse.toString()
+            return jsonHendelse.getContent().toString()
         }
         return null
     }
