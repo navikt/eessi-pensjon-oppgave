@@ -37,10 +37,12 @@ class GcpStorageService( @param:Value("\${GCP_BUCKET_NAME}") var bucketname: Str
     }
 
     fun hentJournalpostFilfraS3(): String? {
-        val jsonHendelse =  gcpStorage.get(BlobId.of(bucketname, "journalpostIderSomTrengerNyeOppgaver.txt"))
+        val journalPoster =  gcpStorage.get(BlobId.of(bucketname, "journalpostIderSomTrengerNyeOppgaver.txt"))
 
-        if(jsonHendelse!= null && jsonHendelse.exists()) {
-            return jsonHendelse.getContent().toString()
+        logger.info("Lagret fil fra S3, contentType: ${journalPoster.contentType} \n blobInfo: ${journalPoster.asBlobInfo()}")
+
+        if(journalPoster!= null && journalPoster.exists()) {
+            return journalPoster.getContent().toString()
         }
         return null
     }
