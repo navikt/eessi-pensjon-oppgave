@@ -8,13 +8,13 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.eessi.pensjon.services.saf.SafClient
-import no.nav.eessi.pensjon.models.Behandlingstema
+import no.nav.eessi.pensjon.models.BehandlingTema
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.Tema
 import no.nav.eessi.pensjon.services.JournalposterSomInneholderFeil
 import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
-import no.nav.eessi.pensjon.services.saf.JournalpostResponse
+import no.nav.eessi.pensjon.services.saf.Journalpost
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
@@ -89,18 +89,15 @@ class OppgaverForJournalpostTest {
         assertEquals(resterendeJournalpostIDer[0], journalpostIds[0])
     }
 
-    private fun journalpostResponse(journalpostIds: List<String>): JournalpostResponse {
-        val journalpostResponse = JournalpostResponse(
-            journalpostIds[0],
-            "EYO",
-            Journalstatus.UNDER_ARBEID,
-            true,
-            null,
-            Behandlingstema.UFORE_UTLAND,
-            "4303",
-            "Alderspensjon",
-            null,
-            LocalDateTime.now()
+    private fun journalpostResponse(journalpostIds: List<String>): Journalpost {
+        val journalpostResponse = Journalpost(
+            journalpostId =  journalpostIds[0],
+            bruker = null,
+            tema = Tema.OMSTILLING,
+            journalstatus = Journalstatus.FERDIGSTILT,
+            behandlingstema = BehandlingTema.UFOREPENSJON,
+            journalforendeEnhet = "4303",
+            datoOpprettet = LocalDateTime.now()
         )
         return journalpostResponse
     }

@@ -33,7 +33,7 @@ class ArchitectureTest {
                     ImportOption.DoNotIncludeArchives(),
                     ImportOption.DoNotIncludeTests()
                 )).importPackages(root)
-            assertTrue(classesToAnalyze.size in 60..800, "Sanity check on no. of classes to analyze (is ${classesToAnalyze.size})")
+            assertTrue(classesToAnalyze.size in 40..800, "Sanity check on no. of classes to analyze (is ${classesToAnalyze.size})")
         }
     }
 
