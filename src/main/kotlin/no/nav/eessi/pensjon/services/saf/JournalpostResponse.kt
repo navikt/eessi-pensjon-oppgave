@@ -4,13 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.eux.model.sed.Bruker
 import no.nav.eessi.pensjon.models.Behandlingstema
 import no.nav.eessi.pensjon.models.IdType
-import no.nav.eessi.pensjon.models.Tema
 import java.time.LocalDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class JournalpostResponse(
     val journalpostId: String?,
-    val tema: Tema?,
+    val tema: String?,
     val journalstatus: Journalstatus?,
     val journalpostferdigstilt: Boolean?,
     val avsenderMottaker: AvsenderMottaker?,
