@@ -19,7 +19,9 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.*
 import org.springframework.web.client.DefaultResponseErrorHandler
+import org.springframework.web.client.ResponseErrorHandler
 import org.springframework.web.client.RestTemplate
+import java.time.Duration
 import java.util.*
 
 @Profile("prod", "test")
@@ -39,8 +41,8 @@ class RestTemplateConfig(
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
     @Bean
-    fun safGraphQlOidcRestTemplate() = opprettRestTemplateForJoark(graphQlUrl, bearerTokenInterceptor(
-        clientProperties("saf-credentials"), oAuth2AccessTokenService!!))
+    fun safGraphQlOidcRestTemplate() = restTemplate(graphQlUrl, oAuth2BearerTokenInterceptor(clientProperties("saf-credentials"), oAuth2AccessTokenService!! ))
+
     @Bean
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") {
@@ -51,7 +53,7 @@ class RestTemplateConfig(
             .additionalInterceptors(
                 RequestIdHeaderInterceptor(),
                 IOExceptionRetryInterceptor(),
-                oAuthBearerTokenInterceptor(oAuth2AccessTokenService, clientProperties),
+                oAuth2BearerTokenInterceptor(clientProperties, oAuth2AccessTokenService),
                 RequestCountInterceptor(meterRegistry),
                 RequestInterceptor(),
                 RequestResponseLoggerInterceptor()
@@ -60,46 +62,33 @@ class RestTemplateConfig(
                 requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
             }
     }
+    private fun restTemplate(url: String, tokenIntercetor: ClientHttpRequestInterceptor?, defaultErrorHandler: ResponseErrorHandler = DefaultResponseErrorHandler()) : RestTemplate {
+        logger.info("init restTemplate: $url")
+        return RestTemplateBuilder()
+            .rootUri(url)
+            .errorHandler(defaultErrorHandler)
+            .additionalInterceptors(
+                RequestIdHeaderInterceptor(),
+                IOExceptionRetryInterceptor(),
+                RequestCountInterceptor(meterRegistry),
+                RequestResponseLoggerInterceptor(),
+                tokenIntercetor
+            )
+            .build().apply {
+                requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
+            }
+    }
+
 
     private fun clientProperties(oAuthKey: String): ClientProperties {
         return Optional.ofNullable(clientConfigurationProperties.registration[oAuthKey])
             .orElseThrow { RuntimeException("could not find oauth2 client config for example-onbehalfof") }
     }
 
-    private fun opprettRestTemplateForJoark(url: String, bearerTokenInterceptor: ClientHttpRequestInterceptor) : RestTemplate {
-        return RestTemplateBuilder()
-            .rootUri(url)
-            .errorHandler(DefaultResponseErrorHandler())
-            .additionalInterceptors(
-                RequestIdHeaderInterceptor(),
-                IOExceptionRetryInterceptor(),
-                RequestCountInterceptor(meterRegistry),
-                bearerTokenInterceptor
-            )
-            .build().apply {
-                requestFactory = HttpComponentsClientHttpRequestFactory()
-            }
-    }
-
-    private fun bearerTokenInterceptor(
-        clientProperties: ClientProperties,
-        oAuth2AccessTokenService: OAuth2AccessTokenService
-    ): ClientHttpRequestInterceptor {
+    private fun oAuth2BearerTokenInterceptor( clientProperties: ClientProperties, oAuth2AccessTokenService: OAuth2AccessTokenService ): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
             val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-            val tokenChunks = response.accessToken!!.split(".")
-            val tokenBody =  tokenChunks[1]
-            logger.debug("subject: " + JWTClaimsSet.parse(Base64.getDecoder().decode(tokenBody).decodeToString()).subject + "/n + $response.accessToken")
-
-            request.headers.setBearerAuth(response.accessToken!!)
-            execution.execute(request, body!!)
-        }
-    }
-
-    private fun oAuthBearerTokenInterceptor(oAuth2AccessTokenService: OAuth2AccessTokenService, clientProperties: ClientProperties): ClientHttpRequestInterceptor {
-        return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-            val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-            request.headers.setBearerAuth(response.accessToken!!)
+            response.accessToken?.let { request.headers.setBearerAuth(it) }
             execution.execute(request, body!!)
         }
     }
