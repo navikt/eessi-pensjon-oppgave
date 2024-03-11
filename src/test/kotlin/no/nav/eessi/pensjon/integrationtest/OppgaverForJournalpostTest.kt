@@ -3,24 +3,21 @@ package no.nav.eessi.pensjon.integrationtest
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import com.google.cloud.storage.Blob
-import com.google.cloud.storage.BlobId
-import com.google.cloud.storage.Bucket
-import com.google.cloud.storage.Storage
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.models.Behandlingstema
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.Tema
+import no.nav.eessi.pensjon.services.JournalposterSomInneholderFeil
 import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.JournalpostResponse
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -57,35 +54,33 @@ class OppgaverForJournalpostTest {
     }
 
     @Test
-    fun `Gitt at det ikke finnes en fil paa gcp saa skal det ikke lages oppgave og avslutte uten feil`() {
-        every { gcpStorageService.hentJournalpostFilfraS3() } returns null
-
-        oppgaveService.lagOppgaveForJournalpost()
-
-        verify (exactly = 0) {
-            oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, any(), String::class.java )
-        }
-    }
-
-    @Test
     fun `Gitt at vi har en ferdigstilt oppgave paa en journalpost som er i status D saa skal vi opprette en ny oppgave på samme journalpost`() {
 
         // henter listen med journalpostIDer fra gcp
-        val journalpostIds = listOf("645601988", "645950501")
-        every { gcpStorageService.hentJournalpostFilfraS3() } returns journalpostIds.joinToString(separator = ",")
-
+        val journalpostIds = JournalposterSomInneholderFeil.feilendeJournalposter()
+        every { gcpStorageService.journalpostenErIkkeLagret(journalpostIds[0]) } returns true
+        every { gcpStorageService.journalpostenErIkkeLagret(journalpostIds[1]) } returns false
+        justRun { gcpStorageService.lagre(any(), any()) }
         // kaller joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
         val journalpostResponse = journalpostResponse(journalpostIds)
 
         // sjekker om den er ferdigstilt (sjekker mot joark)
-        every { safClient.hentJournalpost(eq(journalpostIds[0])) } returns journalpostResponse
+        every { safClient.hentJournalpost(any()) } returns journalpostResponse
+
+        // det finnes en oppgave for den første journalposten
         every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[0]}", String::class.java) } returns ResponseEntity(
             lagJournalpost(journalpostIds),
             HttpStatus.OK
         )
 
+        // ingen oppgave for denne
+        every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[1]}", String::class.java) } returns ResponseEntity(
+            null,
+            HttpStatus.NOT_FOUND
+        )
+
         // kaller oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
-        val resterendeJournalpostIDer = oppgaveService.lagOppgaveForJournalpost()
+        val resterendeJournalpostIDer = oppgaveService.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposter())
         val actualResult = forventetResulatFraOppgave(journalpostIds)
 
         // sjekker at den faktiske oppgaven blir sendt
@@ -98,7 +93,7 @@ class OppgaverForJournalpostTest {
 
         // har kun sjekket og kjørt en av oppgavene
         assertEquals(resterendeJournalpostIDer.size, 1)
-        assertEquals(resterendeJournalpostIDer[0], "645950501")
+        assertEquals(resterendeJournalpostIDer[0], journalpostIds[0])
     }
 
     private fun journalpostResponse(journalpostIds: List<String>): JournalpostResponse {
