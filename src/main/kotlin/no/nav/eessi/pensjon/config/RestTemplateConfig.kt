@@ -40,7 +40,7 @@ class RestTemplateConfig(
 
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
-    @Bean
+    @Bean("oppgaveOAuthRestTemplate")
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         val clientProperties = clientProperties("oppgave-credentials")
         return templateBuilder
@@ -58,7 +58,7 @@ class RestTemplateConfig(
             }
     }
 
-    @Bean
+    @Bean("safGraphQlOidcRestTemplate")
     fun safGraphQlOidcRestTemplate() = restTemplate(graphQlUrl, oAuth2BearerTokenInterceptor(clientProperties("saf-credentials"), oAuth2AccessTokenService!!))
 
     private fun restTemplate(url: String, tokenIntercetor: ClientHttpRequestInterceptor?, defaultErrorHandler: ResponseErrorHandler = DefaultResponseErrorHandler()) : RestTemplate {
