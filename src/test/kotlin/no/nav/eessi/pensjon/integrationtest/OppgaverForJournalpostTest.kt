@@ -59,7 +59,6 @@ class OppgaverForJournalpostTest {
         // henter listen med journalpostIDer fra gcp
         val journalpostIds = JournalposterSomInneholderFeil.feilendeJournalposter()
         every { gcpStorageService.journalpostenErIkkeLagret(journalpostIds[0]) } returns true
-        every { gcpStorageService.journalpostenErIkkeLagret(journalpostIds[1]) } returns false
         justRun { gcpStorageService.lagre(any(), any()) }
         // kaller joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
         val journalpostResponse = journalpostResponse(journalpostIds)
@@ -71,12 +70,6 @@ class OppgaverForJournalpostTest {
         every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[0]}", String::class.java) } returns ResponseEntity(
             lagJournalpost(journalpostIds),
             HttpStatus.OK
-        )
-
-        // ingen oppgave for denne
-        every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[1]}", String::class.java) } returns ResponseEntity(
-            null,
-            HttpStatus.NOT_FOUND
         )
 
         // kaller oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
@@ -99,7 +92,7 @@ class OppgaverForJournalpostTest {
     private fun journalpostResponse(journalpostIds: List<String>): JournalpostResponse {
         val journalpostResponse = JournalpostResponse(
             journalpostIds[0],
-            Tema.PENSJON,
+            "EYO",
             Journalstatus.UNDER_ARBEID,
             true,
             null,
