@@ -41,16 +41,8 @@ class RestTemplateConfig(
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
     @Bean
-    fun safGraphQlOidcRestTemplate() = restTemplate(graphQlUrl, oAuth2BearerTokenInterceptor(clientConfigurationProperties.registration.getOrElse("saf-credentials") {
-            throw IllegalStateException("Mangler Oauth2Client saf-credentials")
-        }, oAuth2AccessTokenService!!)
-    )
-
-    @Bean
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
-        val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") {
-            throw IllegalStateException("Mangler Oauth2Client oppgave-credentials")
-        }
+        val clientProperties = clientProperties("oppgave-credentials")
         return templateBuilder
             .rootUri(oppgaveUrl)
             .additionalInterceptors(
@@ -65,6 +57,10 @@ class RestTemplateConfig(
                 requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
             }
     }
+
+    @Bean
+    fun safGraphQlOidcRestTemplate() = restTemplate(graphQlUrl, oAuth2BearerTokenInterceptor(clientProperties("saf-credentials"), oAuth2AccessTokenService!!))
+
     private fun restTemplate(url: String, tokenIntercetor: ClientHttpRequestInterceptor?, defaultErrorHandler: ResponseErrorHandler = DefaultResponseErrorHandler()) : RestTemplate {
         logger.info("init restTemplate: $url")
         return RestTemplateBuilder()
