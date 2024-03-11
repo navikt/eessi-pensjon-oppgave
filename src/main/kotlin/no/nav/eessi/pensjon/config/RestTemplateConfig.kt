@@ -1,5 +1,6 @@
 package no.nav.eessi.pensjon.config
 
+import com.nimbusds.jwt.JWTClaimsSet
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
 import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
@@ -38,8 +39,8 @@ class RestTemplateConfig(
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
     @Bean
-    fun safGraphQlOidcRestTemplate() = opprettRestTemplateForJoark(graphQlUrl, oAuthBearerTokenInterceptor(
-         oAuth2AccessTokenService!!, clientProperties("saf-credentials"),))
+    fun safGraphQlOidcRestTemplate() = opprettRestTemplateForJoark(graphQlUrl, bearerTokenInterceptor(
+        clientProperties("saf-credentials"), oAuth2AccessTokenService!!))
     @Bean
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") {
@@ -80,7 +81,20 @@ class RestTemplateConfig(
             }
     }
 
+    private fun bearerTokenInterceptor(
+        clientProperties: ClientProperties,
+        oAuth2AccessTokenService: OAuth2AccessTokenService
+    ): ClientHttpRequestInterceptor {
+        return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
+            val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+            val tokenChunks = response.accessToken!!.split(".")
+            val tokenBody =  tokenChunks[1]
+            logger.debug("subject: " + JWTClaimsSet.parse(Base64.getDecoder().decode(tokenBody).decodeToString()).subject + "/n + $response.accessToken")
 
+            request.headers.setBearerAuth(response.accessToken!!)
+            execution.execute(request, body!!)
+        }
+    }
 
     private fun oAuthBearerTokenInterceptor(oAuth2AccessTokenService: OAuth2AccessTokenService, clientProperties: ClientProperties): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
