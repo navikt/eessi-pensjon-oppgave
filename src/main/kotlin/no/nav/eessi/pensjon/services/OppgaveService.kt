@@ -41,10 +41,12 @@ class OppgaveService(
 
     @PostConstruct
     fun startJournalpostAnalyse(){
-        logger.info("Sjekker om det er journalposter som ikke er prossesert")
-        val journalposterSomIkkeBleBehandlet = lagOppgaveForJournalpost()
+
+        val feilendeJournalposter = JournalposterSomInneholderFeil.feilendeJournalposter()
+        logger.info("Sjekker ${feilendeJournalposter.size} journalposter som ikke er prossesert")
+        val journalposterSomIkkeBleBehandlet = lagOppgaveForJournalpost(feilendeJournalposter)
         if (journalposterSomIkkeBleBehandlet.isNotEmpty()) {
-            logger.warn("Det ble ikke laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
+            logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
         }
     }
 
@@ -72,12 +74,12 @@ class OppgaveService(
         }
     }
 
-    private fun hentOppgave(journalpostId: String): Oppgave {
+    private fun hentOppgave(journalpostId: String): Oppgave? {
         //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
         try {
             return oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java)
                 .also { logger.info("Hentet oppgave for journalpostId: $journalpostId") }.body?.let { mapJsonToAny(it) }
-                    ?: throw RuntimeException("Feil ved henting av oppgave for journalpostId: $journalpostId")
+
         } catch (ex: Exception) {
             logger.error("En feil oppstod under henting av oppgave", ex)
             throw RuntimeException(ex)
@@ -92,14 +94,17 @@ class OppgaveService(
      * kalle oppgave for å hente inn oppgaven ved hjelp av journalpostIden
      * Opprette nye oppgaver på journalpostene
      */
-    final fun lagOppgaveForJournalpost(): List<String> {
-        val journalpostIds = hentJournalpost()
-        journalpostIds
-            ?.forEach { journalpostId ->
+    final fun lagOppgaveForJournalpost(feilendeJournalposter: List<String>): List<String> {
+        val ferdigBehandledeJournalposter = ArrayList<String>()
+        feilendeJournalposter
+            .forEach { journalpostId ->
                 logger.info("Sjekker journalpost: $journalpostId")
-                if (erJournalpostenFerdigstilt(journalpostId)) {
+                // ser om vi allerede har laget en oppgave på denne journalpoosten
+                val oppgaveErIkkeOpprettet = gcpStorageService.journalpostenErIkkeLagret(journalpostId)
+
+                if (oppgaveErIkkeOpprettet && erJournalpostenFerdigstilt(journalpostId)) {
                     val oppgaveMelding = hentOppgave(journalpostId)
-                    if (oppgaveMelding.status == "FERDIGSTILT") {
+                    if (oppgaveMelding?.status == "FERDIGSTILT") {
                         val oppgave = Oppgave(
                             oppgavetype = "JFR",
                             tema = oppgaveMelding.tema,
@@ -114,13 +119,14 @@ class OppgaveService(
                         )
                         if (env.activeProfiles[0] == "test") {
                             opprettOppgaveSendOppgaveInn(oppgave)
+                            gcpStorageService.lagre(journalpostId, oppgave.toJson())
+                            ferdigBehandledeJournalposter.add(journalpostId)
                         }
                         logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
-                        journalpostIds.removeFirst()
                     }
                 }
             }
-        return journalpostIds ?: emptyList()
+        return ferdigBehandledeJournalposter
     }
 
     private fun erJournalpostenFerdigstilt(journalpostId: String): Boolean {
@@ -138,10 +144,6 @@ class OppgaveService(
         } catch (e: Exception) {
             logger.warn("Metrics feilet på enhet: $tildeltEnhetsnr")
         }
-    }
-
-    private fun hentJournalpost(): List<String>? {
-        return listOf("453857903","453850047", "453842523")
     }
 }
 
