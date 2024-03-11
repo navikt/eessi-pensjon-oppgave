@@ -132,7 +132,7 @@ class OppgaveListener(
 
     private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
         return Oppgave(
-            oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType].toString(),
+            oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType]?.kode,
             tema = opprettOppgave.tema,
             prioritet = Prioritet.NORM.toString(),
             aktoerId = opprettOppgave.aktoerId,

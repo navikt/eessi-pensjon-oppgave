@@ -27,7 +27,7 @@ class SafClient(private val safGraphQlOidcRestTemplate: RestTemplate,
         HentRinaSakIderFraDokumentMetadata = metricsHelper.init("HentRinaSakIderFraDokumentMetadata", ignoreHttpCodes = listOf(HttpStatus.FORBIDDEN))
     }
 
-    fun hentJournalpost(journalpostId: String) : JournalpostResponse? {
+    fun hentJournalpost(journalpostId: String) : Journalpost? {
 
         return HentDokumentInnhold.measure {
             try {
@@ -59,7 +59,7 @@ class SafClient(private val safGraphQlOidcRestTemplate: RestTemplate,
     }
 
     data class Data(
-        @JsonProperty("journalpost") val journalpost: JournalpostResponse
+        @JsonProperty("journalpost") val journalpost: Journalpost
     )
 
     data class Response(

@@ -131,7 +131,7 @@ class OppgaveService(
 
     private fun erJournalpostenFerdigstilt(journalpostId: String): Boolean {
         val jp = safClient.hentJournalpost(journalpostId)
-        if (jp != null && jp.journalstatus == Journalstatus.UNDER_ARBEID && jp.journalpostferdigstilt == true) {
+        if (jp != null && jp.journalstatus == Journalstatus.FERDIGSTILT ) {
             logger.error("Journalposten $journalpostId finnes ikke i Joark")
             return true
         }

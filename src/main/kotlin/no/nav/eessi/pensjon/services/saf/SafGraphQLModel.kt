@@ -1,6 +1,10 @@
 package no.nav.eessi.pensjon.services.saf
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.eessi.pensjon.models.BehandlingTema
+import no.nav.eessi.pensjon.models.Tema
 import no.nav.eessi.pensjon.utils.mapAnyToJson
+import java.time.LocalDateTime
 
 /**
  * Request og responsemodell for SAF GraphQL tjeneste
@@ -35,20 +39,24 @@ data class SafRequest(
         return mapAnyToJson(this, false)
     }
 }
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Journalpost(
     val journalpostId: String,
-    val bruker: Bruker,
-    val tittel: String?,
-    val journalposttype: String?,
-    val journalstatus: String?,
-    val tema: String,
-    val behandlingstema: String,
-    val behandlingstemanavn: String,
-    val journalforendeEnhet: String,
-    val eksternReferanseId: String,
-    val tilleggsopplysninger: List<Map<String, String>>,
-    val datoOpprettet: String,
+    val bruker: Bruker?,
+    val tittel: String? = null,
+    val journalposttype: String? = null,
+    val journalstatus: Journalstatus?,
+    val tema: Tema?,
+    val behandlingstema: BehandlingTema?,
+    val journalforendeEnhet: String?,
+    val eksternReferanseId: String? = null,
+    val tilleggsopplysninger: List<Map<String, String>> = emptyList(),
+    val datoOpprettet: LocalDateTime?,
 )
+
+enum class Journalstatus {
+    UKJENT, OPPLASTING_DOKUMENT, RESERVERT, UKJENT_BRUKER, AVBRUTT, UTGAAR, FEILREGISTRERT, UNDER_ARBEID, EKSPEDERT, FERDIGSTILT, JOURNALFOERT, MOTTATT
+}
 
 data class HentJournalPoster (val data: Data) {
     fun toJson(): String {
