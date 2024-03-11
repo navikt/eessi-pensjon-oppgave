@@ -38,7 +38,7 @@ class GcpStorageService( @param:Value("\${GCP_BUCKET_NAME}") var bucketname: Str
 
     fun journalpostenErIkkeLagret(journalpostId: String): Boolean {
         val journalPoster =  gcpStorage.get(BlobId.of(bucketname, journalpostId))
-        return !journalPoster.exists()
+        return journalPoster != null && !journalPoster.exists()
     }
 
     fun list(keyPrefix: String) : List<String> {
