@@ -16,23 +16,30 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
-import org.springframework.http.client.BufferingClientHttpRequestFactory
-import org.springframework.http.client.ClientHttpRequestExecution
-import org.springframework.http.client.ClientHttpRequestInterceptor
-import org.springframework.http.client.ClientHttpResponse
-import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.http.client.*
+import org.springframework.web.client.DefaultResponseErrorHandler
 import org.springframework.web.client.RestTemplate
 import java.util.*
 
 @Profile("prod", "test")
 @Configuration
-class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
+class RestTemplateConfig(
+    private val clientConfigurationProperties: ClientConfigurationProperties,
+    private val oAuth2AccessTokenService: OAuth2AccessTokenService?,
+    private val meterRegistry: MeterRegistry
+) {
 
     @Value("\${oppgave.oppgaver.url}")
     lateinit var oppgaveUrl: String
 
+    @Value("\${SAF_GRAPHQL_URL}")
+    lateinit var graphQlUrl: String
+
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
+    @Bean
+    fun safGraphQlOidcRestTemplate() = opprettRestTemplateForJoark(graphQlUrl, oAuthBearerTokenInterceptor(
+         oAuth2AccessTokenService!!, clientProperties("saf-credentials"),))
     @Bean
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         val clientProperties = clientConfigurationProperties.registration.getOrElse("oppgave-credentials") {
@@ -52,6 +59,28 @@ class RestTemplateConfig(private val meterRegistry: MeterRegistry) {
                 requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
             }
     }
+
+    private fun clientProperties(oAuthKey: String): ClientProperties {
+        return Optional.ofNullable(clientConfigurationProperties.registration[oAuthKey])
+            .orElseThrow { RuntimeException("could not find oauth2 client config for example-onbehalfof") }
+    }
+
+    private fun opprettRestTemplateForJoark(url: String, bearerTokenInterceptor: ClientHttpRequestInterceptor) : RestTemplate {
+        return RestTemplateBuilder()
+            .rootUri(url)
+            .errorHandler(DefaultResponseErrorHandler())
+            .additionalInterceptors(
+                RequestIdHeaderInterceptor(),
+                IOExceptionRetryInterceptor(),
+                RequestCountInterceptor(meterRegistry),
+                bearerTokenInterceptor
+            )
+            .build().apply {
+                requestFactory = HttpComponentsClientHttpRequestFactory()
+            }
+    }
+
+
 
     private fun oAuthBearerTokenInterceptor(oAuth2AccessTokenService: OAuth2AccessTokenService, clientProperties: ClientProperties): ClientHttpRequestInterceptor {
         return ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
