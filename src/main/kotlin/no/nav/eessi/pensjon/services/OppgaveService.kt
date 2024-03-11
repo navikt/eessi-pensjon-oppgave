@@ -93,7 +93,7 @@ class OppgaveService(
      * Opprette nye oppgaver på journalpostene
      */
     final fun lagOppgaveForJournalpost(): List<String> {
-        val journalpostIds = gcpStorageService.hentJournalpostFilfraS3()?.split(",")
+        val journalpostIds = hentJournalpost()
         journalpostIds
             ?.forEach { journalpostId ->
                 logger.info("Sjekker journalpost: $journalpostId")
@@ -138,6 +138,10 @@ class OppgaveService(
         } catch (e: Exception) {
             logger.warn("Metrics feilet på enhet: $tildeltEnhetsnr")
         }
+    }
+
+    private fun hentJournalpost(): List<String>? {
+        return listOf("453857903","453850047", "453842523")
     }
 }
 
