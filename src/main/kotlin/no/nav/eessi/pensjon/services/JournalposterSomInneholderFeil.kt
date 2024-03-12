@@ -3,8 +3,12 @@ package no.nav.eessi.pensjon.services
 class JournalposterSomInneholderFeil {
 
     companion object{
-        fun feilendeJournalposter(): List<String> {
+        fun feilendeJournalposterTest(): List<String> {
             return listOf("453863307","453863345")
+        }
+
+        fun feilendeJournalposterProd(): List<String> {
+            return listOf("453128799","453209899","453477920","453618808")
         }
     }
 }

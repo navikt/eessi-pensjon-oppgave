@@ -7,6 +7,7 @@ import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.models.Prioritet
+import no.nav.eessi.pensjon.services.JournalposterSomInneholderFeil.Companion.feilendeJournalposterTest
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
@@ -44,12 +45,13 @@ class OppgaveService(
     @PostConstruct
     fun startJournalpostAnalyse(){
 
-        val feilendeJournalposter = JournalposterSomInneholderFeil.feilendeJournalposter()
-        logger.info("Sjekker ${feilendeJournalposter.size} journalposter som ikke er prossesert")
-        val journalposterSomIkkeBleBehandlet = lagOppgaveForJournalpost(feilendeJournalposter)
-        if (journalposterSomIkkeBleBehandlet.isNotEmpty()) {
-            logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
+        val journalposterSomIkkeBleBehandlet = if (env.activeProfiles[0] == "test") {
+            lagOppgaveForJournalpost(feilendeJournalposterTest())
+        } else {
+            logger.info("Sjekker ${JournalposterSomInneholderFeil.feilendeJournalposterProd().size} journalposter som ikke er prossesert")
+            lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterProd())
         }
+        logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
     }
 
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
@@ -122,11 +124,9 @@ class OppgaveService(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse
                         )
-                        if (env.activeProfiles[0] == "test") {
-                            opprettOppgaveSendOppgaveInn(oppgave)
-                            gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
-                            ferdigBehandledeJournalposter.add(journalpostId)
-                        }
+                        opprettOppgaveSendOppgaveInn(oppgave)
+                        gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
+                        ferdigBehandledeJournalposter.add(journalpostId)
                         logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
                     }
                 }
