@@ -12,6 +12,7 @@ import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
+import no.nav.eessi.pensjon.utils.toJsonSkipEmpty
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
@@ -123,7 +124,7 @@ class OppgaveService(
                         )
                         if (env.activeProfiles[0] == "test") {
                             opprettOppgaveSendOppgaveInn(oppgave)
-                            gcpStorageService.lagre(journalpostId, oppgave.toJson())
+                            gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
                             ferdigBehandledeJournalposter.add(journalpostId)
                         }
                         logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
