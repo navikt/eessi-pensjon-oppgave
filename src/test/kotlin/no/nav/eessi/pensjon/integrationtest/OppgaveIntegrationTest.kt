@@ -14,11 +14,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
-import org.mockserver.model.Body
-import org.mockserver.model.Header
+import org.mockserver.model.*
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
-import org.mockserver.model.HttpStatusCode
 import org.mockserver.model.JsonBody.json
 import org.mockserver.model.StringBody.subString
 import org.mockserver.socket.PortFactory
@@ -46,7 +44,6 @@ import java.util.concurrent.TimeUnit
 
 private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
 
-private var mockServerPort = PortFactory.findFreePort()
 private lateinit var mockServer: ClientAndServer
 
 private const val ID_OG_FORDELING = "4303"
@@ -82,10 +79,22 @@ class OppgaveIntegrationTest {
 
     companion object {
         init {
-            // mockserver krever at denne er satt under oppstart
-            System.setProperty("mockServerport", mockServerPort.toString())
-            // Start Mockserver in memory
-            mockServer = ClientAndServer.startClientAndServer(mockServerPort)
+            if (System.getProperty("mockServerport") == null) {
+                mockServer = ClientAndServer(PortFactory.findFreePort()).also {
+                    System.setProperty("mockServerport", it.localPort.toString())
+
+                    it.`when`(
+                        HttpRequest.request()
+                            .withMethod("GET")
+                            .withPath("/api/v1/oppgaver")
+                    ).respond(
+                        HttpResponse.response()
+                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                            .withStatusCode(HttpStatusCode.OK_200.code())
+                            .withBody("")
+                    )
+                }
+            }
         }
     }
 
