@@ -130,12 +130,14 @@ class OppgaveService(
     }
 
     private fun erJournalpostenFerdigstilt(journalpostId: String): Boolean {
-        val jp = safClient.hentJournalpost(journalpostId)
-        if (jp != null && jp.journalstatus == Journalstatus.FERDIGSTILT ) {
+        val journalpost = safClient.hentJournalpost(journalpostId)
+        if (journalpost == null) {
             logger.error("Journalposten $journalpostId finnes ikke i Joark")
-            return true
+            return false
         }
-        return false
+
+        logger.info(journalpost.toJson())
+        return journalpost.journalstatus == Journalstatus.FERDIGSTILT
     }
 
     fun countEnthet(tildeltEnhetsnr: String?) {
