@@ -8,7 +8,7 @@ class JournalposterSomInneholderFeil {
         }
 
         fun feilendeJournalposterProd(): List<String> {
-            return listOf("453128799","453209899","453477920","453618808")
+            return listOf("550754036","550765832")
         }
     }
 }
