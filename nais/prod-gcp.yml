@@ -25,7 +25,7 @@ spec:
     - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
       value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
     - name: OPPGAVE_OPPGAVER_URL
-      value: https://oppgave.prod-fss-pub.nais.io/api/v1/oppgaver
+      value: https://oppgave.prod-fss-pub.nais.io
     - name: OPPGAVE_CLIENT_ID
       value: prod-fss.oppgavehandtering.oppgave
     - name: SAF_GRAPHQL_URL
