@@ -4,7 +4,7 @@ class JournalposterSomInneholderFeil {
 
     companion object{
         fun feilendeJournalposter(): List<String> {
-            return listOf("453863307")
+            return listOf("453863307","453863345")
         }
     }
 }
