@@ -36,3 +36,8 @@ data class Oppgave(
         val status: String? = null,
         val metadata: Map<String, String>? = null
 )
+
+data class OppgaveResponse(
+        val antallTreffTotalt: Int,
+        val oppgaver: List<Oppgave>
+)
