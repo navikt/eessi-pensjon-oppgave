@@ -13,12 +13,15 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockserver.integration.ClientAndServer
+import org.mockserver.model.*
 import org.mockserver.socket.PortFactory
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpMethod
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -46,7 +49,6 @@ private const val OPPGAVE_TOPIC = "privat-eessipensjon-oppgave-v1-test"
     controlledShutdown = true,
     topics = [OPPGAVE_TOPIC]
 )
-
 class OppgaveErrorhandlerIntegrationTest {
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -67,6 +69,17 @@ class OppgaveErrorhandlerIntegrationTest {
         if (System.getProperty("mockServerport") == null) {
             mockServer = ClientAndServer(PortFactory.findFreePort()).also {
                 System.setProperty("mockServerport", it.localPort.toString())
+
+                it.`when`(
+                    HttpRequest.request()
+                        .withMethod("GET")
+                        .withPath("/api/v1/oppgaver")
+                ).respond(
+                    HttpResponse.response()
+                        .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                        .withStatusCode(HttpStatusCode.OK_200.code())
+                        .withBody("")
+                )
             }
         }
     }
@@ -75,7 +88,7 @@ class OppgaveErrorhandlerIntegrationTest {
     fun setup(){
         listAppender.start()
         debugLogger.addAppender(listAppender)
-        //every { gcpStorageService.hentJournalpostFilfraS3(journalpostId) } returns null
+
     }
 
     @AfterEach
