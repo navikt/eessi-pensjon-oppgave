@@ -44,15 +44,8 @@ class SafClient(private val safGraphQlOidcRestTemplate: RestTemplate,
                 val journalPostReponse = mapJsonToAny<Response>(response.body!!).takeIf { true }
                 return@measure journalPostReponse?.data?.journalpost
 
-            }  catch (ce: HttpClientErrorException) {
-                if(ce.statusCode == HttpStatus.FORBIDDEN) {
-                    logger.error("En feil oppstod under henting av dokument metadata fra SAF for ikke tilgang", ce)
-                }
-                logger.error("En feil oppstod under henting av dokument metadata fra SAF: ${ce.responseBodyAsString}, ${ce.statusCode}")
-            } catch (se: HttpServerErrorException) {
-                logger.error("En feil oppstod under henting av dokument metadata fra SAF: ${se.responseBodyAsString}")
             } catch (ex: Exception) {
-                logger.error("En feil oppstod under henting av dokument metadata fra SAF: $ex")
+                logger.error("En feil oppstod under henting av journalpost fra SAF: $ex")
             }
             null
         }
