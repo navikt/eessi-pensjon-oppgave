@@ -27,7 +27,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class OppgaverForJournalpostTest {
@@ -56,7 +55,7 @@ class OppgaverForJournalpostTest {
     fun `Gitt at vi har en ferdigstilt oppgave paa en journalpost som er i status D saa skal vi opprette en ny oppgave på samme journalpost`() {
 
         // henter listen med journalpostIDer fra gcp
-        val journalpostIds = JournalposterSomInneholderFeil.feilendeJournalposter()
+        val journalpostIds = JournalposterSomInneholderFeil.feilendeJournalposterTest()
         justRun { gcpStorageService.lagre(any(), any()) }
 
         journalpostIds.forEach { id ->
@@ -70,7 +69,7 @@ class OppgaverForJournalpostTest {
         }
 
         // kaller oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
-        val ferdigBehandledeJournalposter = oppgaveService.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposter())
+        val ferdigBehandledeJournalposter = oppgaveService.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterTest())
 
         verify(exactly = 2) {
             oppgaveOAuthRestTemplate.exchange( "/", HttpMethod.POST, any(), String::class.java )
