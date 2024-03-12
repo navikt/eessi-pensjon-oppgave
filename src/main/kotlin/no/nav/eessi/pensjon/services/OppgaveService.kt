@@ -101,9 +101,9 @@ class OppgaveService(
                 logger.info("Sjekker journalpost: $journalpostId")
                 // ser om vi allerede har laget en oppgave på denne journalpoosten
                 val oppgaveErIkkeOpprettet = gcpStorageService.journalpostenErIkkeLagret(journalpostId)
+                val oppgaveMelding = hentOppgave(journalpostId).also { logger.info("Oppgave \n" + it?.toJson()) }
 
                 if (oppgaveErIkkeOpprettet && erJournalpostenFerdigstilt(journalpostId)) {
-                    val oppgaveMelding = hentOppgave(journalpostId)
                     if (oppgaveMelding?.status == "FERDIGSTILT") {
                         val oppgave = Oppgave(
                             oppgavetype = "JFR",
