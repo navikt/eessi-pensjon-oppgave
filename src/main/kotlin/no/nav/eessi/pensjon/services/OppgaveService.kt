@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct
 import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.Oppgave
+import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalstatus
@@ -77,8 +78,11 @@ class OppgaveService(
     private fun hentOppgave(journalpostId: String): Oppgave? {
         //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
         try {
-            return oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java)
-                .also { logger.info("Hentet oppgave for journalpostId: $journalpostId") }.body?.let { mapJsonToAny(it) }
+            val oppgaveResponse = oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java).body?.let { it ->
+                mapJsonToAny<OppgaveResponse>(it).also {
+                    logger.info("Hentet oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
+            }
+            return oppgaveResponse?.oppgaver?.firstOrNull().also { logger.debug("Hentet oppgave for journalpostId: $journalpostId, oppgave: ${it?.toJson()}")}
 
         } catch (ex: Exception) {
             logger.error("En feil oppstod under henting av oppgave", ex)
@@ -103,7 +107,7 @@ class OppgaveService(
                 val oppgaveErIkkeOpprettet = gcpStorageService.journalpostenErIkkeLagret(journalpostId)
                 val oppgaveMelding = hentOppgave(journalpostId).also { logger.info("Oppgave \n" + it?.toJson()) }
 
-                if (oppgaveErIkkeOpprettet && erJournalpostenFerdigstilt(journalpostId)) {
+                if (oppgaveErIkkeOpprettet && erJournalpostenUnderArbeid(journalpostId)) {
                     if (oppgaveMelding?.status == "FERDIGSTILT") {
                         val oppgave = Oppgave(
                             oppgavetype = "JFR",
@@ -129,7 +133,7 @@ class OppgaveService(
         return ferdigBehandledeJournalposter
     }
 
-    private fun erJournalpostenFerdigstilt(journalpostId: String): Boolean {
+    private fun erJournalpostenUnderArbeid(journalpostId: String): Boolean {
         val journalpost = safClient.hentJournalpost(journalpostId)
         if (journalpost == null) {
             logger.error("Journalposten $journalpostId finnes ikke i Joark")
@@ -137,7 +141,7 @@ class OppgaveService(
         }
 
         logger.info(journalpost.toJson())
-        return journalpost.journalstatus == Journalstatus.FERDIGSTILT
+        return journalpost.journalstatus == Journalstatus.UNDER_ARBEID
     }
 
     fun countEnthet(tildeltEnhetsnr: String?) {
