@@ -49,6 +49,7 @@ private lateinit var mockServer: ClientAndServer
 private const val ID_OG_FORDELING = "4303"
 private const val NFP_UTLAND_OSLO = "4803"
 private const val UFORE_UTLAND = "4475"
+private var mockServerPort = PortFactory.findFreePort()
 
 @SpringBootTest(classes = [EessiPensjonOppgaveApplicationTest::class ], value = ["SPRING_PROFILES_ACTIVE", "integrationtest="])
 @ActiveProfiles("integrationtest")
@@ -79,22 +80,20 @@ class OppgaveIntegrationTest {
 
     companion object {
         init {
-            if (System.getProperty("mockServerport") == null) {
-                mockServer = ClientAndServer(PortFactory.findFreePort()).also {
-                    System.setProperty("mockServerport", it.localPort.toString())
-
-                    it.`when`(
-                        HttpRequest.request()
-                            .withMethod("GET")
-                            .withPath("/api/v1/oppgaver")
-                    ).respond(
-                        HttpResponse.response()
-                            .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
-                            .withStatusCode(HttpStatusCode.OK_200.code())
-                            .withBody("")
-                    )
-                }
-            }
+            // mockserver krever at denne er satt under oppstart
+            System.setProperty("mockServerport", mockServerPort.toString())
+            // Start Mockserver in memory
+            mockServer = ClientAndServer.startClientAndServer(mockServerPort)
+            mockServer.`when`(
+                HttpRequest.request()
+                    .withMethod("GET")
+                    .withPath("/api/v1/oppgaver")
+            ).respond(
+                HttpResponse.response()
+                    .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withBody("")
+            )
         }
     }
 
