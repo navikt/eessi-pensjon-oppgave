@@ -6,7 +6,7 @@ import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-class JournalpostTest{
+class JournalpostTest {
     @Test
     fun `Serdes Journalpost`(){
 
@@ -39,5 +39,6 @@ class JournalpostTest{
         assertEquals(BehandlingTema.GJENLEVENDEPENSJON, response.behandlingstema)
         assertEquals(Tema.PENSJON, response.tema)
         assertEquals(Journalstatus.UNDER_ARBEID, response.journalstatus)
+        assertEquals("2024-03-11T15:17:58", response.datoOpprettet.toString())
     }
 }
