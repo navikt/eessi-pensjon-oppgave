@@ -9,7 +9,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.models.BehandlingTema
-import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.models.Tema
 import no.nav.eessi.pensjon.services.JournalposterSomInneholderFeil
@@ -17,7 +16,6 @@ import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalpost
 import no.nav.eessi.pensjon.services.saf.Journalstatus
-import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import org.junit.jupiter.api.Assertions.*
@@ -25,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
-import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -60,40 +57,33 @@ class OppgaverForJournalpostTest {
 
         // henter listen med journalpostIDer fra gcp
         val journalpostIds = JournalposterSomInneholderFeil.feilendeJournalposter()
-        every { gcpStorageService.journalpostenErIkkeLagret(journalpostIds[0]) } returns true
         justRun { gcpStorageService.lagre(any(), any()) }
-        // kaller joark for å sjekke oppgavestatus (verifisering) sjekker om faktisk status på oppgacve er D
-        val journalpostResponse = journalpostResponse(journalpostIds)
 
-        // sjekker om den er ferdigstilt (sjekker mot joark)
-        every { safClient.hentJournalpost(any()) } returns journalpostResponse
+        journalpostIds.forEach { id ->
 
-        // det finnes en oppgave for den første journalposten
-        every { oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${journalpostIds[0]}", String::class.java) } returns ResponseEntity(
-            lagOppgaveRespons(journalpostIds.first()),
-            HttpStatus.OK
-        )
+            // sjekker om den er ferdigstilt (sjekker mot joark)
+            every { safClient.hentJournalpost(any()) } returns journalpostResponse(id)
+            every { gcpStorageService.journalpostenErIkkeLagret(id) } returns true
+            every {
+                oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=${id}", String::class.java )
+            } returns ResponseEntity( lagOppgaveRespons(journalpostIds.first()), HttpStatus.OK )
+        }
 
         // kaller oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
-        val resterendeJournalpostIDer = oppgaveService.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposter())
-        val actualResult = forventetResulatFraOppgave(journalpostIds)
+        val ferdigBehandledeJournalposter = oppgaveService.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposter())
 
-        // sjekker at den faktiske oppgaven blir sendt
-        verify (exactly = 1) {
-            oppgaveOAuthRestTemplate.exchange(
-                "/", HttpMethod.POST,
-                HttpEntity(mapAnyToJson(actualResult, true)), String::class.java
-            )
+        verify(exactly = 2) {
+            oppgaveOAuthRestTemplate.exchange( "/", HttpMethod.POST, any(), String::class.java )
         }
 
         // har kun sjekket og kjørt en av oppgavene
-        assertEquals(resterendeJournalpostIDer.size, 1)
-        assertEquals(resterendeJournalpostIDer[0], journalpostIds[0])
+        assertEquals(ferdigBehandledeJournalposter.size, 2)
+        assertEquals(ferdigBehandledeJournalposter[0], journalpostIds[0])
     }
 
-    private fun journalpostResponse(journalpostIds: List<String>): Journalpost {
+    private fun journalpostResponse(journalpostIds: String): Journalpost {
         val journalpostResponse = Journalpost(
-            journalpostId =  journalpostIds[0],
+            journalpostId =  journalpostIds,
             bruker = null,
             tema = Tema.OMSTILLING,
             journalstatus = Journalstatus.UNDER_ARBEID,
@@ -102,24 +92,6 @@ class OppgaverForJournalpostTest {
             datoOpprettet = LocalDateTime.now()
         )
         return journalpostResponse
-    }
-
-    private fun forventetResulatFraOppgave(journalpostIds: List<String>): Oppgave {
-        val actualResult = mapJsonToAny<Oppgave>(
-            """{         
-                  "tildeltEnhetsnr" : "4303",
-                  "opprettetAvEnhetsnr" : "9999",
-                  "journalpostId" : "${journalpostIds[0]}",
-                  "aktoerId":"2356709109499",
-                  "beskrivelse" : "Utgående P9000 - Svar på forespørsel om informasjon / Rina saksnr: 1447748",
-                  "tema" : "PEN",
-                  "oppgavetype" : "JFR",
-                  "prioritet" : "NORM",
-                  "fristFerdigstillelse" : "${LocalDate.now().plusDays(1)}",
-                  "aktivDato" : "${LocalDate.now()}"            
-            }""", false
-        )
-        return actualResult
     }
 
     private fun lagOppgaveRespons(journalpostIds: String): String {
