@@ -77,7 +77,7 @@ class OppgaveService(
     private fun hentOppgave(journalpostId: String): Oppgave? {
         //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
         try {
-            return oppgaveOAuthRestTemplate.getForEntity("?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java)
+            return oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java)
                 .also { logger.info("Hentet oppgave for journalpostId: $journalpostId") }.body?.let { mapJsonToAny(it) }
 
         } catch (ex: Exception) {
