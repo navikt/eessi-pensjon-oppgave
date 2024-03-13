@@ -94,10 +94,9 @@ class RestTemplateConfig(
 
     internal class RequestInterceptor : ClientHttpRequestInterceptor {
         override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution): ClientHttpResponse {
-            request.headers["X-Correlation-ID"] = UUID.randomUUID().toString()
+            request.headers["x_request_id"] = UUID.randomUUID().toString()
             request.headers["Content-Type"] = MediaType.APPLICATION_JSON.toString()
             return execution.execute(request, body)
         }
     }
-
 }
