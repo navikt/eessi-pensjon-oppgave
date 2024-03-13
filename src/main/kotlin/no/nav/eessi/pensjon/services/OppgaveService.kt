@@ -65,9 +65,11 @@ class OppgaveService(
                 countEnthet(oppgave.tildeltEnhetsnr)
 
                 val httpEntity = HttpEntity(requestBody)
-                oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
+                val exchange = oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
 
-                logger.info("Opprettet oppgave av type ${oppgave.oppgavetype} med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr}")
+                logger.info("""
+                    | Opprettet oppgave av type ${oppgave.oppgavetype} med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr} 
+                    | Result: ${exchange.statusCode}""".trimMargin())
             } catch(ex: HttpStatusCodeException) {
                 logger.error("En feil oppstod under opprettelse av oppgave ex: $ex body: ${ex.responseBodyAsString}")
                 throw RuntimeException("En feil oppstod under opprettelse av oppgave ex: ${ex.message} body: ${ex.responseBodyAsString}", ex)
