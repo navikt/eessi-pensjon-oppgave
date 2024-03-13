@@ -51,7 +51,7 @@ class OppgaveService(
                 countEnthet(oppgave.tildeltEnhetsnr)
 
                 val httpEntity = HttpEntity(requestBody)
-                val exchange = oppgaveOAuthRestTemplate.exchange("/", HttpMethod.POST, httpEntity, String::class.java)
+                val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver", HttpMethod.POST, httpEntity, String::class.java)
 
                 logger.info("""
                     | Opprettet oppgave av type ${oppgave.oppgavetype} med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr} 

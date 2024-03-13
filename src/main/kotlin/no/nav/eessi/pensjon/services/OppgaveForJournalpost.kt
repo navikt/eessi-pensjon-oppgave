@@ -1,21 +1,22 @@
 package no.nav.eessi.pensjon.services
 
 import no.nav.eessi.pensjon.models.Oppgave
-import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.services.saf.SafClient
-import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import no.nav.eessi.pensjon.utils.toJsonSkipEmpty
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
 
+private const val X_REQUEST_ID = "x_request_id"
 @Component
 class OppgaveForJournalpost(
     private val gcpStorageService: GcpStorageService,
@@ -27,15 +28,17 @@ class OppgaveForJournalpost(
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
     init {
-        val journalposterSomIkkeBleBehandlet = if (env.activeProfiles[0] == "test") {
-            lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterTest())
-        } else if (env.activeProfiles[0] == "prod"){
-            logger.info("Sjekker ${JournalposterSomInneholderFeil.feilendeJournalposterProd().size} journalposter som ikke er prossesert")
-            lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterProd())
-        } else {
-            emptyList()
+        MDC.putCloseable(X_REQUEST_ID, UUID.randomUUID().toString()).use {
+            val journalposterSomIkkeBleBehandlet = if (env.activeProfiles[0] == "test") {
+                lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterTest())
+            } else if (env.activeProfiles[0] == "prod") {
+                logger.info("Sjekker ${JournalposterSomInneholderFeil.feilendeJournalposterProd().size} journalposter som ikke er prossesert")
+                lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterProd())
+            } else {
+                emptyList()
+            }
+            logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
         }
-        logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
     }
     /**
      * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
