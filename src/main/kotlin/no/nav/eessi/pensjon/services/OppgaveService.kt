@@ -31,27 +31,13 @@ import java.time.format.DateTimeFormatter
 @Service
 class OppgaveService(
     private val oppgaveOAuthRestTemplate: RestTemplate,
-    private val gcpStorageService: GcpStorageService,
-    private val safClient: SafClient,
-    @Autowired private val env: Environment,
     @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private lateinit var opprettoppgave: MetricsHelper.Metric
+
     init {
         opprettoppgave = metricsHelper.init("opprettoppgave")
-    }
-
-    @PostConstruct
-    fun startJournalpostAnalyse(){
-
-        val journalposterSomIkkeBleBehandlet = if (env.activeProfiles[0] == "test") {
-            lagOppgaveForJournalpost(feilendeJournalposterTest())
-        } else {
-            logger.info("Sjekker ${JournalposterSomInneholderFeil.feilendeJournalposterProd().size} journalposter som ikke er prossesert")
-            lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterProd())
-        }
-        logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
     }
 
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
@@ -80,7 +66,7 @@ class OppgaveService(
         }
     }
 
-    private fun hentOppgave(journalpostId: String): Oppgave? {
+    fun hentOppgave(journalpostId: String): Oppgave? {
         //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
         try {
             val oppgaveResponse = oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java).body?.let { it ->
@@ -93,58 +79,6 @@ class OppgaveService(
             logger.error("En feil oppstod under henting av oppgave", ex)
             throw RuntimeException(ex)
         }
-    }
-
-    /**
-     * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
-     * Hente liste over journalposter som er under arbeid, men har avsluttede oppgaver på seg, fra gcpStorage
-     * Kalle Joark for å hente journalpostene
-     * Sjekke om oppgavene på journalpostene er ferdigstilt
-     * kalle oppgave for å hente inn oppgaven ved hjelp av journalpostIden
-     * Opprette nye oppgaver på journalpostene
-     */
-    final fun lagOppgaveForJournalpost(feilendeJournalposter: List<String>): List<String> {
-        val ferdigBehandledeJournalposter = ArrayList<String>()
-        feilendeJournalposter
-            .forEach { journalpostId ->
-                logger.info("Sjekker journalpost: $journalpostId")
-                // ser om vi allerede har laget en oppgave på denne journalpoosten
-                val oppgaveErIkkeOpprettet = gcpStorageService.journalpostenErIkkeLagret(journalpostId)
-                val oppgaveMelding = hentOppgave(journalpostId).also { logger.info("Oppgave \n" + it?.toJson()) }
-
-                if (oppgaveErIkkeOpprettet && erJournalpostenUnderArbeid(journalpostId)) {
-                    if (oppgaveMelding?.status == "FERDIGSTILT") {
-                        val oppgave = Oppgave(
-                            oppgavetype = "JFR",
-                            tema = oppgaveMelding.tema,
-                            prioritet = Prioritet.NORM.toString(),
-                            aktoerId = oppgaveMelding.aktoerId,
-                            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                            journalpostId = oppgaveMelding.journalpostId,
-                            opprettetAvEnhetsnr = "9999",
-                            tildeltEnhetsnr = oppgaveMelding.tildeltEnhetsnr,
-                            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
-                            beskrivelse = oppgaveMelding.beskrivelse
-                        )
-                        opprettOppgaveSendOppgaveInn(oppgave)
-                        gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
-                        ferdigBehandledeJournalposter.add(journalpostId)
-                        logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
-                    }
-                }
-            }
-        return ferdigBehandledeJournalposter
-    }
-
-    private fun erJournalpostenUnderArbeid(journalpostId: String): Boolean {
-        val journalpost = safClient.hentJournalpost(journalpostId)
-        if (journalpost == null) {
-            logger.error("Journalposten $journalpostId finnes ikke i Joark")
-            return false
-        }
-
-        logger.info(journalpost.toJson())
-        return journalpost.journalstatus == Journalstatus.UNDER_ARBEID
     }
 
     fun countEnthet(tildeltEnhetsnr: String?) {

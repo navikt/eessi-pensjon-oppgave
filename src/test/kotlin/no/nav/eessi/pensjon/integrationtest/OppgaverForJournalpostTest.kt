@@ -12,6 +12,7 @@ import no.nav.eessi.pensjon.models.BehandlingTema
 import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.models.Tema
 import no.nav.eessi.pensjon.services.JournalposterSomInneholderFeil
+import no.nav.eessi.pensjon.services.OppgaveForJournalpost
 import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalpost
@@ -35,6 +36,7 @@ class OppgaverForJournalpostTest {
     private val safClient =  mockk<SafClient>()
 
     lateinit var oppgaveService: OppgaveService
+    lateinit var oppgaveForJournalpost: OppgaveForJournalpost
     var oppgaveOAuthRestTemplate: RestTemplate = mockk(relaxed = true)
 
     val listAppender = ListAppender<ILoggingEvent>()
@@ -44,11 +46,12 @@ class OppgaverForJournalpostTest {
     fun setup() {
         listAppender.start()
         logger.addAppender(listAppender)
-        oppgaveService = OppgaveService(
-            oppgaveOAuthRestTemplate,
+        oppgaveService = OppgaveService(oppgaveOAuthRestTemplate)
+        oppgaveForJournalpost = OppgaveForJournalpost(
             gcpStorageService,
             safClient,
-            mockk<Environment>().apply { every { activeProfiles } returns arrayOf("test") })
+            oppgaveService,
+            mockk<Environment>().apply { every { activeProfiles } returns arrayOf("noe annet") })
     }
 
     @Test
@@ -69,7 +72,7 @@ class OppgaverForJournalpostTest {
         }
 
         // kaller oppgave for å hente inn oppgaven, opprette ny oppgave med samme journalpostid
-        val ferdigBehandledeJournalposter = oppgaveService.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterTest())
+        val ferdigBehandledeJournalposter = oppgaveForJournalpost.lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterTest())
 
         verify(exactly = 2) {
             oppgaveOAuthRestTemplate.exchange( "/", HttpMethod.POST, any(), String::class.java )
