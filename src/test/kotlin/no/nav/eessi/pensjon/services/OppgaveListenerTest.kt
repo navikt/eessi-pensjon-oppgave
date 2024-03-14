@@ -12,7 +12,7 @@ import org.springframework.core.env.Environment
 
 class OppgaveListenerTest {
 
-    val oppgaveListener =  OppgaveListener(OppgaveService(mockk(), mockk(), mockk(), mockk<Environment>()))
+    val oppgaveListener =  OppgaveListener(OppgaveService(mockk()))
 
     @Test
     fun `BehandleSedBeskrivelse for behandling av vedlegg som ikke støttes`() {
