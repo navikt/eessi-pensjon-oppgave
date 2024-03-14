@@ -53,7 +53,7 @@ class OppgaveForJournalpost(
     }
 
     fun lagOppgaver(): Int {
-        val path = Paths.get("src", "test", "resources", "oppgaver.json")
+        val path = Paths.get("src", "main", "resources", "oppgaver.json")
 
         val originalContent = Files.readAllLines(path) // Read file content as List<String>, each element is a line
         val modifiedConent = originalContent.joinToString(separator = "\n") { line ->
