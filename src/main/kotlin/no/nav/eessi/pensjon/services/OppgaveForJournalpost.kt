@@ -89,6 +89,6 @@ class OppgaveForJournalpost(
         }
 
         logger.info(journalpost.toJson())
-        return journalpost.journalstatus == Journalstatus.UNDER_ARBEID
+        return (journalpost.journalstatus == Journalstatus.UNDER_ARBEID).also { logger.warn("Journalposten finnes, men har status: ${journalpost.journalstatus}") }
     }
 }
