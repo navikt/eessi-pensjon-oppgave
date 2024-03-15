@@ -14,9 +14,11 @@ import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -53,20 +55,26 @@ class OppgaveForJournalpost(
     }
 
     fun lagOppgaver(): Int {
-        val path = Paths.get("src", "main", "resources", "oppgaver.json")
-
-        val originalContent = Files.readAllLines(path) // Read file content as List<String>, each element is a line
-        val modifiedConent = originalContent.joinToString(separator = "\n") { line ->
-            line.replace("\"\"", "\"").let { noQuotesLine ->
-                if (noQuotesLine.contains("eessi-pensjon-oppgave")) "},"
-                else if (noQuotesLine.contains("Oppretter oppgave")) "{ "
-                else noQuotesLine
-            }
+        val originalContent = this::class.java.classLoader.getResource("oppgaver.json")
+        val file = File(originalContent!!.toURI())
+        val modifiedContent = file.bufferedReader().useLines { lines ->
+            lines.map { line ->
+                when {
+                    "\"\"" in line -> line.replace("\"\"", "\"")
+                    "eessi-pensjon-oppgave" in line -> "},"
+                    "Oppretter oppgave" in line -> "{ "
+                    else -> line
+                }
+            }.joinToString(separator = "\n")
         }
-        val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedConent, true, false)
-        oppgaveListe.forEach {
-            print(it.toJson())
-            Thread.sleep(200)
+
+        val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedContent, true, false)
+        oppgaveListe.parallelStream().forEach { oppgave ->
+            val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(2).toString())
+            requireNotNull(oppdatertOppgave.journalpostId) { "Mangler journalpostId for å opprette oppgave" }
+            requireNotNull(oppdatertOppgave.oppgavetype) { "Mangler oppgavetype for å opprette oppgave" }
+            println(oppdatertOppgave.toJson())
+
         }
         return oppgaveListe.size
     }
