@@ -55,20 +55,21 @@ class OppgaveForJournalpost(
     }
 
     fun lagOppgaver(): Int {
-        val originalContent = this::class.java.classLoader.getResource("oppgaver.json")
-        val file = File(originalContent!!.toURI())
-        val modifiedContent = file.bufferedReader().useLines { lines ->
-            lines.map { line ->
-                when {
-                    "\"\"" in line -> line.replace("\"\"", "\"")
-                    "eessi-pensjon-oppgave" in line -> "},"
-                    "Oppretter oppgave" in line -> "{ "
-                    else -> line
-                }
-            }.joinToString(separator = "\n")
+        val originalContent = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
+        val modifiedContent = originalContent?.let { stream ->
+            stream.bufferedReader().useLines { lines ->
+                lines.map { line ->
+                    when {
+                        "\"\"" in line -> line.replace("\"\"", "\"")
+                        "eessi-pensjon-oppgave" in line -> "},"
+                        "Oppretter oppgave" in line -> "{ "
+                        else -> line
+                    }
+                }.joinToString(separator = "\n")
+            }
         }
 
-        val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedContent, true, false)
+        val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedContent!!, true, false)
         oppgaveListe.parallelStream().forEach { oppgave ->
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(2).toString())
             requireNotNull(oppdatertOppgave.journalpostId) { "Mangler journalpostId for å opprette oppgave" }
