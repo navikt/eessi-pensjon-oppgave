@@ -69,7 +69,7 @@ class OppgaveForJournalpost(
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
             if(oppdatertOppgave.journalpostId != null) {
-                if (oppgaveService.hentAapenOppgave(oppdatertOppgave.journalpostId) == null && oppgaveService.hentAvsluttetOppgave(oppdatertOppgave.journalpostId) == null){
+                if (oppgaveService.hentAapenOppgave(oppdatertOppgave.journalpostId) == null || oppgaveService.hentAvsluttetOppgave(oppdatertOppgave.journalpostId) == null){
                     if (gcpStorageService.journalpostenErIkkeLagret(oppgave.journalpostId!!)) {
 
                         oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
