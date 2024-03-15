@@ -73,11 +73,20 @@ class OppgaveForJournalpost(
         oppgaveListe.parallelStream().forEach { oppgave ->
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
-            oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
-            Thread.sleep(500)
-            if(oppdatertOppgave.journalpostId  == null){
-                println(oppdatertOppgave.toJson())
+            if(oppdatertOppgave.journalpostId != null) {
+                if (oppgaveService.hentOppgave(oppdatertOppgave.journalpostId) == null) {
+                    if (gcpStorageService.journalpostenErIkkeLagret(oppgave.journalpostId!!)) {
+
+                        oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
+                        gcpStorageService.lagre(oppdatertOppgave.journalpostId, oppgave.toJsonSkipEmpty())
+                        Thread.sleep(500)
+                        logger.warn("Oppgaven opprettet")
+                    }
+                } else {
+                    logger.warn("Oppgaven finnes fra før")
+                }
             }
+            else println(oppdatertOppgave.toJson())
         }
         return oppgaveListe.size
     }
