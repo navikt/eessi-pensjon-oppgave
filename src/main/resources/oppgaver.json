@@ -1,24 +1,252 @@
 [
-{
-""tildeltEnhetsnr"" : ""4303"",
-""opprettetAvEnhetsnr"" : ""9999"",
-""journalpostId"" : ""653331108"",
-""beskrivelse"" : ""Inngående P3000_NO - Landsspesifikk informasjon - Norge / Rina saksnr: 11206750"",
-""tema"" : ""UFO"",
-""oppgavetype"" : ""JFR"",
-""prioritet"" : ""NORM"",
-""fristFerdigstillelse"" : ""2024-03-13"",
-""aktivDato"" : ""2024-03-12""
-},{
-  ""tildeltEnhetsnr"" : ""4475"",
+  {
+    ""tildeltEnhetsnr"" : ""0001"",
+    ""opprettetAvEnhetsnr"" : ""9999"",
+    ""journalpostId"" : ""653328510"",
+    ""aktoerId"" : ""1000030208734"",
+    ""beskrivelse"" : ""Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 11206784"",
+    ""tema"" : ""PEN"",
+    ""oppgavetype"" : ""BEH_SED"",
+    ""prioritet"" : ""NORM"",
+    ""fristFerdigstillelse"" : ""2024-03-13"",
+    ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:59:38.330",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4303"",
   ""opprettetAvEnhetsnr"" : ""9999"",
-  ""journalpostId"" : ""653394938"",
-  ""aktoerId"" : ""1000100489359"",
-  ""beskrivelse"" : ""Det er mottatt P10000 - Oversendelse av informasjon, med tilhørende RINA sakId: 10790812"",
+  ""journalpostId"" : ""653328084"",
+  ""beskrivelse"" : ""Inngående P4000 - Brukers oversikt botid og arbeid / Rina saksnr: 11206750"",
+  ""tema"" : ""UFO"",
+  ""oppgavetype"" : ""JFR"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:56:39.989",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653324698"",
+  ""aktoerId"" : ""1000066093705"",
+  ""beskrivelse"" : ""Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 11206775"",
   ""tema"" : ""PEN"",
   ""oppgavetype"" : ""BEH_SED"",
   ""prioritet"" : ""NORM"",
   ""fristFerdigstillelse"" : ""2024-03-13"",
   ""aktivDato"" : ""2024-03-12""
-}
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:55:10.013",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653322919"",
+  ""aktoerId"" : ""1000015921506"",
+  ""beskrivelse"" : ""Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 11206742"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:54:58.917",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653322646"",
+  ""aktoerId"" : ""1000066093705"",
+  ""beskrivelse"" : ""Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 11206775"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:54:55.625",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4862"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653322587"",
+  ""aktoerId"" : ""1000002717051"",
+  ""beskrivelse"" : ""Utgående P5000 - Oversikt TT / Rina saksnr: 11206763"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""JFR"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:53:39.704",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653321117"",
+  ""aktoerId"" : ""1000015921506"",
+  ""beskrivelse"" : ""Det er mottatt P4000 - Brukers oversikt botid og arbeid, med tilhørende RINA sakId: 11206742"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:53:15.316",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4862"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653320636"",
+  ""aktoerId"" : ""1000090363448"",
+  ""beskrivelse"" : ""Inngående P6000 - Melding om vedtak / Rina saksnr: 11123838"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""JFR"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:52:09.102",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653319274"",
+  ""aktoerId"" : ""1000015921506"",
+  ""beskrivelse"" : ""Det er mottatt P3000_NO - Landsspesifikk informasjon - Norge, med tilhørende RINA sakId: 11206742"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:51:36.417",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4475"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653318636"",
+  ""aktoerId"" : ""1000100749772"",
+  ""beskrivelse"" : ""Det er mottatt H121 - Melding om medisinsk informasjon / Svar på forespørsel om medisinsk informasjon, med tilhørende RINA sakId: 10784820"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:50:52.963",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4476"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653317715"",
+  ""aktoerId"" : ""1000024278422"",
+  ""beskrivelse"" : ""Det er mottatt X050 - Unntaksfeil, med tilhørende RINA sakId: 10443039"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:49:25.830",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653315876"",
+  ""aktoerId"" : ""1000082240225"",
+  ""beskrivelse"" : ""Utgående P8000 - Forespørsel om informasjon / Rina saksnr: 11206740"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""JFR"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:48:03.053",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4303"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653314103"",
+  ""beskrivelse"" : ""Inngående P2200 - Krav om uførepensjon / Rina saksnr: 11206750"",
+  ""tema"" : ""UFO"",
+  ""oppgavetype"" : ""JFR"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:46:16.583",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4476"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653313195"",
+  ""aktoerId"" : ""1000094844801"",
+  ""beskrivelse"" : ""Det er mottatt P6000 - Melding om vedtak, med tilhørende RINA sakId: 10913931"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:46:16.583",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4476"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653313195"",
+  ""aktoerId"" : ""1000094844801"",
+  ""beskrivelse"" : ""Det er mottatt P6000 - Melding om vedtak, med tilhørende RINA sakId: 10913931"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:44:48.821",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653311485"",
+  ""aktoerId"" : ""1000015921506"",
+  ""beskrivelse"" : ""Det er mottatt P2000 - Krav om alderspensjon, med tilhørende RINA sakId: 11206742"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:43:27.115",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""4476"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653309881"",
+  ""aktoerId"" : ""1000094844801"",
+  ""beskrivelse"" : ""Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 10913931"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:41:45.126",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653307792"",
+  ""aktoerId"" : ""2201106726697"",
+  ""beskrivelse"" : ""Utgående P8000 - Forespørsel om informasjon / Rina saksnr: 11204837"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""JFR"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:40:19.314",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653306080"",
+  ""aktoerId"" : ""1000092254594"",
+  ""beskrivelse"" : ""Det er mottatt P8000 - Forespørsel om informasjon, med tilhørende RINA sakId: 11193487"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:37:38.403",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653302957"",
+  ""aktoerId"" : ""1000092254594"",
+  ""beskrivelse"" : ""Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 11193487"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }",p,"eessi-pensjon-oppgave","eessi-pensjon-oppgave-577d7f5fd4-6hhq2"
+  "Mar 12, 2024 @ 09:34:08.884",Info,"Oppretter oppgave: {
+  ""tildeltEnhetsnr"" : ""0001"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653298702"",
+  ""aktoerId"" : ""1000024074235"",
+  ""beskrivelse"" : ""Det er mottatt P5000 - Oversikt TT, med tilhørende RINA sakId: 11205484"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
+  }
 ]
