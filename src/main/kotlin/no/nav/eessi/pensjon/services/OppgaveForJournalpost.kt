@@ -69,6 +69,11 @@ class OppgaveForJournalpost(
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
             oppdatertOppgave.journalpostId?.let { journalpostId ->
+                if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
+                    logger.warn("Oppgave er allerede lagret")
+                    return@forEach
+                }
+
                 if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
                     logger.warn("Åpen oppgaven finnes fra før")
                     return@forEach
@@ -79,10 +84,6 @@ class OppgaveForJournalpost(
                     return@forEach
                 }
 
-                if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
-                    logger.warn("Oppgave er allerede lagret")
-                    return@forEach
-                }
 
                 oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
                 gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
