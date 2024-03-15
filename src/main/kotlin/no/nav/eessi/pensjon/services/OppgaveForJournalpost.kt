@@ -68,20 +68,27 @@ class OppgaveForJournalpost(
         oppgaveListe.parallelStream().forEach { oppgave ->
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
-            if(oppdatertOppgave.journalpostId != null) {
-                if (oppgaveService.hentAapenOppgave(oppdatertOppgave.journalpostId) == null || oppgaveService.hentAvsluttetOppgave(oppdatertOppgave.journalpostId) == null){
-                    if (gcpStorageService.journalpostenErIkkeLagret(oppgave.journalpostId!!)) {
-
-                        oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
-                        gcpStorageService.lagre(oppdatertOppgave.journalpostId, oppgave.toJsonSkipEmpty())
-                        Thread.sleep(500)
-                        logger.warn("Oppgaven opprettet")
-                    }
-                } else {
-                    logger.warn("Oppgaven finnes fra før")
+            oppdatertOppgave.journalpostId?.let { journalpostId ->
+                if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
+                    logger.warn("Åpen oppgaven finnes fra før")
+                    return@forEach
                 }
-            }
-            else println(oppdatertOppgave.toJson())
+
+                if (oppgaveService.hentAvsluttetOppgave(journalpostId) != null) {
+                    logger.warn("Avsluttet oppgave finnes")
+                    return@forEach
+                }
+
+                if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
+                    logger.warn("Oppgave er allerede lagret")
+                    return@forEach
+                }
+
+                oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
+                gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
+                Thread.sleep(500) // Consider alternatives to Thread.sleep in production code
+                logger.warn("Oppgaven opprettet")
+            } ?: println(oppdatertOppgave.toJson()) // Handle null journalpostId
         }
         return oppgaveListe.size
     }
