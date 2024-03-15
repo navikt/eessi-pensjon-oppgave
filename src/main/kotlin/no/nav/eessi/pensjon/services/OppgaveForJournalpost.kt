@@ -71,7 +71,7 @@ class OppgaveForJournalpost(
 
         val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedContent!!, true, false)
         oppgaveListe.parallelStream().forEach { oppgave ->
-            val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(2).toString())
+            val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
             requireNotNull(oppdatertOppgave.journalpostId) { "Mangler journalpostId for å opprette oppgave" }
             requireNotNull(oppdatertOppgave.oppgavetype) { "Mangler oppgavetype for å opprette oppgave" }
             oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
