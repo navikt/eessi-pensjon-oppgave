@@ -5,7 +5,6 @@ import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.services.saf.SafClient
-import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import no.nav.eessi.pensjon.utils.toJsonSkipEmpty
@@ -14,11 +13,7 @@ import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -74,7 +69,7 @@ class OppgaveForJournalpost(
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
             if(oppdatertOppgave.journalpostId != null) {
-                if (oppgaveService.hentOppgave(oppdatertOppgave.journalpostId) == null) {
+                if (oppgaveService.hentAapenOppgave(oppdatertOppgave.journalpostId) == null && oppgaveService.hentAvsluttetOppgave(oppdatertOppgave.journalpostId) == null){
                     if (gcpStorageService.journalpostenErIkkeLagret(oppgave.journalpostId!!)) {
 
                         oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
@@ -106,7 +101,7 @@ class OppgaveForJournalpost(
                 logger.info("Sjekker journalpost: $journalpostId")
                 // ser om vi allerede har laget en oppgave på denne journalpoosten
                 val oppgaveErIkkeOpprettet = gcpStorageService.journalpostenErIkkeLagret(journalpostId)
-                val oppgaveMelding = oppgaveService.hentOppgave(journalpostId).also { logger.info("Oppgave \n" + it?.toJson()) }
+                val oppgaveMelding = oppgaveService.hentAvsluttetOppgave(journalpostId).also { logger.info("Oppgave \n" + it?.toJson()) }
 
                 if (oppgaveErIkkeOpprettet && erJournalpostenUnderArbeid(journalpostId)) {
                     if (oppgaveMelding?.status == "FERDIGSTILT") {

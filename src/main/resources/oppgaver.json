@@ -9,5 +9,16 @@
 ""prioritet"" : ""NORM"",
 ""fristFerdigstillelse"" : ""2024-03-13"",
 ""aktivDato"" : ""2024-03-12""
+},{
+  ""tildeltEnhetsnr"" : ""4475"",
+  ""opprettetAvEnhetsnr"" : ""9999"",
+  ""journalpostId"" : ""653394938"",
+  ""aktoerId"" : ""1000100489359"",
+  ""beskrivelse"" : ""Det er mottatt P10000 - Oversendelse av informasjon, med tilhørende RINA sakId: 10790812"",
+  ""tema"" : ""PEN"",
+  ""oppgavetype"" : ""BEH_SED"",
+  ""prioritet"" : ""NORM"",
+  ""fristFerdigstillelse"" : ""2024-03-13"",
+  ""aktivDato"" : ""2024-03-12""
 }
 ]
