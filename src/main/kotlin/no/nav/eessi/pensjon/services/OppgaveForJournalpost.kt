@@ -68,28 +68,26 @@ class OppgaveForJournalpost(
         oppgaveListe.parallelStream().forEach { oppgave ->
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
-            var count = 0
             oppdatertOppgave.journalpostId?.let { journalpostId ->
                 if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
-                    logger.warn("Oppgave er allerede lagret")
+                    logger.warn("Oppgave med journalpostId: $journalpostId er allerede lagret")
                     return@forEach
                 }
 
                 if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
-                    logger.warn("Åpen oppgaven finnes fra før")
+                    logger.warn("Åpen oppgaven finnes fra før: $journalpostId")
                     return@forEach
                 }
 
                 if (oppgaveService.hentAvsluttetOppgave(journalpostId) != null) {
-                    logger.warn("Avsluttet oppgave finnes")
+                    logger.warn("Avsluttet oppgave finnes : $journalpostId")
                     return@forEach
                 }
 
                 oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
                 gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
-                count++
                 Thread.sleep(500)
-                logger.warn("Oppgaven opprettet. $count oppgaver er endret")
+                logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
             } ?: println(oppdatertOppgave.toJson())
         }
         return oppgaveListe.size
