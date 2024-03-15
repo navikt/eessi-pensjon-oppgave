@@ -72,10 +72,12 @@ class OppgaveForJournalpost(
         val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedContent!!, true, false)
         oppgaveListe.parallelStream().forEach { oppgave ->
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
-            requireNotNull(oppdatertOppgave.journalpostId) { "Mangler journalpostId for å opprette oppgave" }
-            requireNotNull(oppdatertOppgave.oppgavetype) { "Mangler oppgavetype for å opprette oppgave" }
-            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+
+            oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
             Thread.sleep(500)
+            if(oppdatertOppgave.journalpostId  == null){
+                println(oppdatertOppgave.toJson())
+            }
         }
         return oppgaveListe.size
     }
