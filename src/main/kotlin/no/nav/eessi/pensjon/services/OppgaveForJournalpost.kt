@@ -74,8 +74,8 @@ class OppgaveForJournalpost(
             val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(2).toString())
             requireNotNull(oppdatertOppgave.journalpostId) { "Mangler journalpostId for å opprette oppgave" }
             requireNotNull(oppdatertOppgave.oppgavetype) { "Mangler oppgavetype for å opprette oppgave" }
-            println(oppdatertOppgave.toJson())
-
+            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+            Thread.sleep(500)
         }
         return oppgaveListe.size
     }
