@@ -73,16 +73,16 @@ class OppgaveForJournalpost(
                     logger.warn("Oppgave med journalpostId: $journalpostId er allerede lagret")
                     return@forEach
                 }
-
-                if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
-                    logger.warn("Åpen oppgaven finnes fra før: $journalpostId")
-                    return@forEach
-                }
-
-                if (oppgaveService.hentAvsluttetOppgave(journalpostId) != null) {
-                    logger.warn("Avsluttet oppgave finnes : $journalpostId")
-                    return@forEach
-                }
+//
+//                if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
+//                    logger.warn("Åpen oppgaven finnes fra før: $journalpostId")
+//                    return@forEach
+//                }
+//
+//                if (oppgaveService.hentAvsluttetOppgave(journalpostId) != null) {
+//                    logger.warn("Avsluttet oppgave finnes : $journalpostId")
+//                    return@forEach
+//                }
 
                 oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
                 gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
