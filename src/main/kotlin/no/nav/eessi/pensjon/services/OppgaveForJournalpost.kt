@@ -43,7 +43,7 @@ class OppgaveForJournalpost(
             if (env.activeProfiles[0] == "prod") {
                 logger.info("Oppretter nye oppgaver")
                 lagOppgaver().also {
-                    logger.info("Det ble generert $it nye oppgaver")
+                    logger.info("Det ble prosessert $it nye oppgaver")
                 }
             }
         }
@@ -85,10 +85,11 @@ class OppgaveForJournalpost(
                 }
 
                 oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
-                gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
-                Thread.sleep(500) // Consider alternatives to Thread.sleep in production code
+                gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
+
+                Thread.sleep(500)
                 logger.warn("Oppgaven opprettet")
-            } ?: println(oppdatertOppgave.toJson()) // Handle null journalpostId
+            } ?: println(oppdatertOppgave.toJson())
         }
         return oppgaveListe.size
     }
