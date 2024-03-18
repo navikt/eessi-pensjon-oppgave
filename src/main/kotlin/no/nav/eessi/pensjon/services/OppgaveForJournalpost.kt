@@ -51,43 +51,33 @@ class OppgaveForJournalpost(
 
     fun lagOppgaver(): Int {
         val originalContent = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
-        val modifiedContent = originalContent?.let { stream ->
+        originalContent?.let { stream ->
             stream.bufferedReader().useLines { lines ->
-                lines.map { line ->
-                    when {
-                        "\"\"" in line -> line.replace("\"\"", "\"")
-                        "eessi-pensjon-oppgave" in line -> "},"
-                        "Oppretter oppgave" in line -> "{ "
-                        else -> line
-                    }
-                }.joinToString(separator = "\n")
+                lines.forEach {
+                    val oppgave = oppgaveService.hentAvsluttetOppgave(it)
+                    oppgave?.journalpostId?.let { journalpostId ->
+                        if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
+                            logger.warn("Oppgaven er lagret: $journalpostId")
+                            return@forEach
+                        }
+
+                        if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
+                            logger.warn("Åpen oppgaven finnes fra før: $journalpostId")
+                            return@forEach
+                        }
+                        //val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
+
+                        //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
+                        //gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
+                        Thread.sleep(500)
+                        logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
+                    } ?: logger.error("Oppgaven mangler journalpostID:\n" + oppgave?.toJson())
+
+                }
+                return lines.count()
             }
         }
-
-        val oppgaveListe = mapJsonToAny<List<Oppgave>>(modifiedContent!!, true, false)
-        oppgaveListe.parallelStream().forEach { oppgave ->
-            val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
-
-            oppdatertOppgave.journalpostId?.let { journalpostId ->
-                if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
-                    return@forEach
-                }
-
-                if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
-                    return@forEach
-                }
-
-                if (oppgaveService.hentAvsluttetOppgave(journalpostId) != null) {
-                    return@forEach
-                }
-
-                //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
-                //gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
-                Thread.sleep(500)
-                logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
-            } ?: logger.error("Oppgaven mangler journalpostID:\n" + oppdatertOppgave.toJson())
-        }
-        return oppgaveListe.size
+        return 0
     }
 
     /**
