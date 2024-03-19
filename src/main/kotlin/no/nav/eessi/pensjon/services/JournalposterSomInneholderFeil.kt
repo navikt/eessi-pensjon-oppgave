@@ -8,7 +8,7 @@ class JournalposterSomInneholderFeil {
         }
 
         fun feilendeJournalposterProd(): List<String> {
-            return listOf("550754036","550765832")
+            return emptyList()
         }
     }
 }

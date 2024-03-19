@@ -61,7 +61,7 @@ class OppgaveService(
         try {
             val oppgaveResponse = oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java).body?.let { it ->
                 mapJsonToAny<OppgaveResponse>(it).also {
-                    logger.info("Hentet oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
+                    logger.info("Hentet avslutte oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
             }
             return oppgaveResponse?.oppgaver?.firstOrNull().also { logger.debug("Hentet oppgave for journalpostId: $journalpostId, oppgave: ${it?.toJson()}")}
 
@@ -76,7 +76,7 @@ class OppgaveService(
         try {
             val oppgaveResponse = oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AAPEN&journalpostId=$journalpostId", String::class.java).body?.let { it ->
                 mapJsonToAny<OppgaveResponse>(it).also {
-                    logger.info("Hentet oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
+                    logger.info("Hentet åpen oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
             }
             return oppgaveResponse?.oppgaver?.firstOrNull().also { logger.debug("Hentet oppgave for journalpostId: $journalpostId, oppgave: ${it?.toJson()}")}
 
