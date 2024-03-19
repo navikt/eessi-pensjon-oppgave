@@ -1,8 +1,11 @@
 package no.nav.eessi.pensjon.services
 
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.junit.jupiter.api.Test
+import org.springframework.core.env.Environment
 
 class OppgaveMeldingTest {
 
@@ -24,4 +27,9 @@ class OppgaveMeldingTest {
 
         mapJsonToAny<OppgaveMelding>(json)
     }
+
+//    @Test
+//    fun readAndProcessFile(){
+//        OppgaveForJournalpost(mockk(), mockk(), mockk(), mockk<Environment>().apply { every { activeProfiles } returns arrayOf("PROD") }).lagOppgaver()
+//    }
 }

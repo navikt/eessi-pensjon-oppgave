@@ -1,29 +1,19 @@
 package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
-import jakarta.annotation.PostConstruct
-import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.OppgaveResponse
-import no.nav.eessi.pensjon.models.Prioritet
-import no.nav.eessi.pensjon.services.JournalposterSomInneholderFeil.Companion.feilendeJournalposterTest
-import no.nav.eessi.pensjon.services.gcp.GcpStorageService
-import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.utils.mapAnyToJson
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
-import no.nav.eessi.pensjon.utils.toJsonSkipEmpty
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
  * @param metricsHelper Usually injected by Spring Boot, can be set manually in tests - no way to read metrics if not set.
@@ -66,12 +56,27 @@ class OppgaveService(
         }
     }
 
-    fun hentOppgave(journalpostId: String): Oppgave? {
+    fun hentAvsluttetOppgave(journalpostId: String): Oppgave? {
         //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
         try {
             val oppgaveResponse = oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AVSLUTTET&journalpostId=$journalpostId", String::class.java).body?.let { it ->
                 mapJsonToAny<OppgaveResponse>(it).also {
-                    logger.info("Hentet oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
+                    logger.info("Hentet avslutte oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
+            }
+            return oppgaveResponse?.oppgaver?.firstOrNull().also { logger.debug("Hentet oppgave for journalpostId: $journalpostId, oppgave: ${it?.toJson()}")}
+
+        } catch (ex: Exception) {
+            logger.error("En feil oppstod under henting av oppgave", ex)
+            throw RuntimeException(ex)
+        }
+    }
+
+    fun hentAapenOppgave(journalpostId: String): Oppgave? {
+        //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
+        try {
+            val oppgaveResponse = oppgaveOAuthRestTemplate.getForEntity("/api/v1/oppgaver?statuskategori=AAPEN&journalpostId=$journalpostId", String::class.java).body?.let { it ->
+                mapJsonToAny<OppgaveResponse>(it).also {
+                    logger.info("Hentet åpen oppgave for journalpostId, antall treff: ${it.antallTreffTotalt}") }
             }
             return oppgaveResponse?.oppgaver?.firstOrNull().also { logger.debug("Hentet oppgave for journalpostId: $journalpostId, oppgave: ${it?.toJson()}")}
 
