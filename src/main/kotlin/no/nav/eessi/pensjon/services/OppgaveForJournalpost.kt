@@ -61,11 +61,11 @@ class OppgaveForJournalpost(
                             logger.warn("Oppgaven er lagret: $journalpostId")
                             return@forEach
                         }
-
-                        if (oppgaveService.hentAapenOppgave(journalpostId) != null) {
-                            logger.warn("Åpen oppgaven finnes fra før: $journalpostId")
+                        if (oppgave.status != "FERDIGSTILT") {
+                            logger.warn("Oppgaven er ikke ferdigstilt: $journalpostId")
                             return@forEach
                         }
+
                         val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(2).toString())
 
                         //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
