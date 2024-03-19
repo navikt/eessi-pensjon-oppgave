@@ -66,10 +66,21 @@ class OppgaveForJournalpost(
                             return@forEach
                         }
 
-                        val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(2).toString())
+                        val oppgaveMelding = Oppgave(
+                            oppgavetype = "JFR",
+                            tema = oppgave.tema,
+                            prioritet = Prioritet.NORM.toString(),
+                            aktoerId = oppgave.aktoerId,
+                            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+                            journalpostId = oppgave.journalpostId,
+                            opprettetAvEnhetsnr = oppgave.opprettetAvEnhetsnr,
+                            tildeltEnhetsnr = oppgave.tildeltEnhetsnr,
+                            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
+                            beskrivelse = oppgave.beskrivelse
+                        )
 
                         //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
-                        gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
+                        gcpStorageService.lagre(journalpostId, oppgaveMelding.toJsonSkipEmpty())
                         oppgaverOpprettet++
                         Thread.sleep(500)
                         logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
