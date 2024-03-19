@@ -65,10 +65,10 @@ class OppgaveForJournalpost(
                             logger.warn("Åpen oppgaven finnes fra før: $journalpostId")
                             return@forEach
                         }
-                        //val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
+                        val oppdatertOppgave = oppgave.copy(fristFerdigstillelse = LocalDate.now().plusDays(1).toString())
 
                         //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
-                        //gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
+                        gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
                         Thread.sleep(500)
                         logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
                     } ?: logger.error("Oppgaven mangler journalpostID:\n" + oppgave?.toJson())
