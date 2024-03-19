@@ -49,8 +49,9 @@ class OppgaveForJournalpost(
         }
     }
 
-    fun lagOppgaver(): Int {
+    fun lagOppgaver() : Int{
         val originalContent = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
+        var oppgaverOpprettet = 0
         originalContent?.let { stream ->
             stream.bufferedReader().useLines { lines ->
                 lines.forEach {
@@ -69,15 +70,14 @@ class OppgaveForJournalpost(
 
                         //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
                         gcpStorageService.lagre(journalpostId, oppdatertOppgave.toJsonSkipEmpty())
+                        oppgaverOpprettet++
                         Thread.sleep(500)
                         logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
                     } ?: logger.error("Oppgaven mangler journalpostID:\n" + oppgave?.toJson())
-
                 }
-                return lines.count()
             }
         }
-        return 0
+        return oppgaverOpprettet
     }
 
     /**
