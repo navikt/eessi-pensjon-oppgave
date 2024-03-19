@@ -40,6 +40,7 @@ class OppgaveForJournalpost(
             logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
         }
     }
+
     /**
      * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
      * Hente liste over journalposter som er under arbeid, men har avsluttede oppgaver på seg, fra gcpStorage
