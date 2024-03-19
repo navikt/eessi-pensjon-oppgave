@@ -30,16 +30,6 @@ class OppgaveForJournalpost(
 
     init {
         MDC.putCloseable(X_REQUEST_ID, UUID.randomUUID().toString()).use {
-//            val journalposterSomIkkeBleBehandlet = if (env.activeProfiles[0] == "test") {
-//                lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterTest())
-//            } else if (env.activeProfiles[0] == "prod") {
-//                logger.info("Sjekker ${JournalposterSomInneholderFeil.feilendeJournalposterProd().size} journalposter som ikke er prossesert")
-//                lagOppgaveForJournalpost(JournalposterSomInneholderFeil.feilendeJournalposterProd())
-//            } else {
-//                emptyList()
-//            }
-//            logger.warn("Det ble laget oppgave på journalpostene: ${journalposterSomIkkeBleBehandlet.toJson()}")
-
             if (env.activeProfiles[0] == "prod") {
                 logger.info("Oppretter nye oppgaver")
                 lagOppgaver().also {
@@ -63,6 +53,11 @@ class OppgaveForJournalpost(
                         }
                         if (oppgave.status != "FERDIGSTILT") {
                             logger.warn("Oppgaven er ikke ferdigstilt: $journalpostId")
+                            return@forEach
+                        }
+
+                        if (!erJournalpostenUnderArbeid(journalpostId)) {
+                            logger.warn("Journalposten er ikke under arbeid: $journalpostId")
                             return@forEach
                         }
 
