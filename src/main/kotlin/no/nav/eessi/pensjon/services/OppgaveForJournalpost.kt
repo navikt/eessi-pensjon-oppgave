@@ -26,7 +26,7 @@ class OppgaveForJournalpost(
 
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
-    /**
+  /**
      * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
      * Hente liste over journalposter som er under arbeid, men har avsluttede oppgaver på seg, fra gcpStorage
      * Kalle Joark for å hente journalpostene
