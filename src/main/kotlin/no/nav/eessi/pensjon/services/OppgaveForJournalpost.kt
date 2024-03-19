@@ -74,7 +74,7 @@ class OppgaveForJournalpost(
                             beskrivelse = oppgave.beskrivelse
                         )
 
-                        //oppgaveService.opprettOppgaveSendOppgaveInn(oppdatertOppgave)
+                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgaveMelding)
                         gcpStorageService.lagre(journalpostId, oppgaveMelding.toJsonSkipEmpty())
                         oppgaverOpprettet++
                         Thread.sleep(500)
