@@ -17,74 +17,14 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-private const val X_REQUEST_ID = "x_request_id"
 @Component
 class OppgaveForJournalpost(
     private val gcpStorageService: GcpStorageService,
     private val safClient: SafClient,
-    private val oppgaveService: OppgaveService,
-    @Autowired private val env: Environment,
+    private val oppgaveService: OppgaveService
 ) {
 
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
-
-    init {
-        MDC.putCloseable(X_REQUEST_ID, UUID.randomUUID().toString()).use {
-            if (env.activeProfiles[0] == "prod") {
-                logger.info("Oppretter nye oppgaver")
-                lagOppgaver().also {
-                    logger.info("Det ble prosessert $it nye oppgaver")
-                }
-            }
-        }
-    }
-
-    fun lagOppgaver() : Int{
-        val originalContent = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
-        var oppgaverOpprettet = 0
-        originalContent?.let { stream ->
-            stream.bufferedReader().useLines { lines ->
-                lines.forEach {
-                    val oppgave = oppgaveService.hentAvsluttetOppgave(it)
-                    oppgave?.journalpostId?.let { journalpostId ->
-                        if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
-                            logger.warn("Oppgaven er lagret: $journalpostId")
-                            return@forEach
-                        }
-                        if (oppgave.status != "FERDIGSTILT") {
-                            logger.warn("Oppgaven er ikke ferdigstilt: $journalpostId")
-                            return@forEach
-                        }
-
-                        if (!erJournalpostenUnderArbeid(journalpostId)) {
-                            logger.warn("Journalposten er ikke under arbeid: $journalpostId")
-                            return@forEach
-                        }
-
-                        val oppgaveMelding = Oppgave(
-                            oppgavetype = "JFR",
-                            tema = oppgave.tema,
-                            prioritet = Prioritet.NORM.toString(),
-                            aktoerId = oppgave.aktoerId,
-                            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                            journalpostId = oppgave.journalpostId,
-                            opprettetAvEnhetsnr = oppgave.opprettetAvEnhetsnr,
-                            tildeltEnhetsnr = oppgave.tildeltEnhetsnr,
-                            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
-                            beskrivelse = oppgave.beskrivelse
-                        )
-
-                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgaveMelding)
-                        gcpStorageService.lagre(journalpostId, oppgaveMelding.toJsonSkipEmpty())
-                        oppgaverOpprettet++
-                        Thread.sleep(500)
-                        logger.warn("Oppgaven opprettet for journalpostID: $journalpostId")
-                    } ?: logger.error("Oppgaven mangler journalpostID:\n" + oppgave?.toJson())
-                }
-            }
-        }
-        return oppgaverOpprettet
-    }
 
     /**
      * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
@@ -99,13 +39,21 @@ class OppgaveForJournalpost(
         feilendeJournalposter
             .forEach { journalpostId ->
                 logger.info("Sjekker journalpost: $journalpostId")
-                // ser om vi allerede har laget en oppgave på denne journalpoosten
-                val oppgaveErIkkeOpprettet = gcpStorageService.journalpostenErIkkeLagret(journalpostId)
-                val oppgaveMelding = oppgaveService.hentAvsluttetOppgave(journalpostId).also { logger.info("Oppgave \n" + it?.toJson()) }
 
-                if (oppgaveErIkkeOpprettet && erJournalpostenUnderArbeid(journalpostId)) {
-                    if (oppgaveMelding?.status == "FERDIGSTILT") {
-                        val oppgave = Oppgave(
+                // ser om vi allerede har laget en oppgave på denne journalpoosten
+                if (!gcpStorageService.journalpostenErIkkeLagret(journalpostId)) {
+                    logger.warn("Oppgaven er lagret: $journalpostId")
+                    return@forEach
+                }
+
+                // journalposten må være under arbeid
+                if (!erJournalpostenUnderArbeid(journalpostId)) {
+                    logger.warn("Journalposten er ikke under arbeid: $journalpostId")
+                    return@forEach
+                }
+                oppgaveService.hentAvsluttetOppgave(journalpostId)?.also { oppgaveMelding ->
+                    if (oppgaveMelding.status == "FERDIGSTILT") {
+                        Oppgave(
                             oppgavetype = "JFR",
                             tema = oppgaveMelding.tema,
                             prioritet = Prioritet.NORM.toString(),
@@ -115,14 +63,17 @@ class OppgaveForJournalpost(
                             opprettetAvEnhetsnr = "9999",
                             tildeltEnhetsnr = oppgaveMelding.tildeltEnhetsnr,
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
-                            beskrivelse = oppgaveMelding.beskrivelse
-                        )
-                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
-                        gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
-                        ferdigBehandledeJournalposter.add(journalpostId)
-                        logger.info("Journalposten $journalpostId har en ferdigstilt oppgave" + oppgave.toJson())
+                            beskrivelse = oppgaveMelding.beskrivelse)
+                        .also { oppgave ->
+                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+                            gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
+                            ferdigBehandledeJournalposter.add(journalpostId)
+                            logger.info("Journalposten $journalpostId har en ferdigstilt oppgave${oppgave.toJson()}")
+                        }
+                    } else {
+                        logger.warn("Oppgaven er ikke ferdigstilt: $journalpostId")
                     }
-                }
+                } ?: logger.warn("Ingen oppgave funnet for journalpostId: $journalpostId")
             }
         return ferdigBehandledeJournalposter
     }
@@ -135,6 +86,6 @@ class OppgaveForJournalpost(
         }
 
         logger.info(journalpost.toJson())
-        return (journalpost.journalstatus == Journalstatus.UNDER_ARBEID).also { logger.warn("Journalposten finnes, men har status: ${journalpost.journalstatus}") }
+        return (journalpost.journalstatus == Journalstatus.UNDER_ARBEID).also { logger.warn("Journalposten finnes, og har status: ${journalpost.journalstatus}") }
     }
 }
