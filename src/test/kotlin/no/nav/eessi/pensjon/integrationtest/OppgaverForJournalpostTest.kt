@@ -7,7 +7,6 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.models.BehandlingTema
 import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.models.Tema
@@ -16,9 +15,10 @@ import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalpost
 import no.nav.eessi.pensjon.services.saf.Journalstatus
+import no.nav.eessi.pensjon.services.saf.SafClient
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -84,8 +84,8 @@ class OppgaverForJournalpostTest {
                       "tema" : "PEN",
                       "oppgavetype" : "JFR",
                       "prioritet" : "NORM",
-                      "fristFerdigstillelse" : "2024-03-20",
-                      "aktivDato" : "2024-03-19"
+                      "fristFerdigstillelse" : "2024-03-22",
+                      "aktivDato" : "2024-03-21"
                     }
                 """.trimIndent()
             }, String::class.java )
