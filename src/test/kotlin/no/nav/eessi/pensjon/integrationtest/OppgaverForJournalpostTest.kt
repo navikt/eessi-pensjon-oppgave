@@ -26,6 +26,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class OppgaverForJournalpostTest {
@@ -84,8 +85,8 @@ class OppgaverForJournalpostTest {
                       "tema" : "PEN",
                       "oppgavetype" : "JFR",
                       "prioritet" : "NORM",
-                      "fristFerdigstillelse" : "2024-03-22",
-                      "aktivDato" : "2024-03-21"
+                      "fristFerdigstillelse" : "${LocalDate.now().plusDays(1)}",
+                      "aktivDato" : "${LocalDate.now()}"
                     }
                 """.trimIndent()
             }, String::class.java )
