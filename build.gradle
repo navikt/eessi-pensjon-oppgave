@@ -59,7 +59,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
     configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
     implementation("org.slf4j:jcl-over-slf4j:2.0.12")
-    implementation("no.nav.eessi.pensjon:ep-logging:2.1.59")
+    implementation("no.nav.eessi.pensjon:ep-logging:2.1.61")
 
     //Auth
     implementation("no.nav.security:token-client-spring:${tokenSupportVersion}")
