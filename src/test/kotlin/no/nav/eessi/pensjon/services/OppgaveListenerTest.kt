@@ -1,14 +1,12 @@
 package no.nav.eessi.pensjon.services
 
-import io.mockk.every
 import io.mockk.mockk
 import no.nav.eessi.pensjon.eux.model.SedType.*
 import no.nav.eessi.pensjon.listeners.OppgaveListener
 import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.oppgaverouting.HendelseType.*
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType.MOTTATT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.springframework.core.env.Environment
 
 class OppgaveListenerTest {
 
@@ -22,6 +20,24 @@ class OppgaveListenerTest {
         """.trimIndent()
 
         assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
+    }
+
+    @Test
+    fun `Ved journalføring på utgående sed settes oppgavetypen til JFR_UT`() {
+        val oppgaveMelding = OppgaveMelding(
+            null, P11000, null, "", null, "JOURNALFORING_UT", "654654321", MOTTATT, "bogus.doc"
+        )
+
+        assertEquals("JFR_UT", oppgaveListener.opprettOppgave(oppgaveMelding).oppgavetype)
+    }
+
+    @Test
+    fun `Ved journalføring på innkommende sed settes oppgavetypen til JFR`() {
+        val oppgaveMelding = OppgaveMelding(
+            null, P11000, null, "", null, "JOURNALFORING", "654654321", MOTTATT, "bogus.doc"
+        )
+
+        assertEquals("JFR", oppgaveListener.opprettOppgave(oppgaveMelding).oppgavetype)
     }
 
     @Test
