@@ -2,11 +2,11 @@ package no.nav.eessi.pensjon.listeners
 
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.models.Oppgave
+import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.models.OppgaveType
 import no.nav.eessi.pensjon.models.Prioritet
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -83,6 +83,7 @@ class OppgaveListener(
             val oppgaveTypeMap = mapOf(
                 "GENERELL" to OppgaveType.GENERELL,
                 "JOURNALFORING" to OppgaveType.JOURNALFORING,
+                "JOURNALFORING_UT" to OppgaveType.JOURNALFORING_UT,
                 "BEHANDLE_SED" to OppgaveType.BEHANDLE_SED,
                 "KRAV" to OppgaveType.KRAV,
                 "PDL" to OppgaveType.PDL
@@ -90,6 +91,7 @@ class OppgaveListener(
 
             val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
                 OppgaveType.JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
+                OppgaveType.JOURNALFORING_UT -> opprettGenerellBeskrivelse(opprettOppgave)
                 OppgaveType.KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
                 OppgaveType.GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
                 OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
