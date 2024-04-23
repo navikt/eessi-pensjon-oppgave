@@ -5,6 +5,7 @@ import no.nav.eessi.pensjon.metrics.MetricsHelper
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.models.OppgaveType
+import no.nav.eessi.pensjon.models.OppgaveType.*
 import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.services.OppgaveService
@@ -80,26 +81,17 @@ class OppgaveListener(
     fun opprettOppgave(opprettOppgave: OppgaveMelding): Oppgave {
         return try {
 
-            val oppgaveTypeMap = mapOf(
-                "GENERELL" to OppgaveType.GENERELL,
-                "JOURNALFORING" to OppgaveType.JOURNALFORING,
-                "JOURNALFORING_UT" to OppgaveType.JOURNALFORING_UT,
-                "BEHANDLE_SED" to OppgaveType.BEHANDLE_SED,
-                "KRAV" to OppgaveType.KRAV,
-                "PDL" to OppgaveType.PDL
-            )
-
-            val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
-                OppgaveType.JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.JOURNALFORING_UT -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
-                OppgaveType.PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
-                else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
+            val oppgaveType = OppgaveType.valueOf(opprettOppgave.oppgaveType)
+            val beskrivelse = when (oppgaveType) {
+                PDL ->  behandleSedPdlUidBeskrivelse(opprettOppgave)
+                KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
+                GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
+                BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
+                JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
+                JOURNALFORING_UT -> opprettGenerellBeskrivelse(opprettOppgave)
             }
 
-            val oppgave = opprettGeneriskOppgave(oppgaveTypeMap, opprettOppgave, beskrivelse)
+            val oppgave = opprettGeneriskOppgave(oppgaveType, opprettOppgave, beskrivelse)
             oppgave
 
         } catch (ex: Exception) {
@@ -132,9 +124,11 @@ class OppgaveListener(
         }
     }
 
-    private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
+    private fun opprettGeneriskOppgave(oppgaveType: OppgaveType, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
+        val oppgaveTypeForTema = if(opprettOppgave.tema == "PEN" && oppgaveType == JOURNALFORING_UT) JOURNALFORING else oppgaveType
+
         return Oppgave(
-            oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType]?.kode,
+            oppgavetype = oppgaveTypeForTema.kode,
             tema = opprettOppgave.tema,
             prioritet = Prioritet.NORM.toString(),
             aktoerId = opprettOppgave.aktoerId,

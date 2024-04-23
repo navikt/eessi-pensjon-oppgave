@@ -25,7 +25,7 @@ class OppgaveListenerTest {
     @Test
     fun `Ved journalføring på utgående sed settes oppgavetypen til JFR_UT`() {
         val oppgaveMelding = OppgaveMelding(
-            null, P11000, null, "", null, "JOURNALFORING_UT", "654654321", MOTTATT, "bogus.doc"
+            null, P11000, null, "", null, "JOURNALFORING_UT", "654654321", MOTTATT, "bogus.doc", tema = "UFO"
         )
 
         assertEquals("JFR_UT", oppgaveListener.opprettOppgave(oppgaveMelding).oppgavetype)
