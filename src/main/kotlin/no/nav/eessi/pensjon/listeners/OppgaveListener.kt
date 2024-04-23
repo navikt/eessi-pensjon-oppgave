@@ -83,16 +83,11 @@ class OppgaveListener(
 
             val oppgaveType = OppgaveType.valueOf(opprettOppgave.oppgaveType)
             val beskrivelse = when (oppgaveType) {
-                PDL ->  behandleSedPdlUidBeskrivelse(opprettOppgave)
-                KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
-                GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
+                PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
                 BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
-                JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
-                JOURNALFORING_UT -> opprettGenerellBeskrivelse(opprettOppgave)
+                KRAV, GENERELL, JOURNALFORING_UT, JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
             }
-
-            val oppgave = opprettGeneriskOppgave(oppgaveType, opprettOppgave, beskrivelse)
-            oppgave
+            opprettGeneriskOppgave(oppgaveType, opprettOppgave, beskrivelse)
 
         } catch (ex: Exception) {
             logger.error("En feil oppstod under opprettelse av oppgave", ex)
