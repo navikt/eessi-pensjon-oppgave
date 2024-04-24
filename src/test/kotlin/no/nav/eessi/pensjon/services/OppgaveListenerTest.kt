@@ -28,7 +28,7 @@ class OppgaveListenerTest {
             null, P11000, null, "", null, "JOURNALFORING_UT", "654654321", MOTTATT, "bogus.doc", tema = "UFO"
         )
 
-        assertEquals("JFR_UT", oppgaveListener.opprettOppgave(oppgaveMelding).oppgavetype)
+        assertEquals("JFR", oppgaveListener.opprettOppgave(oppgaveMelding).oppgavetype)
     }
 
     @Test
