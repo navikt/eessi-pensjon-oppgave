@@ -120,10 +120,8 @@ class OppgaveListener(
     }
 
     private fun opprettGeneriskOppgave(oppgaveType: OppgaveType, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
-        val oppgaveTypeForTema = if(opprettOppgave.tema == "PEN" && oppgaveType == JOURNALFORING_UT) JOURNALFORING else oppgaveType
-
         return Oppgave(
-            oppgavetype = oppgaveTypeForTema.kode,
+            oppgavetype = oppgaveType.kode,
             tema = opprettOppgave.tema,
             prioritet = Prioritet.NORM.toString(),
             aktoerId = opprettOppgave.aktoerId,
