@@ -29,7 +29,7 @@ spec:
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave.dev-fss-pub.nais.io
     - name: OPPGAVE_CLIENT_ID
-      value: dev-fss.oppgavehandtering.oppgave
+      value: dev-fss.oppgavehandtering.oppgave-q1
     #      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
     - name: SAF_GRAPHQL_URL
       value: https://saf-q2.dev-fss-pub.nais.io/graphql
