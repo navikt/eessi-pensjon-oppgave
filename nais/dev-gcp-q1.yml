@@ -40,6 +40,17 @@ spec:
     - name: AZURE_APP_SAF_CLIENT_ID
       value: dev-fss.teamdokumenthandtering.saf
 
+  gcp:
+    buckets:
+      - name: eessi-pensjon-oppgave-q1
+        retentionPeriodDays: 30
+        lifecycleCondition:
+          age: 7
+          createdBefore: 2020-01-01
+          numNewerVersions: 2
+          withState: ANY
+        uniformBucketLevelAccess: true
+
   image: {{ image }}
   liveness:
     path: /internal/isalive
