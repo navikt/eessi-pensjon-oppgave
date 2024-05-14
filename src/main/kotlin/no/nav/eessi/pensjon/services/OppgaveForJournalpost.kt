@@ -5,7 +5,6 @@ import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.services.saf.SafClient
-import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import no.nav.eessi.pensjon.utils.toJsonSkipEmpty
 import org.slf4j.LoggerFactory
@@ -21,11 +20,28 @@ import java.util.*
 class OppgaveForJournalpost(
     private val gcpStorageService: GcpStorageService,
     private val safClient: SafClient,
-    private val oppgaveService: OppgaveService
+    private val oppgaveService: OppgaveService,
+    @Autowired private val env: Environment
 ) {
 
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
+    init {
+        if (env.activeProfiles[0] == "q2") {
+            try {
+                logger.info("Oppretter nye oppgaver")
+                val oppgaverStream = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
+                val listOfLines = oppgaverStream?.bufferedReader()?.use { it.readLines() }
+
+                listOfLines?.also {
+                    lagOppgaveForJournalpost(it)
+                    logger.info("Det ble prosessert ${it.size} nye oppgaver")
+                }
+            } catch (e: Exception) {
+                logger.error("Uthenting av oppgaver feilet", e)
+            }
+        }
+    }
     /**
      * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
      * Hente liste over journalposter som er under arbeid, men har avsluttede oppgaver på seg, fra gcpStorage
@@ -65,7 +81,7 @@ class OppgaveForJournalpost(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse)
                         .also { oppgave ->
-                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+//                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
                             gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
                             ferdigBehandledeJournalposter.add(journalpostId)
                             logger.info("Journalposten $journalpostId har en ferdigstilt oppgave${oppgave.toJson()}")
