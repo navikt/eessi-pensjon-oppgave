@@ -27,7 +27,7 @@ class OppgaveForJournalpost(
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
     init {
-        if (env.activeProfiles[0] == "test") {
+        if (env.activeProfiles[0] == "prod") {
             try {
                 logger.info("Oppretter nye oppgaver")
                 val oppgaverStream = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
@@ -81,7 +81,7 @@ class OppgaveForJournalpost(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse)
                         .also { oppgave ->
-//                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
                             gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
                             ferdigBehandledeJournalposter.add(journalpostId)
                             logger.info("Journalposten $journalpostId har en ferdigstilt oppgave${oppgave.toJson()}")
