@@ -27,7 +27,7 @@ class OppgaveForJournalpost(
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
     init {
-        if (env.activeProfiles[0] == "q2") {
+        if (env.activeProfiles[0] == "test") {
             try {
                 logger.info("Oppretter nye oppgaver")
                 val oppgaverStream = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
