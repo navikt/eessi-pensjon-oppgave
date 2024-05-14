@@ -70,9 +70,11 @@ class OppgaveForJournalpost(
                     return@forEach
                 }
                 oppgaveService.hentAvsluttetOppgave(journalpostId)?.also { oppgaveMelding ->
+                    val oppgType = if (oppgaveMelding.oppgavetype == "JOURNALFORING_UT") "JFR_UT" else "JFR"
+
                     if (oppgaveMelding.status == "FERDIGSTILT") {
                         Oppgave(
-                            oppgavetype = "JFR",
+                            oppgavetype = oppgType,
                             tema = oppgaveMelding.tema,
                             prioritet = Prioritet.NORM.toString(),
                             aktoerId = oppgaveMelding.aktoerId,
