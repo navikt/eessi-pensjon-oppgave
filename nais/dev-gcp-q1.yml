@@ -19,6 +19,8 @@ spec:
       external:
         - host: oppgave.dev-fss-pub.nais.io
         - host: eessi-pensjon-journalforing-q1.intern.dev.nav.no
+        - host: saf-q2.dev-fss-pub.nais.io
+
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: test
@@ -27,10 +29,29 @@ spec:
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave.dev-fss-pub.nais.io
     - name: OPPGAVE_CLIENT_ID
-      value: dev-fss.oppgavehandtering.oppgave
-#      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
+      value: dev-fss.oppgavehandtering.oppgave-q1
+    #      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
+    - name: SAF_GRAPHQL_URL
+      value: https://saf-q2.dev-fss-pub.nais.io/graphql
+    - name: GCP_BUCKET_NAME
+      value: eessi-pensjon-oppgave-q1
+    - name: GCP_STORAGE_API_URL
+      value: https://storage.googleapis.com
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q1
+    - name: AZURE_APP_SAF_CLIENT_ID
+      value: dev-fss.teamdokumenthandtering.saf
+
+  gcp:
+    buckets:
+      - name: eessi-pensjon-oppgave-q1
+        retentionPeriodDays: 30
+        lifecycleCondition:
+          age: 7
+          createdBefore: 2020-01-01
+          numNewerVersions: 2
+          withState: ANY
+        uniformBucketLevelAccess: true
 
   image: {{ image }}
   liveness:

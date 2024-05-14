@@ -2,11 +2,12 @@ package no.nav.eessi.pensjon.listeners
 
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.models.Oppgave
+import no.nav.eessi.pensjon.models.OppgaveMelding
 import no.nav.eessi.pensjon.models.OppgaveType
+import no.nav.eessi.pensjon.models.OppgaveType.*
 import no.nav.eessi.pensjon.models.Prioritet
+import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.services.OppgaveService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -80,25 +81,13 @@ class OppgaveListener(
     fun opprettOppgave(opprettOppgave: OppgaveMelding): Oppgave {
         return try {
 
-            val oppgaveTypeMap = mapOf(
-                "GENERELL" to OppgaveType.GENERELL,
-                "JOURNALFORING" to OppgaveType.JOURNALFORING,
-                "BEHANDLE_SED" to OppgaveType.BEHANDLE_SED,
-                "KRAV" to OppgaveType.KRAV,
-                "PDL" to OppgaveType.PDL
-            )
-
-            val beskrivelse = when (oppgaveTypeMap[opprettOppgave.oppgaveType]) {
-                OppgaveType.JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.KRAV -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.GENERELL -> opprettGenerellBeskrivelse(opprettOppgave)
-                OppgaveType.BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
-                OppgaveType.PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
-                else -> throw RuntimeException("Ukjent eller manglende oppgavetype under opprettelse av oppgave")
+            val oppgaveType = OppgaveType.valueOf(opprettOppgave.oppgaveType)
+            val beskrivelse = when (oppgaveType) {
+                PDL -> behandleSedPdlUidBeskrivelse(opprettOppgave)
+                BEHANDLE_SED -> behandleSedBeskrivelse(opprettOppgave)
+                KRAV, GENERELL, JOURNALFORING_UT, JOURNALFORING -> opprettGenerellBeskrivelse(opprettOppgave)
             }
-
-            val oppgave = opprettGeneriskOppgave(oppgaveTypeMap, opprettOppgave, beskrivelse)
-            oppgave
+            opprettGeneriskOppgave(oppgaveType, opprettOppgave, beskrivelse)
 
         } catch (ex: Exception) {
             logger.error("En feil oppstod under opprettelse av oppgave", ex)
@@ -130,9 +119,9 @@ class OppgaveListener(
         }
     }
 
-    private fun opprettGeneriskOppgave(oppgaveTypeMap: Map<String, OppgaveType>, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
+    private fun opprettGeneriskOppgave(oppgaveType: OppgaveType, opprettOppgave: OppgaveMelding, beskrivelse: String): Oppgave {
         return Oppgave(
-            oppgavetype = oppgaveTypeMap[opprettOppgave.oppgaveType]?.kode,
+            oppgavetype = oppgaveType.kode,
             tema = opprettOppgave.tema,
             prioritet = Prioritet.NORM.toString(),
             aktoerId = opprettOppgave.aktoerId,
