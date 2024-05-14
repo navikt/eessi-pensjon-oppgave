@@ -27,18 +27,20 @@ class OppgaveForJournalpost(
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
     init {
-        if (env.activeProfiles[0] == "prod") {
-            try {
-                logger.info("Oppretter nye oppgaver")
-                val oppgaverStream = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
-                val listOfLines = oppgaverStream?.bufferedReader()?.use { it.readLines() }
+        MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
+            if (env.activeProfiles[0] == "prod") {
+                try {
+                    logger.info("Oppretter nye oppgaver")
+                    val oppgaverStream = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
+                    val listOfLines = oppgaverStream?.bufferedReader()?.use { it.readLines() }
 
-                listOfLines?.also {
-                    lagOppgaveForJournalpost(it)
-                    logger.info("Det ble prosessert ${it.size} nye oppgaver")
+                    listOfLines?.also {
+                        lagOppgaveForJournalpost(it)
+                        logger.info("Det ble prosessert ${it.size} nye oppgaver")
+                    }
+                } catch (e: Exception) {
+                    logger.error("Uthenting av oppgaver feilet", e)
                 }
-            } catch (e: Exception) {
-                logger.error("Uthenting av oppgaver feilet", e)
             }
         }
     }
