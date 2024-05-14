@@ -21,12 +21,31 @@ import java.util.*
 class OppgaveForJournalpost(
     private val gcpStorageService: GcpStorageService,
     private val safClient: SafClient,
-    private val oppgaveService: OppgaveService
+    private val oppgaveService: OppgaveService,
+    @Autowired private val env: Environment
 ) {
 
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
-  /**
+    init {
+        MDC.putCloseable("x_request_id", UUID.randomUUID().toString()).use {
+            if (env.activeProfiles[0] == "prod") {
+                try {
+                    logger.info("Oppretter nye oppgaver")
+                    val oppgaverStream = this::class.java.classLoader.getResourceAsStream("oppgaver.json")
+                    val listOfLines = oppgaverStream?.bufferedReader()?.use { it.readLines() }
+
+                    listOfLines?.also {
+                        lagOppgaveForJournalpost(it)
+                        logger.info("Det ble prosessert ${it.size} nye oppgaver")
+                    }
+                } catch (e: Exception) {
+                    logger.error("Uthenting av oppgaver feilet", e)
+                }
+            }
+        }
+    }
+    /**
      * Skal opprette oppgaver på alle journalposter som er ferdigstilt og har en oppgave som er avsluttet
      * Hente liste over journalposter som er under arbeid, men har avsluttede oppgaver på seg, fra gcpStorage
      * Kalle Joark for å hente journalpostene
@@ -52,9 +71,11 @@ class OppgaveForJournalpost(
                     return@forEach
                 }
                 oppgaveService.hentAvsluttetOppgave(journalpostId)?.also { oppgaveMelding ->
+                    val oppgType = if (oppgaveMelding.oppgavetype == "JOURNALFORING_UT" || oppgaveMelding.beskrivelse?.contains("Utg") == true) "JFR_UT" else "JFR"
+
                     if (oppgaveMelding.status == "FERDIGSTILT") {
                         Oppgave(
-                            oppgavetype = "JFR",
+                            oppgavetype = oppgType,
                             tema = oppgaveMelding.tema,
                             prioritet = Prioritet.NORM.toString(),
                             aktoerId = oppgaveMelding.aktoerId,
@@ -65,7 +86,7 @@ class OppgaveForJournalpost(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse)
                         .also { oppgave ->
-                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+//                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
                             gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
                             ferdigBehandledeJournalposter.add(journalpostId)
                             logger.info("Journalposten $journalpostId har en ferdigstilt oppgave${oppgave.toJson()}")
