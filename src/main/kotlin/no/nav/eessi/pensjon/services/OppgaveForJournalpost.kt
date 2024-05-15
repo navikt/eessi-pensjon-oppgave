@@ -6,7 +6,6 @@ import no.nav.eessi.pensjon.services.gcp.GcpStorageService
 import no.nav.eessi.pensjon.services.saf.Journalpost
 import no.nav.eessi.pensjon.services.saf.Journalstatus
 import no.nav.eessi.pensjon.services.saf.SafClient
-import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import no.nav.eessi.pensjon.utils.toJsonSkipEmpty
 import org.slf4j.LoggerFactory
@@ -67,14 +66,14 @@ class OppgaveForJournalpost(
                 }
 
                 // journalposten må være under arbeid
-                val erJournalpostenUnderArbeid = erJournalpostenUnderArbeid(journalpostId)
-                if (erJournalpostenUnderArbeid.second) {
+                val journalpost = hentJournalposten(journalpostId)
+                if (journalpost?.journalstatus != Journalstatus.UNDER_ARBEID) {
                     logger.warn("Journalposten er ikke under arbeid: $journalpostId")
                     return@forEach
                 }
                 oppgaveService.hentAvsluttetOppgave(journalpostId)?.also { oppgaveMelding ->
-                    if (oppgaveMelding.tema != erJournalpostenUnderArbeid.first?.tema?.kode) {
-                        logger.warn("Temaet på oppgaven ${oppgaveMelding.tema} er forskjellig fra tema på ${erJournalpostenUnderArbeid.first?.tema?.kode} på journalpostId: $journalpostId")
+                    if (oppgaveMelding.tema != journalpost.tema?.kode) {
+                        logger.warn("Temaet på oppgaven ${oppgaveMelding.tema} er forskjellig fra tema på ${journalpost.tema?.kode} på journalpostId: $journalpostId")
                         return@forEach
                     }
 
@@ -106,14 +105,14 @@ class OppgaveForJournalpost(
         return ferdigBehandledeJournalposter
     }
 
-    private fun erJournalpostenUnderArbeid(journalpostId: String): Pair<Journalpost?, Boolean> {
+    private fun hentJournalposten(journalpostId: String): Journalpost? {
         val journalpost = safClient.hentJournalpost(journalpostId)
         if (journalpost == null) {
             logger.error("Journalposten $journalpostId finnes ikke i Joark")
-            return Pair(null, false)
+            return null
         }
 
         logger.info(journalpost.toJson())
-        return Pair(journalpost, journalpost.journalstatus == Journalstatus.UNDER_ARBEID).also { logger.warn("Journalposten finnes, og har status: ${journalpost.journalstatus}") }
+        return journalpost.also { logger.warn("Journalposten finnes, og har status: ${journalpost.journalstatus}") }
     }
 }
