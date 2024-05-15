@@ -90,7 +90,7 @@ class OppgaveForJournalpost(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse)
                             .also { oppgave ->
-//                                oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+                                oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
                                 logger.info("OPPGAVEN: ${oppgave.toJson()}")
                                 gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
                                 ferdigBehandledeJournalposter.add(journalpostId)
