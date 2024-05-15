@@ -74,6 +74,28 @@ class OppgaveForJournalpost(
                 oppgaveService.hentAvsluttetOppgave(journalpostId)?.also { oppgaveMelding ->
                     if (oppgaveMelding.tema != journalpost.tema?.kode) {
                         logger.warn("Temaet på oppgaven ${oppgaveMelding.tema} er forskjellig fra tema på ${journalpost.tema?.kode} på journalpostId: $journalpostId")
+                        logger.warn("Beskrivelse oppgave ${oppgaveMelding.beskrivelse} tittel JP: ${journalpost.tittel} på journalpostId: $journalpostId")
+                        val jp = hentJournalposten(journalpostId)
+                        val oppgType = if (oppgaveMelding.oppgavetype == "JOURNALFORING_UT" || oppgaveMelding.beskrivelse?.contains("Utg") == true) "JFR_UT" else "JFR"
+
+                        Oppgave(
+                            oppgavetype = oppgType,
+                            tema = jp?.tema?.kode,
+                            prioritet = Prioritet.NORM.toString(),
+                            aktoerId = oppgaveMelding.aktoerId,
+                            aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+                            journalpostId = oppgaveMelding.journalpostId,
+                            opprettetAvEnhetsnr = "9999",
+                            tildeltEnhetsnr = jp?.journalforendeEnhet,
+                            fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
+                            beskrivelse = oppgaveMelding.beskrivelse)
+                            .also { oppgave ->
+//                                oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+                                logger.info("OPPGAVEN: ${oppgave.toJson()}")
+                                gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
+                                ferdigBehandledeJournalposter.add(journalpostId)
+                                logger.info("Journalposten $journalpostId har en ferdigstilt oppgave${oppgave.toJson()}")
+                            }
                         return@forEach
                     }
 
@@ -92,7 +114,7 @@ class OppgaveForJournalpost(
                             fristFerdigstillelse = LocalDate.now().plusDays(1).toString(),
                             beskrivelse = oppgaveMelding.beskrivelse)
                         .also { oppgave ->
-                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+//                            oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
                             gcpStorageService.lagre(journalpostId, oppgave.toJsonSkipEmpty())
                             ferdigBehandledeJournalposter.add(journalpostId)
                             logger.info("Journalposten $journalpostId har en ferdigstilt oppgave${oppgave.toJson()}")
