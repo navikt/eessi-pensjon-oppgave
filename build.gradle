@@ -45,7 +45,7 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
 
 
-    implementation("io.micrometer:micrometer-registry-prometheus:1.12.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.13.0")
     implementation("no.nav.eessi.pensjon:ep-metrics:2.0.62")
     implementation("no.nav.eessi.pensjon:ep-eux:2.2.39")
     implementation("no.nav.eessi.pensjon:ep-routing:2.0.89"){
