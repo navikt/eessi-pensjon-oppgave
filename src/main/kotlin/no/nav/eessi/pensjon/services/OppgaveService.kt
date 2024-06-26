@@ -2,6 +2,7 @@ package no.nav.eessi.pensjon.services
 
 import io.micrometer.core.instrument.Metrics
 import no.nav.eessi.pensjon.metrics.MetricsHelper
+import no.nav.eessi.pensjon.models.OppdaterOppgaveMelding
 import no.nav.eessi.pensjon.models.Oppgave
 import no.nav.eessi.pensjon.models.OppgaveResponse
 import no.nav.eessi.pensjon.utils.mapAnyToJson
@@ -25,6 +26,7 @@ class OppgaveService(
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private lateinit var opprettoppgave: MetricsHelper.Metric
+    private lateinit var oppdateroppgave: MetricsHelper.Metric
 
     init {
         opprettoppgave = metricsHelper.init("opprettoppgave")
@@ -38,7 +40,7 @@ class OppgaveService(
                 val requestBody = mapAnyToJson(oppgave, true)
                 logger.info("Oppretter oppgave: $requestBody")
 
-                countEnthet(oppgave.tildeltEnhetsnr)
+                countEnhet(oppgave.tildeltEnhetsnr)
 
                 val httpEntity = HttpEntity(requestBody)
                 val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver", HttpMethod.POST, httpEntity, String::class.java)
@@ -56,6 +58,28 @@ class OppgaveService(
         }
     }
 
+    fun oppdaterOppgave(oppgave: OppdaterOppgaveMelding) {
+        oppdateroppgave.measure {
+
+            try {
+                val requestBody = mapAnyToJson(oppgave, true)
+                logger.info("Oppdaterer oppgave: $requestBody")
+
+                val httpEntity = HttpEntity(requestBody)
+                val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver/${oppgave.id}", HttpMethod.PATCH, httpEntity, String::class.java)
+
+                logger.info("""
+                    | Oppdaterer oppgave av med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr}, tema: ${oppgave.tema}, status: ${oppgave.status} 
+                    | Result: ${exchange.statusCode}""".trimMargin())
+            } catch(ex: HttpStatusCodeException) {
+                logger.error("En feil oppstod under oppdatering av oppgave ex: $ex body: ${ex.responseBodyAsString}")
+                throw RuntimeException("En feil oppstod under oppdatering av oppgave ex: ${ex.message} body: ${ex.responseBodyAsString}", ex)
+            } catch(ex: Exception) {
+                logger.error("En feil oppstod under oppdatering av oppgave ex: $ex")
+                throw RuntimeException("En feil oppstod under oppdatering av oppgave ex: ${ex.message}", ex)
+            }
+        }
+    }
     fun hentAvsluttetOppgave(journalpostId: String): Oppgave? {
         //TODO kalle oppgave for å hente inn oppgave vhja journalpostId
         try {
@@ -86,7 +110,7 @@ class OppgaveService(
         }
     }
 
-    fun countEnthet(tildeltEnhetsnr: String?) {
+    fun countEnhet(tildeltEnhetsnr: String?) {
         try {
             Metrics.counter("TildeltEnhet",   "enhet", tildeltEnhetsnr).increment()
         } catch (e: Exception) {

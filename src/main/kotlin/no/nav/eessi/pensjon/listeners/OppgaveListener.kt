@@ -2,13 +2,11 @@ package no.nav.eessi.pensjon.listeners
 
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.metrics.MetricsHelper
-import no.nav.eessi.pensjon.models.Oppgave
-import no.nav.eessi.pensjon.models.OppgaveMelding
-import no.nav.eessi.pensjon.models.OppgaveType
+import no.nav.eessi.pensjon.models.*
 import no.nav.eessi.pensjon.models.OppgaveType.*
-import no.nav.eessi.pensjon.models.Prioritet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
 import no.nav.eessi.pensjon.services.OppgaveService
+import no.nav.eessi.pensjon.utils.mapJsonToAny
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -60,12 +58,16 @@ class OppgaveListener(
                         logger.warn("Hopper over offset: ${cr.offset()} grunnet feil")
                     } else {
                         logger.info("mottatt oppgavemelding : $melding")
-                        val oppgaveMelding = OppgaveMelding.fromJson(melding)
 
-                        val oppgave = opprettOppgave(oppgaveMelding)
-                        oppgaveService.opprettOppgaveSendOppgaveInn(oppgave)
+                        val oppgaveMelding = mapJsonToAny<OppgaveTypeMelding>(melding)
+
+                        when (oppgaveMelding) {
+                            is OppdaterOppgaveMelding -> oppgaveService.oppdaterOppgave(oppgaveMelding)
+                            is OppgaveMelding -> oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(oppgaveMelding))
+                        }
+
                         logger.info("******************************************************************\n" +
-                                    "Acket oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
+                                    "Acket oppdater oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
                                     "******************************************************************")
                     }
                     acknowledgment.acknowledge()
