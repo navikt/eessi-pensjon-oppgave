@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.oppgaverouting.Enhet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
+import no.nav.eessi.pensjon.utils.mapJsonToAny
+import no.nav.eessi.pensjon.utils.toJson
 import java.time.LocalDateTime
 
 interface OppgaveTypeMelding
@@ -20,15 +22,28 @@ data class OppgaveMelding(
     val hendelseType: HendelseType,
     val filnavn: String? = null,
     val tema: String? = "PEN"
-    ) : OppgaveTypeMelding
-
+    ) : OppgaveTypeMelding {
+    override fun toString(): String {
+        return toJson()
+    }
+    companion object {
+        fun fromJson(json: String) = mapJsonToAny<OppgaveMelding>(json)
+    }
+}
 
 data class OppdaterOppgaveMelding (
     val id: String,
     val status: String,
     val tildeltEnhetsnr: Enhet,
     val tema: String
-    ) : OppgaveTypeMelding
+    ) : OppgaveTypeMelding {
+    override fun toString(): String {
+        return toJson()
+    }
+    companion object {
+        fun fromJson(json: String) = mapJsonToAny<OppgaveMelding>(json)
+    }
+}
 
 data class OppgaveMeldingResponse(
     val id: String,
