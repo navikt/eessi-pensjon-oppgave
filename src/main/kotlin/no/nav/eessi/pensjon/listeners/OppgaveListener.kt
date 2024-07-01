@@ -62,13 +62,9 @@ class OppgaveListener(
                         val oppgaveMelding = mapJsonToAny<OppgaveTypeMelding>(melding)
 
                         when (oppgaveMelding) {
-                            is OppdaterOppgaveMelding -> oppgaveService.oppdaterOppgave(oppgaveMelding)
-                            is OppgaveMelding -> oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(oppgaveMelding))
+                            is OppdaterOppgaveMelding -> oppgaveService.oppdaterOppgave(oppgaveMelding).also { logger.info("Acker oppdater oppgave ${cr.offset()}") }
+                            is OppgaveMelding -> oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(oppgaveMelding)).also { logger.info("Acker opprett oppgave ${cr.offset()}") }
                         }
-
-                        logger.info("******************************************************************\n" +
-                                    "Acket oppdater oppgavemelding med offset: ${cr.offset()} i partisjon ${cr.partition()} \n" +
-                                    "******************************************************************")
                     }
                     acknowledgment.acknowledge()
                 } catch (ex: Exception) {
