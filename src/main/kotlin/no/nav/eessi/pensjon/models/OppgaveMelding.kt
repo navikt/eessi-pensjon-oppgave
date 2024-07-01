@@ -4,25 +4,25 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.oppgaverouting.Enhet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
+import no.nav.eessi.pensjon.shared.person.Fodselsnummer
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import java.time.LocalDateTime
 
-interface OppgaveTypeMelding
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class OppgaveMelding(
-    val sakNr: String?,
-    val sedType: SedType?,
-    val journalpostId: String?,
-    val tildeltEnhetsnr: String,
-    val aktoerId: String?,
+open class OppgaveMelding(
+    val sakNr: String? = null,
+    val sedType: SedType? = null,
+    val journalpostId: String? = null,
+    val tildeltEnhetsnr: String? = null,
+    val aktoerId: String? = null,
     val oppgaveType: String,
-    val rinaSakId: String,
-    val hendelseType: HendelseType,
+    val rinaSakId: String? = null,
+    val hendelseType: HendelseType = HendelseType.SENDT,
     val filnavn: String? = null,
-    val tema: String? = "PEN"
-    ) : OppgaveTypeMelding {
+    val tema: String? = "PEN",
+    val oppgaveMeldingType: OppgaveMeldingType  = OppgaveMeldingType.OPPRETT_OPPGAVE
+    ) {
     override fun toString(): String {
         return toJson()
     }
@@ -33,10 +33,8 @@ data class OppgaveMelding(
 
 data class OppdaterOppgaveMelding (
     val id: String,
-    val status: String,
-    val tildeltEnhetsnr: Enhet,
-    val tema: String
-    ) : OppgaveTypeMelding {
+    val status: String
+    ) : OppgaveMelding(oppgaveType = "BEHANDLE_SED", oppgaveMeldingType = OppgaveMeldingType.OPPDATER_OPPGAVE) {
     override fun toString(): String {
         return toJson()
     }
@@ -65,4 +63,9 @@ data class OppgaveMeldingResponse(
 
 enum class IdType {
     UTL_ORG
+}
+
+enum class OppgaveMeldingType {
+    OPPDATER_OPPGAVE,
+    OPPRETT_OPPGAVE
 }

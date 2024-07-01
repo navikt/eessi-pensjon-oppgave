@@ -59,12 +59,17 @@ class OppgaveListener(
                     } else {
                         logger.info("mottatt oppgavemelding : $melding")
 
-                        val oppgaveMelding = mapJsonToAny<OppgaveTypeMelding>(melding)
+                        val oppgaveMelding = mapJsonToAny<OppgaveMelding>(melding)
+                        if(oppgaveMelding.oppgaveMeldingType == OppgaveMeldingType.OPPRETT_OPPGAVE) {
+                            logger.info("Oppgavemelding er av type OppdaterOppgave")
+                            oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(oppgaveMelding)).also { logger.info("Acker opprett oppgave ${cr.offset()}") }
+                        } else {
+                            val opprettOppgave = mapJsonToAny<OppdaterOppgaveMelding>(melding)
+                            logger.info("Oppgavemelding er av type OpprettOppgave")
+                            oppgaveService.oppdaterOppgave(opprettOppgave).also { logger.info("Acker oppdater oppgave ${cr.offset()}") }
 
-                        when (oppgaveMelding) {
-                            is OppdaterOppgaveMelding -> oppgaveService.oppdaterOppgave(oppgaveMelding).also { logger.info("Acker oppdater oppgave ${cr.offset()}") }
-                            is OppgaveMelding -> oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(oppgaveMelding)).also { logger.info("Acker opprett oppgave ${cr.offset()}") }
                         }
+
                     }
                     acknowledgment.acknowledge()
                 } catch (ex: Exception) {
@@ -146,7 +151,7 @@ class OppgaveListener(
      * Genererer beskrivelse i format:
      * Utgående PXXXX - [nav på SEDen] / Rina saksnr: xxxxxx
      */
-    private fun genererBeskrivelseTekst(sedType: SedType, rinaSakId: String, hendelseType: HendelseType): String {
+    private fun genererBeskrivelseTekst(sedType: SedType, rinaSakId: String?, hendelseType: HendelseType): String {
         return if(hendelseType == HendelseType.MOTTATT) {
             "Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
         } else {
