@@ -11,6 +11,9 @@ kafka:
   oppgave:
     topic: privat-eessipensjon-oppgave-v1-test
     groupid: eessi-pensjon-group
+  oppdater-oppgave:
+    topic: privat-eessipensjon-oppdater-oppgave-v1-test
+    groupid: eessi-pensjon-group
 
 KAFKA_OPPGAVE_TOPIC: '${kafka.oppgave.topic}'
 NAIS_APP_NAME: 'eessi-pensjon-oppgave'
