@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.oppgaverouting.Enhet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
-import no.nav.eessi.pensjon.shared.person.Fodselsnummer
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import java.time.LocalDateTime
@@ -21,7 +20,6 @@ open class OppgaveMelding(
     val hendelseType: HendelseType = HendelseType.SENDT,
     val filnavn: String? = null,
     val tema: String? = "PEN",
-    val oppgaveMeldingType: OppgaveMeldingType  = OppgaveMeldingType.OPPRETT_OPPGAVE
     ) {
     override fun toString(): String {
         return toJson()
@@ -33,13 +31,15 @@ open class OppgaveMelding(
 
 data class OppdaterOppgaveMelding (
     val id: String,
-    val status: String
-    ) : OppgaveMelding(oppgaveType = "BEHANDLE_SED", oppgaveMeldingType = OppgaveMeldingType.OPPDATER_OPPGAVE) {
+    val status: String,
+    val tildeltEnhetsnr: Enhet,
+    val tema: String
+    ) {
     override fun toString(): String {
         return toJson()
     }
     companion object {
-        fun fromJson(json: String) = mapJsonToAny<OppgaveMelding>(json)
+        fun fromJson(json: String) = mapJsonToAny<OppdaterOppgaveMelding>(json)
     }
 }
 

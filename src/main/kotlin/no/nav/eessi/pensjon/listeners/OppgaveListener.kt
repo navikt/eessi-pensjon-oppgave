@@ -48,7 +48,6 @@ class OppgaveListener(
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
         MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
-
                 logger.info("******************************************************************\r\n" +
                         "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
                         "******************************************************************")
@@ -57,19 +56,10 @@ class OppgaveListener(
                     if (cr.offset() in listOf(70362L, 70648L)) {
                         logger.warn("Hopper over offset: ${cr.offset()} grunnet feil")
                     } else {
-                        logger.info("mottatt oppgavemelding : $melding")
-
-                        val oppgaveMelding = mapJsonToAny<OppgaveMelding>(melding)
-                        if(oppgaveMelding.oppgaveMeldingType == OppgaveMeldingType.OPPRETT_OPPGAVE) {
-                            logger.info("Oppgavemelding er av type OppdaterOppgave")
-                            oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(oppgaveMelding)).also { logger.info("Acker opprett oppgave ${cr.offset()}") }
-                        } else {
-                            val opprettOppgave = mapJsonToAny<OppdaterOppgaveMelding>(melding)
-                            logger.info("Oppgavemelding er av type OpprettOppgave")
-                            oppgaveService.oppdaterOppgave(opprettOppgave).also { logger.info("Acker oppdater oppgave ${cr.offset()}") }
-
-                        }
-
+                        logger.info("Mottatt OpprettOppgave melding : $melding")
+                        logger.info("Oppgavemelding er av type ")
+                        oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(mapJsonToAny<OppgaveMelding>(melding)))
+                            .also { logger.info("Acker opprett oppgave ${cr.offset()}") }
                     }
                     acknowledgment.acknowledge()
                 } catch (ex: Exception) {
@@ -77,6 +67,34 @@ class OppgaveListener(
                     throw RuntimeException(ex.message)
                 }
             latch.countDown()
+            }
+        }
+    }
+
+    @KafkaListener(
+        containerFactory = "aivenKafkaListenerContainerFactory",
+        topics = ["\${kafka.oppdater-oppgave.topic}"],
+        groupId = "\${kafka.oppgave.groupid}"
+    )
+    fun consumeOppdaterOppgaveMelding(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment, @Payload melding: String) {
+        MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
+            consumeOppgavemelding.measure {
+                logger.info(
+                    "******************************************************************\r\n" +
+                            "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
+                            "******************************************************************"
+                )
+
+                try {
+                    logger.info("Mottatt OppdaterOppgave melding : $melding")
+                    oppgaveService.oppdaterOppgave(mapJsonToAny<OppdaterOppgaveMelding>(melding))
+                        .also { logger.info("Acker oppdater oppgave ${cr.offset()}") }
+                    acknowledgment.acknowledge()
+                } catch (ex: Exception) {
+                    logger.error("Noe gikk galt under behandling av oppdater oppgave melding:\n $melding \n ${ex.message}", ex)
+                    throw RuntimeException(ex.message)
+                }
+                latch.countDown()
             }
         }
     }
