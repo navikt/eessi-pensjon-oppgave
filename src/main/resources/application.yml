@@ -3,6 +3,10 @@ kafka:
   oppgave:
     topic: ${KAFKA_OPPGAVE_TOPIC}
     groupid: 'eessi-pensjon-group'
+  oppdater-oppgave:
+    topic: ${KAFKA_OPPDATER_OPPGAVE_TOPIC}
+    groupid: 'eessi-pensjon-group'
+
 
 no.nav.security.jwt:
   client:

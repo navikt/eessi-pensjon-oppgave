@@ -38,6 +38,8 @@ spec:
       value: https://storage.googleapis.com
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q2
+    - name: KAFKA_OPPDATER_OPPGAVE_TOPIC
+      value: eessipensjon.privat-oppdater-oppgave-q2
     - name: AZURE_APP_SAF_CLIENT_ID
       value: dev-fss.teamdokumenthandtering.saf
 
