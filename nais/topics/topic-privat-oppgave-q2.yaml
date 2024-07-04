@@ -20,7 +20,7 @@ spec:
       access: read   # read, write, readwrite
     - team: eessipensjon
       application: eessi-pensjon-oppdater-oppgave-q2
-      access: readwrite   # read, write, readwrite
+      access: read   # read, write, readwrite
     - team: eessipensjon
       application: eessi-pensjon-journalforing-q2
       access: write
