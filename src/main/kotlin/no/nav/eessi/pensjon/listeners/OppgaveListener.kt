@@ -73,7 +73,7 @@ class OppgaveListener(
 
     @KafkaListener(
         containerFactory = "aivenKafkaListenerContainerFactory",
-        topics = ["\${kafka.oppdater-oppgave.topic}"],
+        topics = ["\${kafka.oppdateroppgave.topic}"],
         groupId = "\${kafka.oppgave.groupid}"
     )
     fun consumeOppdaterOppgaveMelding(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment, @Payload melding: String) {

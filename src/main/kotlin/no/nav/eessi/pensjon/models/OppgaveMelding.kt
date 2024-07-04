@@ -9,17 +9,17 @@ import no.nav.eessi.pensjon.utils.toJson
 import java.time.LocalDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-open class OppgaveMelding(
-    val sakNr: String? = null,
-    val sedType: SedType? = null,
-    val journalpostId: String? = null,
-    val tildeltEnhetsnr: String? = null,
-    val aktoerId: String? = null,
+data class OppgaveMelding(
+    val sakNr: String?,
+    val sedType: SedType?,
+    val journalpostId: String?,
+    val tildeltEnhetsnr: String,
+    val aktoerId: String?,
     val oppgaveType: String,
-    val rinaSakId: String? = null,
-    val hendelseType: HendelseType = HendelseType.SENDT,
+    val rinaSakId: String,
+    val hendelseType: HendelseType,
     val filnavn: String? = null,
-    val tema: String? = "PEN",
+    val tema: String? = "PEN"
     ) {
     override fun toString(): String {
         return toJson()
