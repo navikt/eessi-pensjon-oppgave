@@ -7,10 +7,9 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods
 import com.tngtech.archunit.library.Architectures.layeredArchitecture
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
-import no.nav.eessi.pensjon.EessiPensjonJournalforingApplication
+import no.nav.eessi.pensjon.EessiPensjonOppgaveApplication
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class ArchitectureTest {
@@ -18,8 +17,8 @@ class ArchitectureTest {
     companion object {
 
         @JvmStatic
-        private val root = EessiPensjonJournalforingApplication::class.qualifiedName!!
-                .replace("." + EessiPensjonJournalforingApplication::class.simpleName, "")
+        private val root = EessiPensjonOppgaveApplication::class.qualifiedName!!
+                .replace("." + EessiPensjonOppgaveApplication::class.simpleName, "")
 
         @JvmStatic
         lateinit var classesToAnalyze: JavaClasses

@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Profile
 @EnableJwtTokenValidation
 @EnableOAuth2Client(cacheEnabled = true)
 @SpringBootApplication
-class EessiPensjonJournalforingApplication
+class EessiPensjonOppgaveApplication
 
 fun main(args: Array<String>) {
-	runApplication<EessiPensjonJournalforingApplication>(*args)
+	runApplication<EessiPensjonOppgaveApplication>(*args)
 }
 
