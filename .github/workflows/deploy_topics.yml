@@ -21,6 +21,13 @@ jobs:
           CLUSTER: dev-gcp
           RESOURCE: nais/topics/topic-privat-oppgave-q2.yaml
 
+      - name: 'Deploy privat-oppdater-oppgave-q2 to eessipensjon namespace'
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: nais/topics/topic-privat-oppdater-oppgave-q2.yaml
+
       - name: 'Deploy privat-oppgave to eessipensjon namespace'
         uses: nais/deploy/actions/deploy@v1
         env:
