@@ -9,6 +9,6 @@ import org.springframework.context.annotation.Profile
 class EessiPensjonOppgaveApplicationTest
 
 fun main(args: Array<String>) {
-	runApplication<EessiPensjonJournalforingApplication>(*args)
+	runApplication<EessiPensjonOppgaveApplication>(*args)
 }
 
