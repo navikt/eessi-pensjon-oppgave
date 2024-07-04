@@ -11,7 +11,7 @@ kafka:
   oppgave:
     topic: privat-eessipensjon-oppgave-v1-test
     groupid: eessi-pensjon-group
-  oppdater-oppgave:
+  oppdateroppgave:
     topic: privat-eessipensjon-oppdater-oppgave-v1-test
     groupid: eessi-pensjon-group
 
