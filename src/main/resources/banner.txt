@@ -8,7 +8,7 @@
 
              -=<>=- Electronic Exchange of Social Security Information  -=<>=-
 
-    topic                           : ${KAFKA_OPPGAVE_TOPIC}
+    topic                           : ${KAFKA_OPPGAVE_TOPIC}, ${KAFKA_OPPDATER_OPPGAVE_TOPIC}
     namespace                       : ${NAIS_NAMESPACE}
     active-profiles                 : ${spring.profiles.active}
 
