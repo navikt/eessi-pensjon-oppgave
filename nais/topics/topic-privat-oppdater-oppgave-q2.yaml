@@ -1,7 +1,7 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-  name: privat-oppgave-q2
+  name: privat-oppdater-oppgave-q2
   namespace: eessipensjon
   labels:
     team: eessipensjon
@@ -21,6 +21,3 @@ spec:
     - team: eessipensjon
       application: eessi-pensjon-journalforing-q2
       access: write
-    - team: eessipensjon
-      application: eessi-pensjon-pdl-produsent-q2
-      access: write   # read, write, readwrit
