@@ -84,12 +84,15 @@ class OppgaveListener(
                             "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
                             "******************************************************************"
                 )
-
                 try {
                     logger.info("Mottatt OppdaterOppgave melding : $melding")
-                    oppgaveService.oppdaterOppgave(mapJsonToAny<OppdaterOppgaveMelding>(melding))
-                        .also { logger.info("Acker oppdater oppgave ${cr.offset()}") }
+                    val oppgaveMelding = mapJsonToAny<OppdaterOppgaveMelding>(melding)
+                    val oppgave = oppgaveService.hentAapenOppgave(oppgaveMelding.id)
+
+                    oppgaveService.oppdaterOppgave(oppgaveMelding.copy(id = oppgave?.id.toString()))
+                        .also { logger.info("Acker oppdater oppgave med id: ${oppgave?.id} med offset: ${cr.offset()}") }
                     acknowledgment.acknowledge()
+
                 } catch (ex: Exception) {
                     logger.error("Noe gikk galt under behandling av oppdater oppgave melding:\n $melding \n ${ex.message}", ex)
                     throw RuntimeException(ex.message)
