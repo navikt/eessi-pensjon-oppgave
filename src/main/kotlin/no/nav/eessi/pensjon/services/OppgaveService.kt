@@ -12,9 +12,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
+import java.net.http.HttpHeaders
 
 /**
  * @param metricsHelper Usually injected by Spring Boot, can be set manually in tests - no way to read metrics if not set.
@@ -64,10 +66,9 @@ class OppgaveService(
             try {
                 val requestBody = mapAnyToJson(oppgave, true)
                 logger.info("Oppdaterer oppgave: $requestBody")
-
-                val httpEntity = HttpEntity(requestBody)
-                val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver/${oppgave.id}", HttpMethod.PATCH, httpEntity, String::class.java)
-
+                val headers = org.springframework.http.HttpHeaders()
+                headers.contentType = MediaType.APPLICATION_JSON
+                val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver/${oppgave.id}", HttpMethod.PATCH, HttpEntity(requestBody, headers), String::class.java)
                 logger.info("""
                     | Oppdaterer oppgave av med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr}, tema: ${oppgave.tema}, status: ${oppgave.status} 
                     | Result: ${exchange.statusCode}""".trimMargin())
