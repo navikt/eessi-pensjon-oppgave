@@ -1,6 +1,5 @@
 package no.nav.eessi.pensjon.config
 
-import com.nimbusds.jwt.JWTClaimsSet
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
 import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
@@ -9,6 +8,7 @@ import no.nav.eessi.pensjon.shared.retry.IOExceptionRetryInterceptor
 import no.nav.security.token.support.client.core.ClientProperties
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -21,8 +21,8 @@ import org.springframework.http.client.*
 import org.springframework.web.client.DefaultResponseErrorHandler
 import org.springframework.web.client.ResponseErrorHandler
 import org.springframework.web.client.RestTemplate
-import java.time.Duration
 import java.util.*
+
 
 @Profile("prod", "test")
 @Configuration
@@ -54,7 +54,7 @@ class RestTemplateConfig(
                 RequestResponseLoggerInterceptor()
             )
             .build().apply {
-                requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
+                requestFactory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
             }
     }
 
