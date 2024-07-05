@@ -30,6 +30,7 @@ class OppgaveService(
 
     init {
         opprettoppgave = metricsHelper.init("opprettoppgave")
+        oppdateroppgave = metricsHelper.init("oppdateroppgave")
     }
 
     // https://oppgave.nais.preprod.local/?url=https://oppgave.nais.preprod.local/api/swagger.json#/v1oppgaver/opprettOppgave
@@ -60,7 +61,6 @@ class OppgaveService(
 
     fun oppdaterOppgave(oppgave: OppdaterOppgaveMelding) {
         oppdateroppgave.measure {
-
             try {
                 val requestBody = mapAnyToJson(oppgave, true)
                 logger.info("Oppdaterer oppgave: $requestBody")
