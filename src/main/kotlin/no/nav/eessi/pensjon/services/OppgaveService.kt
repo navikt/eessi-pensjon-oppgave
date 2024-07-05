@@ -66,8 +66,9 @@ class OppgaveService(
             try {
                 val requestBody = mapAnyToJson(oppgave, true)
                 logger.info("Oppdaterer oppgave: $requestBody")
-                val headers = org.springframework.http.HttpHeaders()
-                headers.contentType = MediaType.APPLICATION_JSON
+                val headers = org.springframework.http.HttpHeaders().apply {
+                    contentType = MediaType.APPLICATION_JSON
+                }
                 val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver/${oppgave.id}", HttpMethod.PATCH, HttpEntity(requestBody, headers), String::class.java)
                 logger.info("""
                     | Oppdaterer oppgave av med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr}, tema: ${oppgave.tema}, status: ${oppgave.status} 
