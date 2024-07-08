@@ -35,7 +35,6 @@ data class OppdaterOppgaveMelding (
     val tildeltEnhetsnr: Enhet,
     val tema: String,
     val aktoerId: String,
-    val bruker: Bruker
     ) {
     override fun toString(): String {
         return toJson()
@@ -44,11 +43,6 @@ data class OppdaterOppgaveMelding (
         fun fromJson(json: String) = mapJsonToAny<OppdaterOppgaveMelding>(json)
     }
 }
-
-data class Bruker(
-    val id: String,
-    val idType: String = "FNR"
-)
 
 data class OppgaveMeldingResponse(
     val id: String,
