@@ -95,7 +95,8 @@ class OppgaveListener(
                             oppgaveMelding.copy(
                                 id = oppgave.id.toString(),
                                 status = oppgave.status,
-                                tema = oppgave.tema
+                                tema = oppgave.tema,
+                                rinaSakId = null
                             )
                         ).also {
                             logger.info("Acker oppdater oppgave med id: ${oppgave.id} med offset: ${cr.offset()}")
