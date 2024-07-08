@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.oppgaverouting.Enhet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
+import no.nav.eessi.pensjon.services.saf.Bruker
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import java.time.LocalDateTime
@@ -33,7 +34,9 @@ data class OppdaterOppgaveMelding (
     val id: String,
     val status: String,
     val tildeltEnhetsnr: Enhet,
-    val tema: String
+    val tema: String,
+    val aktoerId: String,
+    val bruker: Bruker
     ) {
     override fun toString(): String {
         return toJson()
