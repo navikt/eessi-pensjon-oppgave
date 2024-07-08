@@ -90,11 +90,12 @@ class OppgaveListener(
                     val oppgave = oppgaveService.hentAapenOppgave(oppgaveMelding.id)
 
 
-                    if (oppgave?.id != null && oppgave.status != null) {
+                    if (oppgave?.id != null && oppgave.status != null && oppgave.tema != null) {
                         oppgaveService.oppdaterOppgave(
                             oppgaveMelding.copy(
                                 id = oppgave.id.toString(),
-                                status = oppgave.status
+                                status = oppgave.status,
+                                tema = oppgave.tema
                             )
                         ).also {
                             logger.info("Acker oppdater oppgave med id: ${oppgave.id} med offset: ${cr.offset()}")
@@ -102,7 +103,7 @@ class OppgaveListener(
                         acknowledgment.acknowledge()
                     }
                     else {
-                        logger.error("Mangler verdier for id: ${oppgave?.id} eller status: ${oppgave?.status}")
+                        logger.error("Mangler verdier for id: ${oppgave?.id}, status: ${oppgave?.status} eller tema: ${oppgave?.tema}")
                     }
 
                 } catch (ex: Exception) {
