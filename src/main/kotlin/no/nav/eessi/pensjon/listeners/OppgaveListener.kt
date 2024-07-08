@@ -89,9 +89,21 @@ class OppgaveListener(
                     val oppgaveMelding = mapJsonToAny<OppdaterOppgaveMelding>(melding)
                     val oppgave = oppgaveService.hentAapenOppgave(oppgaveMelding.id)
 
-                    oppgaveService.oppdaterOppgave(oppgaveMelding.copy(id = oppgave?.id.toString()))
-                        .also { logger.info("Acker oppdater oppgave med id: ${oppgave?.id} med offset: ${cr.offset()}") }
-                    acknowledgment.acknowledge()
+
+                    if (oppgave?.id != null && oppgave.status != null) {
+                        oppgaveService.oppdaterOppgave(
+                            oppgaveMelding.copy(
+                                id = oppgave.id.toString(),
+                                status = oppgave.status
+                            )
+                        ).also {
+                            logger.info("Acker oppdater oppgave med id: ${oppgave.id} med offset: ${cr.offset()}")
+                        }
+                        acknowledgment.acknowledge()
+                    }
+                    else {
+                        logger.error("Mangler verdier for id: ${oppgave?.id} eller status: ${oppgave?.status}")
+                    }
 
                 } catch (ex: Exception) {
                     logger.error("Noe gikk galt under behandling av oppdater oppgave melding:\n $melding \n ${ex.message}", ex)
