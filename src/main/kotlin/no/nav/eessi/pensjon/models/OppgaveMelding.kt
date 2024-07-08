@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.eessi.pensjon.eux.model.SedType
 import no.nav.eessi.pensjon.oppgaverouting.Enhet
 import no.nav.eessi.pensjon.oppgaverouting.HendelseType
-import no.nav.eessi.pensjon.services.saf.Bruker
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import java.time.LocalDateTime
@@ -45,6 +44,11 @@ data class OppdaterOppgaveMelding (
         fun fromJson(json: String) = mapJsonToAny<OppdaterOppgaveMelding>(json)
     }
 }
+
+data class Bruker(
+    val id: String,
+    val idType: String = "FNR"
+)
 
 data class OppgaveMeldingResponse(
     val id: String,
