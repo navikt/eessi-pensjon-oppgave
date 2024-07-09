@@ -11,9 +11,8 @@ import no.nav.eessi.pensjon.services.OppgaveService
 import no.nav.eessi.pensjon.utils.mapJsonToAny
 import no.nav.eessi.pensjon.utils.toJson
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.kafka.listener.AcknowledgingConsumerAwareMessageListener
+import org.junit.jupiter.api.assertThrows
 import org.springframework.kafka.support.Acknowledgment
 
 class OppgaveListenerTest {
@@ -23,7 +22,7 @@ class OppgaveListenerTest {
     private val oppgaveListener = OppgaveListener(oppgaveService)
 
     @Test
-    fun `should consume oppdater oppgave melding correctly`() {
+    fun `skal opprette en oppdater oppgave gitt en gyldig oppdater oppgave melding fra journalforing`() {
         // Given
         val consumerRecord = ConsumerRecord("topic", 0, 0L, "key", "value")
         val oppgaveMelding = oppgaveFraJson()
@@ -39,6 +38,27 @@ class OppgaveListenerTest {
         verify { oppgaveService.oppdaterOppgave(mapJsonToAny(meldingFraJournalf())) }
         verify { acknowledgment.acknowledge() }
     }
+
+    @Test
+    fun `skal kaste RuntimeException naar det er mangler ved oppgave fra journalforing`() {
+        //given
+        val consumerRecordMock = mockk<ConsumerRecord<String, String>>()
+        val acknowledgmentMock = mockk<Acknowledgment>()
+        val oppgaveMelding = OppdaterOppgaveMelding("id", "status", Enhet.UFORE_UTLAND, "tema", "aktoerId", "rinaSakId")
+
+        //when
+        every { oppgaveService.hentAapenOppgave(eq(oppgaveMelding.id))} returns Oppgave()
+
+        //then
+        assertThrows<RuntimeException> {
+            oppgaveListener.consumeOppdaterOppgaveMelding(
+                consumerRecordMock,
+                acknowledgmentMock,
+                oppgaveMelding.toJson()
+            )
+        }
+    }
+
 
 
     private fun meldingFraJournalf(): String {

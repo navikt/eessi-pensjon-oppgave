@@ -48,11 +48,7 @@ class OppgaveListener(
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
         MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
-                logger.info("""
-                    | ******************************************************************
-                    | "Innkommet lag-oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}
-                    | ****************************************************************** """.trimMargin())
-
+                logInnkommetMelding(cr)
                 try {
                     if (cr.offset() in listOf(70362L, 70648L)) {
                         logger.warn("Hopper over offset: ${cr.offset()} grunnet feil")
@@ -75,37 +71,30 @@ class OppgaveListener(
         topics = ["\${kafka.oppdateroppgave.topic}"],
         groupId = "\${kafka.oppgave.groupid}"
     )
-    fun consumeOppdaterOppgaveMelding(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment, @Payload melding: String) {
+    fun consumeOppdaterOppgaveMelding( cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment,@Payload melding: String ) {
         MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
-                logger.info("""
-                    | ******************************************************************
-                    | "Innkommet opprett-oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}
-                    | ****************************************************************** """.trimMargin())
-
+                logInnkommetMelding(cr)
                 try {
                     logger.info("Mottatt OppdaterOppgave melding : $melding")
                     val oppgaveMelding = mapJsonToAny<OppdaterOppgaveMelding>(melding)
                     val oppgave = oppgaveService.hentAapenOppgave(oppgaveMelding.id)
 
-
-                    if (oppgave?.id != null && oppgave.status != null && oppgave.tema != null) {
+                    if (erGyldigOppgave(oppgave)) {
                         oppgaveService.oppdaterOppgave(
                             oppgaveMelding.copy(
-                                id = oppgave.id.toString(),
-                                status = oppgave.status,
-                                tema = oppgave.tema,
+                                id = oppgave?.id.toString(),
+                                status = oppgave?.status!!,
+                                tema = oppgave.tema!!,
                                 rinaSakId = null
                             )
                         )
                         acknowledgment.acknowledge().also {
                             logger.info("Acker oppdater oppgave med id: ${oppgave.id} med offset: ${cr.offset()}")
                         }
+                    } else {
+                        throw RuntimeException("Mangler verdier ${oppgave?.id}, status: ${oppgave?.status} or theme: ${oppgave?.tema}")
                     }
-                    else {
-                        throw RuntimeException("Mangler verdier for id: ${oppgave?.id}, status: ${oppgave?.status} eller tema: ${oppgave?.tema}")
-                    }
-
                 } catch (ex: Exception) {
                     logger.error("Noe gikk galt under behandling av oppdater oppgave melding:\n $melding \n ${ex.message}", ex)
                     throw RuntimeException(ex.message)
@@ -113,6 +102,19 @@ class OppgaveListener(
                 latch.countDown()
             }
         }
+    }
+
+    private fun logInnkommetMelding(cr: ConsumerRecord<String, String>) {
+        logger.info(
+            """
+                | ******************************************************************
+                | "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}
+                | ****************************************************************** """.trimMargin()
+        )
+    }
+
+    private fun erGyldigOppgave(oppgave: Oppgave?): Boolean {
+        return oppgave?.id != null && oppgave.status != null && oppgave.tema != null
     }
 
     fun opprettOppgave(opprettOppgave: OppgaveMelding): Oppgave {
