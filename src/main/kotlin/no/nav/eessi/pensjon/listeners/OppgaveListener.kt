@@ -48,9 +48,10 @@ class OppgaveListener(
     fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
         MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
-                logger.info("******************************************************************\r\n" +
-                        "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
-                        "******************************************************************")
+                logger.info("""
+                    | ******************************************************************
+                    | "Innkommet lag-oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}
+                    | ****************************************************************** """.trimMargin())
 
                 try {
                     if (cr.offset() in listOf(70362L, 70648L)) {
@@ -79,11 +80,11 @@ class OppgaveListener(
     fun consumeOppdaterOppgaveMelding(cr: ConsumerRecord<String, String>, acknowledgment: Acknowledgment, @Payload melding: String) {
         MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
-                logger.info(
-                    "******************************************************************\r\n" +
-                            "Innkommet oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()} \r\n" +
-                            "******************************************************************"
-                )
+                logger.info("""
+                    | ******************************************************************
+                    | "Innkommet opprett-oppgave hendelse i partisjon: ${cr.partition()}, med offset: ${cr.offset()}
+                    | ****************************************************************** """.trimMargin())
+
                 try {
                     logger.info("Mottatt OppdaterOppgave melding : $melding")
                     val oppgaveMelding = mapJsonToAny<OppdaterOppgaveMelding>(melding)
