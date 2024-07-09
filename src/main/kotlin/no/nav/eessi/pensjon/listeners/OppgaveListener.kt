@@ -103,7 +103,7 @@ class OppgaveListener(
                         }
                     }
                     else {
-                        logger.error("Mangler verdier for id: ${oppgave?.id}, status: ${oppgave?.status} eller tema: ${oppgave?.tema}")
+                        throw RuntimeException("Mangler verdier for id: ${oppgave?.id}, status: ${oppgave?.status} eller tema: ${oppgave?.tema}")
                     }
 
                 } catch (ex: Exception) {
