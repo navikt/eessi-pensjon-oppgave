@@ -58,11 +58,9 @@ class OppgaveListener(
                         logger.warn("Hopper over offset: ${cr.offset()} grunnet feil")
                     } else {
                         logger.info("Mottatt OpprettOppgave melding : $melding")
-                        logger.info("Oppgavemelding er av type ")
                         oppgaveService.opprettOppgaveSendOppgaveInn(opprettOppgave(mapJsonToAny<OppgaveMelding>(melding)))
-                            .also { logger.info("Acker opprett oppgave ${cr.offset()}") }
                     }
-                    acknowledgment.acknowledge()
+                    acknowledgment.acknowledge().also { logger.info("Acker opprett oppgave ${cr.offset()}") }
                 } catch (ex: Exception) {
                     logger.error("Noe gikk galt under behandling av oppgavemelding:\n $melding \n ${ex.message}", ex)
                     throw RuntimeException(ex.message)
@@ -99,10 +97,10 @@ class OppgaveListener(
                                 tema = oppgave.tema,
                                 rinaSakId = null
                             )
-                        ).also {
+                        )
+                        acknowledgment.acknowledge().also {
                             logger.info("Acker oppdater oppgave med id: ${oppgave.id} med offset: ${cr.offset()}")
                         }
-                        acknowledgment.acknowledge()
                     }
                     else {
                         logger.error("Mangler verdier for id: ${oppgave?.id}, status: ${oppgave?.status} eller tema: ${oppgave?.tema}")
