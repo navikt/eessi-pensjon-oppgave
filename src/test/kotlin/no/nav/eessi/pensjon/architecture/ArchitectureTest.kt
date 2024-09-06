@@ -57,7 +57,7 @@ class ArchitectureTest {
         val packages: Map<String, String> = mapOf(
                 ROOT to root,
                 Config to "$root.config",
-                Health to "$root.health",
+                Health to "$root.shared.api.health",
                 Listeners to "$root.listeners",
                 OppgaveService to "$root.services",
         )
