@@ -24,6 +24,8 @@ class OppgaveService(
     @Autowired(required = false) private val metricsHelper: MetricsHelper = MetricsHelper.ForTest()
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLog")
+
     private lateinit var opprettoppgave: MetricsHelper.Metric
 
     init {
@@ -42,7 +44,7 @@ class OppgaveService(
 
                 val httpEntity = HttpEntity(requestBody)
                 val exchange = oppgaveOAuthRestTemplate.exchange("/api/v1/oppgaver", HttpMethod.POST, httpEntity, String::class.java)
-
+                secureLogger.info("""Response fra opprettet oppgave:   |${exchange.body}""".trimMargin())
                 logger.info("""
                     | Opprettet oppgave av type ${oppgave.oppgavetype} med tildeltEnhetsnr:  ${oppgave.tildeltEnhetsnr} 
                     | Result: ${exchange.statusCode}""".trimMargin())
