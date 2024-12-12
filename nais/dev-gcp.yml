@@ -10,6 +10,8 @@ spec:
     pool: nav-dev
   envFrom:
     - secret: eessi-pensjon-oppgave # value is the secret name in Google Secret Manager
+  secureLogs:
+    enabled: true
   azure:
     application:
       enabled: true
