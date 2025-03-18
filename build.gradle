@@ -69,7 +69,7 @@ dependencies {
     implementation("org.hibernate.validator:hibernate-validator")
 
     //GCP
-    implementation("com.google.cloud:google-cloud-storage:2.49.0")
+    implementation("com.google.cloud:google-cloud-storage:2.50.0")
 
     // TEST
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
