@@ -47,7 +47,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.5")
     implementation("no.nav.eessi.pensjon:ep-metrics:2.0.111")
     implementation("no.nav.eessi.pensjon:ep-eux:2.4.54")
-    implementation("no.nav.eessi.pensjon:ep-routing:2.0.211"){
+    implementation("no.nav.eessi.pensjon:ep-routing:2.0.221"){
         exclude module: 'ep-eux'
         exclude module: 'ep-metrics'
         exclude module: 'ep-logging'
