@@ -44,7 +44,7 @@ jobs:
         id: docker-build-push
         with:
           team: eessipensjon
-          project_id: nais-management-233d # required, but is defined as an organization variable
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }} # required, but is defined as an organization secret
 
       - name: 'Image navn'

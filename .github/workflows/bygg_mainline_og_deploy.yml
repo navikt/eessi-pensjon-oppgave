@@ -44,7 +44,7 @@ jobs:
           tag: ${{ github.event.repository.name }}
           pull: true
           image_suffix: ${{ env.DATE }}${{ env.COMMIT_HASH }} # optional, default empty
-          project_id: nais-management-233d # required, but is defined as an organization variable
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }} # required, but is defined as an organization secret
 
       - name: 'Deploy image'
