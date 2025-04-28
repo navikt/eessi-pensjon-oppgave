@@ -102,4 +102,5 @@ class OppgaveListenerTest {
     fun `BehandleSedBeskrivelse returnerer tom streng dersom oppgavetype ikke er BEHANDLE_SED` () {
         assertEquals("", oppgaveListener.behandleSedBeskrivelse(OppgaveMelding(null, P11000, null, "", null, "JOURNALFORING", "", MOTTATT, null)))
     }
+
 }
