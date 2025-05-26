@@ -47,7 +47,11 @@ class OppgaveListener(
             topics = ["\${kafka.oppgave.topic}"],
             groupId = "\${kafka.oppgave.groupid}"
     )
-    fun consumeOppgaveMelding(cr: ConsumerRecord<String, String>,  acknowledgment: Acknowledgment, @Payload melding: String) {
+    fun consumeOppgaveMelding(
+        cr: ConsumerRecord<String, String>,
+        acknowledgment: Acknowledgment,
+        @Payload melding: String
+    ) {
         MDC.putCloseable(X_REQUEST_ID, createUUID(cr)).use {
             consumeOppgavemelding.measure {
 
@@ -139,7 +143,8 @@ class OppgaveListener(
             genererBeskrivelseTekst(
                 sedType,
                 opprettOppgave.rinaSakId,
-                opprettOppgave.hendelseType
+                opprettOppgave.hendelseType,
+                opprettOppgave.sendeAdvarsel
             )
         } ?: throw RuntimeException("feiler med sedtype")
     }
@@ -148,11 +153,23 @@ class OppgaveListener(
      * Genererer beskrivelse i format:
      * Utgående PXXXX - [nav på SEDen] / Rina saksnr: xxxxxx
      */
-    private fun genererBeskrivelseTekst(sedType: SedType, rinaSakId: String, hendelseType: HendelseType): String {
-        return if(hendelseType == HendelseType.MOTTATT) {
-            "Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
-        } else {
-            "Utgående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
+    private fun genererBeskrivelseTekst(
+        sedType: SedType,
+        rinaSakId: String,
+        hendelseType: HendelseType,
+        sendeAdvarsel: Boolean? = false
+    ): String {
+        return when (hendelseType) {
+            HendelseType.MOTTATT ->
+                if (sendeAdvarsel == false )
+                    "Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
+                else
+                    "Obs avvikende opplysninger i SED. Inngående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
+            else ->
+                if (sendeAdvarsel == false )
+                    "Utgående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
+                else
+                    "Obs avvikende opplysninger i SED. Utgående $sedType - ${sedType.beskrivelse} / Rina saksnr: $rinaSakId"
         }
     }
 
