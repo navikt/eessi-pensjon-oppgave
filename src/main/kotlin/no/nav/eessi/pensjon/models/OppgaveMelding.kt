@@ -18,7 +18,8 @@ data class OppgaveMelding(
     val rinaSakId: String,
     val hendelseType: HendelseType,
     val filnavn: String? = null,
-    val tema: String? = "PEN"
+    val tema: String? = Tema.PENSJON.kode,
+    val sendeAdvarsel: Boolean? = false,
     ) {
     override fun toString(): String {
         return toJson()
