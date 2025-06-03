@@ -79,7 +79,7 @@ dependencies {
     }
     testImplementation "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0")
 
     testImplementation("org.mock-server:mockserver-netty:5.15.0")
     testImplementation("io.mockk:mockk:1.14.2")
