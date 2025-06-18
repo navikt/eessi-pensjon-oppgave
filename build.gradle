@@ -45,7 +45,7 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
-    implementation("no.nav.eessi.pensjon:ep-metrics:2.0.119")
+    implementation("no.nav.eessi.pensjon:ep-metrics:2.0.126")
     implementation("no.nav.eessi.pensjon:ep-eux:2.4.67")
     implementation("no.nav.eessi.pensjon:ep-routing:2.0.236"){
         exclude module: 'ep-eux'
