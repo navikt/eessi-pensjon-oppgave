@@ -4,7 +4,7 @@ buildscript {
         springBootVersion = '3.5.3'
         springKafkaVersion = '3.3.7'
         archunitVersion = '1.4.1'
-        tokenSupportVersion = '5.0.29'
+        tokenSupportVersion = '5.0.30'
 
         // TEST
         ninjaMockkVersion = '4.0.2'
