@@ -24,30 +24,32 @@ spec:
   accessPolicy:
     outbound:
       external:
+        - host: saf-q2.dev-fss-pub.nais.io
         - host: oppgave.dev-fss-pub.nais.io
         - host: eessi-pensjon-journalforing-q2.intern.dev.nav.no
-        - host: saf-q2.dev-fss-pub.nais.io
-        - host: eux-rina-api-gcp-q2.intern.dev.nav.no
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: test
-    - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
-      value: SSL://b27apvl00045.preprod.local:8443,SSL://b27apvl00046.preprod.local:8443,SSL://b27apvl00047.preprod.local:8443
+
     - name: OPPGAVE_OPPGAVER_URL
       value: https://oppgave.dev-fss-pub.nais.io
-    - name: OPPGAVE_CLIENT_ID
-      value: dev-fss.oppgavehandtering.oppgave
-#      value: 41ca50ba-e44f-4bc8-9e31-b745a0041926
     - name: SAF_GRAPHQL_URL
       value: https://saf-q2.dev-fss-pub.nais.io/graphql
-    - name: GCP_BUCKET_NAME
-      value: eessi-pensjon-oppgave-q2
     - name: GCP_STORAGE_API_URL
       value: https://storage.googleapis.com
+    - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
+      value: SSL://b27apvl00045.preprod.local:8443,SSL://b27apvl00046.preprod.local:8443,SSL://b27apvl00047.preprod.local:8443
+
+    - name: GCP_BUCKET_NAME
+      value: eessi-pensjon-oppgave-q2
+
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave-q2
     - name: KAFKA_OPPDATEROPPGAVE_TOPIC
       value: eessipensjon.privat-oppdater-oppgave-q2
+
+    - name: OPPGAVE_CLIENT_ID
+      value: dev-fss.oppgavehandtering.oppgave
     - name: AZURE_APP_SAF_CLIENT_ID
       value: dev-fss.teamdokumenthandtering.saf
 

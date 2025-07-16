@@ -23,26 +23,29 @@ spec:
   accessPolicy:
     outbound:
       external:
+        - host: saf.prod-fss-pub.nais.io
         - host: oppgave.prod-fss-pub.nais.io
         - host: eessi-pensjon-journalforing.intern.nav.no
-        - host: saf.prod-fss-pub.nais.io
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod
-    - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
-      value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
-    - name: OPPGAVE_OPPGAVER_URL
-      value: https://oppgave.prod-fss-pub.nais.io
-    - name: OPPGAVE_CLIENT_ID
-      value: prod-fss.oppgavehandtering.oppgave
+
+    - name: GCP_STORAGE_API_URL
+      value: https://storage.googleapis.com
     - name: SAF_GRAPHQL_URL
       value: https://saf.prod-fss-pub.nais.io/graphql
+    - name: OPPGAVE_OPPGAVER_URL
+      value: https://oppgave.prod-fss-pub.nais.io
+    - name: ONPREM_KAFKA_BOOTSTRAP_SERVERS_URL
+      value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
+
     - name: KAFKA_OPPGAVE_TOPIC
       value: eessipensjon.privat-oppgave
     - name: GCP_BUCKET_NAME
       value: eessi-pensjon-oppgave
-    - name: GCP_STORAGE_API_URL
-      value: https://storage.googleapis.com
+
+    - name: OPPGAVE_CLIENT_ID
+      value: prod-fss.oppgavehandtering.oppgave
     - name: AZURE_APP_SAF_CLIENT_ID
       value: prod-fss.teamdokumenthandtering.saf
 
