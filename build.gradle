@@ -45,9 +45,9 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.2")
-    implementation("no.nav.eessi.pensjon:ep-metrics:2.1.1")
-    implementation("no.nav.eessi.pensjon:ep-eux:2.5.1")
-    implementation("no.nav.eessi.pensjon:ep-routing:2.1.20"){
+    implementation("no.nav.eessi.pensjon:ep-metrics:2.1.4")
+    implementation("no.nav.eessi.pensjon:ep-eux:2.5.5")
+    implementation("no.nav.eessi.pensjon:ep-routing:2.1.26"){
         exclude module: 'ep-eux'
         exclude module: 'ep-metrics'
         exclude module: 'ep-logging'
@@ -58,7 +58,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     configurations { all*.exclude group: 'commons-logging', module: 'commons-logging' }
     implementation("org.slf4j:jcl-over-slf4j:2.0.17")
-    implementation("no.nav.eessi.pensjon:ep-logging:2.3.4")
+    implementation("no.nav.eessi.pensjon:ep-logging:2.3.5")
 
     //Auth
     implementation("no.nav.security:token-client-spring:${tokenSupportVersion}")
