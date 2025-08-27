@@ -1,6 +1,5 @@
 package no.nav.eessi.pensjon.config
 
-import com.nimbusds.jwt.JWTClaimsSet
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.eessi.pensjon.logging.RequestIdHeaderInterceptor
 import no.nav.eessi.pensjon.logging.RequestResponseLoggerInterceptor
@@ -17,11 +16,14 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
-import org.springframework.http.client.*
+import org.springframework.http.client.BufferingClientHttpRequestFactory
+import org.springframework.http.client.ClientHttpRequestExecution
+import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.ClientHttpResponse
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.DefaultResponseErrorHandler
 import org.springframework.web.client.ResponseErrorHandler
 import org.springframework.web.client.RestTemplate
-import java.time.Duration
 import java.util.*
 
 @Profile("prod", "test")
@@ -41,27 +43,12 @@ class RestTemplateConfig(
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
     @Bean("oppgaveOAuthRestTemplate")
-    internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
-        val clientProperties = clientProperties("oppgave-credentials")
-        return templateBuilder
-            .rootUri(oppgaveUrl)
-            .additionalInterceptors(
-                RequestIdHeaderInterceptor(),
-                IOExceptionRetryInterceptor(),
-                oAuth2BearerTokenInterceptor(clientProperties, oAuth2AccessTokenService),
-                RequestCountInterceptor(meterRegistry),
-                RequestInterceptor(),
-                RequestResponseLoggerInterceptor()
-            )
-            .build().apply {
-                requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
-            }
-    }
+    internal fun oppgaveOAuthRestTemplate() = restTemplate(oppgaveUrl, oAuth2BearerTokenInterceptor(clientProperties("oppgave-credentials"), oAuth2AccessTokenService!!))
 
     @Bean("safGraphQlOidcRestTemplate")
     fun safGraphQlOidcRestTemplate() = restTemplate(graphQlUrl, oAuth2BearerTokenInterceptor(clientProperties("saf-credentials"), oAuth2AccessTokenService!!))
 
-    private fun restTemplate(url: String, tokenIntercetor: ClientHttpRequestInterceptor?, defaultErrorHandler: ResponseErrorHandler = DefaultResponseErrorHandler()) : RestTemplate {
+    private fun restTemplate(url: String, tokenInterceptor: ClientHttpRequestInterceptor?, defaultErrorHandler: ResponseErrorHandler = DefaultResponseErrorHandler()) : RestTemplate {
         logger.info("init restTemplate: $url")
         return RestTemplateBuilder()
             .rootUri(url)
@@ -70,14 +57,14 @@ class RestTemplateConfig(
                 RequestIdHeaderInterceptor(),
                 IOExceptionRetryInterceptor(),
                 RequestCountInterceptor(meterRegistry),
+                RequestInterceptor(),
                 RequestResponseLoggerInterceptor(),
-                tokenIntercetor
+                tokenInterceptor
             )
             .build().apply {
                 requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
             }
     }
-
 
     private fun clientProperties(oAuthKey: String): ClientProperties {
         return Optional.ofNullable(clientConfigurationProperties.registration[oAuthKey])
