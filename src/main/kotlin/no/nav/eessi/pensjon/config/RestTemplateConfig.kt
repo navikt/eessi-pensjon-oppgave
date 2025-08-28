@@ -41,9 +41,9 @@ class RestTemplateConfig(
     private val logger = LoggerFactory.getLogger(RestTemplateConfig::class.java)
 
     @Bean("oppgaveOAuthRestTemplate")
-    internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
+    internal fun oppgaveOAuthRestTemplate(oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         val clientProperties = clientProperties("oppgave-credentials")
-        return templateBuilder
+        return RestTemplateBuilder()
             .rootUri(oppgaveUrl)
             .additionalInterceptors(
                 RequestIdHeaderInterceptor(),
