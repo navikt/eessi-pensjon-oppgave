@@ -90,7 +90,7 @@ class OppgaveService(
 
     fun countEnthet(tildeltEnhetsnr: String?) {
         try {
-            Metrics.counter("TildeltEnhet",   "enhet", tildeltEnhetsnr).increment()
+            tildeltEnhetsnr?.let { Metrics.counter("TildeltEnhet",   "enhet", it) }?.increment()
         } catch (e: Exception) {
             logger.warn("Metrics feilet på enhet: $tildeltEnhetsnr")
         }
