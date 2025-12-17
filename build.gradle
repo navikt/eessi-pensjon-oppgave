@@ -66,9 +66,6 @@ dependencies {
     implementation("no.nav.security:token-validation-spring:${tokenSupportVersion}")
     implementation("no.nav.security:token-validation-jaxrs:${tokenSupportVersion}")
 
-    //nødvendig for validering av jwt og EnableJwtTokenValidationConfiguration
-    implementation("org.hibernate.validator:hibernate-validator:9.0.1.Final")
-
     //GCP
     implementation("com.google.cloud:google-cloud-storage:2.59.0")
 
