@@ -26,7 +26,7 @@ class OppgaveService(
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private val secureLogger = LoggerFactory.getLogger("secureLog")
 
-    private lateinit var opprettoppgave: MetricsHelper.Metric
+    private var opprettoppgave: MetricsHelper.Metric
 
     init {
         opprettoppgave = metricsHelper.init("opprettoppgave")

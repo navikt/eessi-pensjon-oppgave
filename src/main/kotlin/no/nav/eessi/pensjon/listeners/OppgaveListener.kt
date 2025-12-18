@@ -32,7 +32,7 @@ class OppgaveListener(
     private val logger = LoggerFactory.getLogger(OppgaveListener::class.java)
     private val latch = CountDownLatch(6)
 
-    private lateinit var consumeOppgavemelding: MetricsHelper.Metric
+    private var consumeOppgavemelding: MetricsHelper.Metric
 
     init {
         consumeOppgavemelding = metricsHelper.init("consumeOppgavemelding")
