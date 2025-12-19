@@ -1,7 +1,7 @@
 buildscript {
     ext {
         kotlinVersion = '2.3.0'
-        springBootVersion = '4.0.0'
+        springBootVersion = '4.0.1'
         springKafkaVersion = '4.0.1'
         archunitVersion = '1.4.1'
         tokenSupportVersion = '6.0.0'
@@ -32,7 +32,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-restclient")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-aop:3.5.8")
+    implementation("org.springframework.boot:spring-boot-starter-aop:3.5.9")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Spring Framework BOM-fil overstyrer så vi får siste patch-versjon av Spring Framework
