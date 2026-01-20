@@ -15,13 +15,14 @@ spec:
     pool: nav-prod
   envFrom:
     - secret: oppgave # value is the secret name in Google Secret Manager
-  secureLogs:
-    enabled: true
   azure:
     application:
       enabled: true
   accessPolicy:
     outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
       external:
         - host: saf.prod-fss-pub.nais.io
         - host: oppgave.prod-fss-pub.nais.io
@@ -79,8 +80,7 @@ spec:
     cpuThresholdPercentage: 50
   resources:
     limits:
-      cpu: 2000m
       memory: 512Mi
     requests:
       cpu: 200m
-      memory: 352Mi
+      memory: 500Mi

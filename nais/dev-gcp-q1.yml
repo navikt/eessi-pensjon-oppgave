@@ -23,6 +23,9 @@ spec:
     #oppgave_clientid: dev-fss.oppgavehandtering.oppgave
   accessPolicy:
     outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
       external:
         - host: oppgave-q1.dev-fss-pub.nais.io
         - host: eessi-pensjon-journalforing-q1.intern.dev.nav.no
@@ -47,6 +50,9 @@ spec:
       value: eessipensjon.privat-oppgave-q1
     - name: AZURE_APP_SAF_CLIENT_ID
       value: dev-fss.teamdokumenthandtering.saf
+
+    - name: ENV
+      value: q1
 
   gcp:
     buckets:
@@ -78,7 +84,6 @@ spec:
     cpuThresholdPercentage: 50
   resources:
     limits:
-      cpu: 4000m
       memory: 512Mi
     requests:
       cpu: 200m

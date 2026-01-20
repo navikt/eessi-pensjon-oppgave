@@ -297,15 +297,15 @@ class OppgaveIntegrationTest {
 
     private fun settOppProducerTemplate(): KafkaTemplate<String, String> {
         return KafkaTemplate<String, String>(DefaultKafkaProducerFactory(KafkaTestUtils.producerProps(embeddedKafka.brokersAsString))).apply {
-            defaultTopic = OPPGAVE_TOPIC
+            setDefaultTopic( OPPGAVE_TOPIC )
         }
     }
 
     private fun initConsumer(): KafkaMessageListenerContainer<String, String> {
         val consumerProperties = KafkaTestUtils.consumerProps(
+            embeddedKafka,
             UUID.randomUUID().toString(),
-            "false",
-            embeddedKafka
+            false
         )
         consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 

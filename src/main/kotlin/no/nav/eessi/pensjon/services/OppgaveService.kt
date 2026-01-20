@@ -26,7 +26,7 @@ class OppgaveService(
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
     private val secureLogger = LoggerFactory.getLogger("secureLog")
 
-    private lateinit var opprettoppgave: MetricsHelper.Metric
+    private var opprettoppgave: MetricsHelper.Metric
 
     init {
         opprettoppgave = metricsHelper.init("opprettoppgave")
@@ -90,7 +90,7 @@ class OppgaveService(
 
     fun countEnthet(tildeltEnhetsnr: String?) {
         try {
-            Metrics.counter("TildeltEnhet",   "enhet", tildeltEnhetsnr).increment()
+            tildeltEnhetsnr?.let { Metrics.counter("TildeltEnhet",   "enhet", it) }?.increment()
         } catch (e: Exception) {
             logger.warn("Metrics feilet på enhet: $tildeltEnhetsnr")
         }

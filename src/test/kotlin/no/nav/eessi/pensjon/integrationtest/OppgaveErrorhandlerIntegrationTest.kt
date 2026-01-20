@@ -140,12 +140,12 @@ class OppgaveErrorhandlerIntegrationTest {
 
     private fun settOppProducerTemplate(): KafkaTemplate<String, String> {
         return KafkaTemplate(DefaultKafkaProducerFactory(producerProps(embeddedKafka.brokersAsString), StringSerializer(), StringSerializer())).apply {
-                defaultTopic = OPPGAVE_TOPIC
+                setDefaultTopic( OPPGAVE_TOPIC)
             }
     }
 
     private fun settOppUtitlityConsumer(): KafkaMessageListenerContainer<String, String> {
-        val consumerProperties = consumerProps("eessi-pensjon-group2", "false", embeddedKafka)
+        val consumerProperties = consumerProps(embeddedKafka, "eessi-pensjon-group2", false)
         consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 
         val consumerFactory = DefaultKafkaConsumerFactory(consumerProperties, StringDeserializer(), StringDeserializer())
