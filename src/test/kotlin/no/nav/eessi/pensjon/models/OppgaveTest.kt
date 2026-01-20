@@ -43,4 +43,5 @@ class OppgaveTest {
         val oppgaveFraJson = mapJsonToAny<OppgaveResponse>(json)
         JSONAssert.assertEquals(json, oppgaveFraJson.toJson(), false)
     }
+
 }
