@@ -128,6 +128,7 @@ class OppgaveErrorhandlerIntegrationTest {
         """.trimIndent()))
 
         oppgaveListener.getLatch().await(10, TimeUnit.SECONDS)
+
     }
 
     private fun produserOppgaveHendelser(template: KafkaTemplate<String, String>) {
