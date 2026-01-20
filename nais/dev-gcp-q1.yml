@@ -49,6 +49,9 @@ spec:
     - name: AZURE_APP_SAF_CLIENT_ID
       value: dev-fss.teamdokumenthandtering.saf
 
+    - name: ENV
+      value: q1
+
   gcp:
     buckets:
       - name: eessi-pensjon-oppgave-q1
