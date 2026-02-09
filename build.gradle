@@ -33,7 +33,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-restclient")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-aop:3.5.9")
+    implementation("org.springframework.boot:spring-boot-starter-aop:3.5.10")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Spring Framework BOM-fil overstyrer så vi får siste patch-versjon av Spring Framework
