@@ -24,7 +24,7 @@ class RestTemplateConfig {
     @Bean
     fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder): RestTemplate {
         return templateBuilder
-                .rootUri(oppgaveUrl)
+                .baseUri(oppgaveUrl)
                 .additionalInterceptors(
                         RequestIdHeaderInterceptor(),
                         RequestResponseLoggerInterceptor(),

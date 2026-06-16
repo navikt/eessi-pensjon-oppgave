@@ -44,7 +44,7 @@ class RestTemplateConfig(
     internal fun oppgaveOAuthRestTemplate(templateBuilder: RestTemplateBuilder, clientConfigurationProperties: ClientConfigurationProperties, oAuth2AccessTokenService: OAuth2AccessTokenService): RestTemplate {
         val clientProperties = clientProperties("oppgave-credentials")
         return templateBuilder
-            .rootUri(oppgaveUrl)
+            .baseUri(oppgaveUrl)
             .additionalInterceptors(
                 RequestIdHeaderInterceptor(),
                 IOExceptionRetryInterceptor(),
@@ -64,7 +64,7 @@ class RestTemplateConfig(
     private fun restTemplate(url: String, tokenIntercetor: ClientHttpRequestInterceptor, defaultErrorHandler: ResponseErrorHandler = DefaultResponseErrorHandler()) : RestTemplate {
         logger.info("init restTemplate: $url")
         return RestTemplateBuilder()
-            .rootUri(url)
+            .baseUri(url)
             .errorHandler(defaultErrorHandler)
             .additionalInterceptors(
                 RequestIdHeaderInterceptor(),
