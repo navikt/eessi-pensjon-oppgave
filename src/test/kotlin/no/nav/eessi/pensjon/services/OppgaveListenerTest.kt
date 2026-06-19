@@ -51,6 +51,26 @@ class OppgaveListenerTest {
     }
 
     @Test
+    fun `BehandleSedBeskrivelse for behandling av kravSED P2000 der bruker er over 75 år`() {
+        val oppgaveMelding = OppgaveMelding(
+            "321654",
+            P2000,
+            "654616",
+            "",
+            "1234567891234",
+            "BEHANDLE_SED",
+            "654654321",
+            MOTTATT,
+            null,
+            beskrivelse = "Det er mottatt søknad om alderspensjon. Automatisk opprettelse av krav feilet. Bruker er over 75 år. Krav må opprettes manuelt.")
+        val expected = """
+            Det er mottatt søknad om alderspensjon. Automatisk opprettelse av krav feilet. Bruker er over 75 år. Krav må opprettes manuelt.
+        """.trimIndent()
+
+        assertEquals(expected, oppgaveListener.behandleSedBeskrivelse(oppgaveMelding))
+    }
+
+    @Test
     fun `BehandleSedBeskrivelse for behandling av kravSED P2200 for autojournalføring filnavn er tomstreng`() {
         val oppgaveMelding = OppgaveMelding(null, P2200, "654616", "", "1234567891234", "BEHANDLE_SED", "654654321", MOTTATT, "")
         val expected = """

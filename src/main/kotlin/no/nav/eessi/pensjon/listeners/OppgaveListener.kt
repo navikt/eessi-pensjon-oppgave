@@ -117,6 +117,7 @@ class OppgaveListener(
         val behandlePBUC01eller03 = filnavn.isNullOrEmpty() && journalpostId != null && aktoerId != null
 
         return when {
+            oppgaveMelding.beskrivelse != null -> oppgaveMelding.beskrivelse
             behandlePBUC01eller03 -> "Det er mottatt $sedType - ${sedType?.beskrivelse}, med tilhørende RINA sakId: $rinaSakId"
             filnavn != null && journalpostId == null -> "Mottatt vedlegg: $filnavn tilhørende RINA sakId: $rinaSakId mangler filnavn eller er i et format som ikke kan journalføres. Be avsenderland/institusjon sende SED med vedlegg på nytt, i støttet filformat ( pdf, jpeg, jpg, png eller tiff ) og filnavn angitt"
             else -> throw RuntimeException("Ukjent eller manglende parametere under opprettelse av beskrivelse for behandle SED")

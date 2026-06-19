@@ -19,6 +19,7 @@ data class OppgaveMelding(
     val hendelseType: HendelseType,
     val filnavn: String? = null,
     val tema: String? = Tema.PENSJON.kode,
+    val beskrivelse: String? = null,
     val sendeAdvarsel: Boolean? = false,
     ) {
     override fun toString(): String {
