@@ -82,6 +82,10 @@ class OppgaveIntegrationTest {
         init {
             // mockserver krever at denne er satt under oppstart
             System.setProperty("mockServerport", mockServerPort.toString())
+            // Testene venter opptil 10-20s (Thread.sleep/latch.await) mellom Kafka-konsumering og det
+            // faktiske REST-kallet mot MockServer. Default socket-timeout (20000ms i 7.x) er for kort
+            // og gir "Channel handler removed before valid response has been received".
+            System.setProperty("mockserver.maxSocketTimeout", "60000")
             // Start Mockserver in memory
             mockServer = ClientAndServer.startClientAndServer(mockServerPort)
             mockServer.`when`(
@@ -93,6 +97,7 @@ class OppgaveIntegrationTest {
                     .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
                     .withStatusCode(HttpStatusCode.OK_200.code())
                     .withBody("")
+                    .withConnectionOptions(ConnectionOptions().withCloseSocket(true))
             )
         }
     }
@@ -115,7 +120,11 @@ class OppgaveIntegrationTest {
     fun after() {
         container.stop()
         listAppender.stop()
-        mockServer.reset()
+        // mockServer.reset() triggers a MockServer 7.x SocketConnectionException ("Channel handler
+        // removed before valid response has been received") when its internal control-plane client
+        // races with in-flight data-plane traffic on the shared event loop. clear(request()) achieves
+        // the same "remove all expectations/logs" effect without going through that code path.
+        mockServer.clear(request())
     }
 
     @Test
@@ -328,6 +337,7 @@ class OppgaveIntegrationTest {
                     .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
                     .withStatusCode(HttpStatusCode.OK_200.code())
                     .withBody(String(Files.readAllBytes(Paths.get(bucLocation))))
+                    .withConnectionOptions(ConnectionOptions().withCloseSocket(true))
             )
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.http.client.BufferingClientHttpRequestFactory
-import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 
 private var mockServerPort = PortFactory.findFreePort()
@@ -30,7 +30,9 @@ class RestTemplateConfig {
                         RequestResponseLoggerInterceptor(),
                 )
                 .build().apply {
-                    requestFactory = BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory())
+                    // HttpComponentsClientHttpRequestFactory handles MockServer's Netty keep-alive/chunked
+                    // responses more reliably than the JDK-based SimpleClientHttpRequestFactory.
+                    requestFactory = BufferingClientHttpRequestFactory(HttpComponentsClientHttpRequestFactory())
                 }
     }
 }

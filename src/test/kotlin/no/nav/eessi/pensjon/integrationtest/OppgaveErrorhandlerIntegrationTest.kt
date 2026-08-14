@@ -67,6 +67,9 @@ class OppgaveErrorhandlerIntegrationTest {
 
     init {
         if (System.getProperty("mockServerport") == null) {
+            // Se OppgaveIntegrationTest for begrunnelse: øker default socket-timeout (20000ms i mockserver 7.x)
+            // for å tåle testenes lange Thread.sleep/latch.await mellom Kafka-konsumering og REST-kallet.
+            System.setProperty("mockserver.maxSocketTimeout", "60000")
             mockServer = ClientAndServer(PortFactory.findFreePort()).also {
                 System.setProperty("mockServerport", it.localPort.toString())
 
@@ -79,6 +82,7 @@ class OppgaveErrorhandlerIntegrationTest {
                         .withHeader(Header("Content-Type", "application/json; charset=utf-8"))
                         .withStatusCode(HttpStatusCode.OK_200.code())
                         .withBody("")
+                        .withConnectionOptions(ConnectionOptions().withCloseSocket(true))
                 )
             }
         }
