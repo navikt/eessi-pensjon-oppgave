@@ -8,7 +8,7 @@ buildscript {
 
         // TEST
         ninjaMockkVersion = '5.0.1'
-        jacksonModuleKotlinVersion = '2.22.1'
+        jacksonModuleKotlinVersion = '2.22.2'
     }
 }
 
