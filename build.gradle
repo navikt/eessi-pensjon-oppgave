@@ -7,7 +7,6 @@ buildscript {
         tokenSupportVersion = '6.0.12'
 
         // TEST
-        ninjaMockkVersion = '5.0.1'
         jacksonModuleKotlinVersion = '2.22.2'
     }
 }
@@ -90,7 +89,7 @@ dependencies {
 
     testImplementation("org.mock-server:mockserver-netty:7.6.0")
     testImplementation("io.mockk:mockk:1.14.11")
-    testImplementation("com.ninja-squad:springmockk:$ninjaMockkVersion")
+    testImplementation("com.ninja-squad:springmockk:5.0.1")
 
     // Architecture tests
     testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
