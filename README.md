@@ -6,7 +6,7 @@ Opprette oppgave
 
 # Utvikling
 
-Kjør med java 1.8
+Bruk Java 25.
 
 ## Komme i gang
 
