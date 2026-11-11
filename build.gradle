@@ -7,7 +7,7 @@ buildscript {
         tokenSupportVersion = '7.0.1'
 
         // TEST
-        jacksonModuleKotlinVersion = '2.22.4'
+        jacksonModuleKotlinVersion = '2.23.0'
     }
 }
 
