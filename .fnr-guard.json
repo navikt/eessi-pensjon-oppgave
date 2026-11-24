@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/navikt/fnr-guard/main/schema/fnr-guard.schema.json",
+  "versjon": 1,
+  "roots": [
+    "."
+  ],
+  "include": [
+    "**"
+  ],
+  "exclude": [
+    {
+      "mønster": "**/.gradle/**",
+      "begrunnelse": "Mellomlagrede filer generert av Gradle"
+    },
+    {
+      "mønster": "**/build/**",
+      "begrunnelse": "Byggeresultat generert av prosjektet"
+    }
+  ],
+  "ekstraBlokkerteTyper": [],
+  "pdf": true,
+  "maksFilstørrelseKb": 2048,
+  "manglendeNode": "stopp"
+}
